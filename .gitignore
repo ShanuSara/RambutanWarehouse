@@ -1,0 +1,105 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Django migrations
+**/migrations/
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.db
+
+# Env files
+.env
+*.env
+
+# Database
+*.sqlite3
+
+# Django static and media files
+staticfiles/
+media/
+
+# Local environment settings
+/local_settings.py
+
+# Secret key files
+secrets.json
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+*.py[cod]
+*$py.class
+
+# Cache and backup files
+*.bak
+*.swp
+*.swo
+
+# Coverage reports
+htmlcov/
+.tox/
+.coverage
+coverage.xml
+*.cover
+.hypothesis/
+
+# Pytest 
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Virtual environment
+env/
+venv/
+ENV/
+ENV.bak/
+venv.bak/
+
+# VS Code settings
+.vscode/
+.history/
+
+# macOS
+.DS_Store
+
+# Thumbnails
+*_thumb.*
+
+# Translations
+*.mo
+
+# Ignore folder containing production settings
+production_settings/
+
+# Ignore pipenv, pipfile, and other dependency management files
+Pipfile
+Pipfile.lock
+poetry.lock
+__pycache__/
+
+# Ignore node_modules if using Node.js in the project
+node_modules/
+
+# Ignore yarn lock files if using Yarn
+yarn.lock
+
+# Ignore SASS-cache if using SASS in the project
+.sass-cache/
+
+# Ignore build files
+/build/
+/dist/
+/public/
+
+# Ignore JetBrains IDE settings
+.idea/
