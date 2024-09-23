@@ -104,17 +104,17 @@
     <nav class="sidebar">
         <h2>Menu</h2>
         <a href="{% url 'index' %}">Home</a>
-        <a href="{% url 'products_browse' %}">Shop</a>
+        <a href="{% url 'login' %}">Shop</a>
         <a href="{% url 'about' %}">About</a>
-        <a href="{% url 'blog' %}">Blog</a>
+        {% comment %} <a href="{% url 'blog' %}">Blog</a> {% endcomment %}
         <a href="{% url 'contact' %}" class="active">Contact</a>
     </nav>
 
     <main class="content">
         <h2>Contact Us</h2>
-        <p>Address: 198 West 21th Street, Suite 721 New York NY 10016</p>
-        <p>Phone: <a href="tel:+1235235598">+ 1235 2355 98</a></p>
-        <p>Email: <a href="mailto:info@yoursite.com">info@yoursite.com</a></p>
+        <p>Address: Rambutan Warehouse<br>Plot No. 45,<br>Spice Garden Road,<br>Kumbazha,Pathanamthitta,Pin- 689653<br>Kerala,India.</p>
+        <p>Phone: <a href="tel:+1235235598">+91 7078945522</a></p>
+        <p>Email: <a href="mailto:info@yoursite.com"> rambutanwarehouseinfo@gmail.com</a></p>
         
         <h3>Get in Touch</h3>
         <form>

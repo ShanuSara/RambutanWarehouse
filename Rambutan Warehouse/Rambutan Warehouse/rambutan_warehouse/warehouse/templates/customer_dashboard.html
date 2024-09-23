@@ -190,7 +190,7 @@
         </a>
       </li>
       <li>
-        <a href="{% url 'cart' %}">
+        <a href="{% url 'checkout' %}">
           <i class='bx bx-shopping-bag'></i>
           <span class="links_name">Cart</span>
         </a>
@@ -218,7 +218,7 @@
         {% if customer.profile_pic %}
         <img src="{{ customer.profile_pic.url }}" alt="">
         {% endif %}
-        <span class="admin_name">Hi {{ user.username }}</span>
+        <span class="admin_name">Hi {{ user.name }}</span>
         <i class='bx bx-chevron-down'></i>
         <ul class="dropdown-menu">
           <li><a href="{% url 'profile_view' %}">View Profile</a></li>
