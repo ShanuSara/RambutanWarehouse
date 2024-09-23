@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #68a942;
+            text-align: center;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        .form-group span {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .cart-total,
+        .payment-method {
+            margin-top: 20px;
+        }
+
+        .cart-total h3,
+        .payment-method h3 {
+            color: #68a942;
+            margin-bottom: 10px;
+        }
+
+        .cart-total .total-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+
+        .payment-method {
+            margin-top: 30px;
+        }
+
+        .payment-method input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .place-order {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .place-order button {
+            background-color: #68a942;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .place-order button:hover {
+            background-color: #5a963a;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .cart-total .total-line {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .cart-total .total-line div {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Billing Details</h2>
+        <form>
+            <div class="form-group">
+                <label for="first-name">First Name</label>
+                <input type="text" id="first-name" name="first-name" placeholder="First Name">
+            </div>
+
+            <div class="form-group">
+                <label for="last-name">Last Name</label>
+                <input type="text" id="last-name" name="last-name" placeholder="Last Name">
+            </div>
+
+            <div class="form-group">
+                <label for="country">Country</label>
+                <select id="country" name="country">
+                    <option value="france">France</option>
+                    <option value="us">United States</option>
+                    <option value="uk">United Kingdom</option>
+                    <!-- Add more countries as needed -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="street-address">Street Address</label>
+                <input type="text" id="street-address" name="street-address" placeholder="House number and street name">
+                <span>Apartment, suite, unit etc: (optional)</span>
+            </div>
+
+            <div class="form-group">
+                <label for="city">Town / City</label>
+                <input type="text" id="city" name="city" placeholder="Town / City">
+            </div>
+
+            <div class="form-group">
+                <label for="postcode">Postcode / ZIP *</label>
+                <input type="text" id="postcode" name="postcode" placeholder="Postcode / ZIP">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="text" id="phone" name="phone" placeholder="Phone">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="Email Address">
+            </div>
+        </form>
+
+        <div class="cart-total">
+            <h3>Cart Total</h3>
+            <div class="total-line">
+                <div>Subtotal</div>
+                <div>$20.60</div>
+            </div>
+            <div class="total-line">
+                <div>Delivery</div>
+                <div>$0.00</div>
+            </div>
+            <div class="total-line">
+                <div>Discount</div>
+                <div>$3.00</div>
+            </div>
+            <div class="total-line">
+                <div><strong>Total</strong></div>
+                <div><strong>$17.60</strong></div>
+            </div>
+        </div>
+
+        <div class="payment-method">
+            <h3>Payment Method</h3>
+            <div>
+                <input type="radio" id="bank-transfer" name="payment-method" value="bank-transfer">
+                <label for="bank-transfer">Direct Bank Transfer</label>
+            </div>
+            <div>
+                <input type="radio" id="check-payment" name="payment-method" value="check-payment">
+                <label for="check-payment">Check Payment</label>
+            </div>
+            <div>
+                <input type="radio" id="paypal" name="payment-method" value="paypal">
+                <label for="paypal">Paypal</label>
+            </div>
+            <div>
+                <input type="checkbox" id="terms" name="terms">
+                <label for="terms">I have read and accept the terms and conditions</label>
+            </div>
+        </div>
+
+        <div class="place-order">
+            <button type="submit">Place an order</button>
+        </div>
+    </div>
+
+</body>
+</html>

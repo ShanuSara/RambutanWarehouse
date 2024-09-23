@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rambutan Shop</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #e67e22;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        .top-bar {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .top-bar span {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+        }
+
+        .sidebar {
+            width: 20%;
+            background-color: #34495e;
+            padding: 20px;
+            color: white;
+        }
+
+        .sidebar h2 {
+            color: #ecf0f1;
+        }
+
+        .sidebar a {
+            color: #bdc3c7;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .sidebar a:hover {
+            color: #ecf0f1;
+        }
+
+        .main-content {
+            width: 80%;
+            padding: 20px;
+            background-color: #fff;
+        }
+
+        .main-content h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .product-listing {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .product {
+            width: 23%;
+            margin: 10px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .product img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .product h3 {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .product p {
+            font-size: 16px;
+            color: #e74c3c;
+            margin: 5px 0;
+        }
+
+        .product .price {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .product .cart-buttons {
+            margin-top: 10px;
+        }
+
+        .cart-buttons button {
+            background-color: #e67e22;
+            border: none;
+            color: white;
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .cart-buttons button:hover {
+            background-color: #d35400;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #333;
+            color: white;
+            margin-top: 20px;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Rambutan Shop</h1>
+</header>
+
+<div class="top-bar">
+    <span>+1235 2355 98 | youremail@email.com</span>
+    <span>Fast Delivery & Free Returns</span>
+</div>
+
+<div class="container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <h2>Categories</h2>
+        <a href="#">All Products</a>
+        <a href="#">Fresh Rambutans</a>
+        <a href="#">Organic Rambutans</a>
+        <a href="#">Juices & Preserves</a>
+        <h2>Quick Links</h2>
+        <a href="{% url 'customer_dashboard' %}">Dashboard</a>
+        <a href="{% url 'wishlist' %}">Wishlist</a>
+        <a href="{% url 'cart' %}">Cart</a>
+        <a href="{% url 'checkout' %}">Checkout</a>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <h2>Rambutan Products</h2>
+        <div class="product-listing">
+            {% for product in products %}
+            <div class="product">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                <h3>{{ product.name }}</h3>
+                <p class="price">${{ product.price }} / kg</p>
+                <div class="cart-buttons">
+                    <button>Add to Cart</button>
+                    <button>Add to Wishlist</button>
+                </div>
+            </div>
+            {% empty %}
+            <p>No products available at the moment.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2024 Rambutan Shop. All Rights Reserved.</p>
+    <a href="#">Privacy Policy</a> | <a href="#">Terms & Conditions</a> | <a href="#">Contact Us</a>
+</footer>
+
+</body>
+</html>
