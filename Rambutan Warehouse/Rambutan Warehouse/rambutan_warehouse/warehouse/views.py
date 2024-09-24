@@ -1,9 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
-from .forms import CustomerDetailsForm, FarmerDetailsForm,FarmerDetails,RambutanPostForm,RegisterUserForm
+from .forms import CustomerDetailsForm, FarmerDetailsForm,FarmerDetails,RambutanPostForm,RegisterUserForm, WishlistForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import CustomerDetails, FarmerDetails, RambutanPost,Registeruser
+from .models import CustomerDetails, FarmerDetails, RambutanPost,Registeruser, Wishlist
 from django.contrib import messages
 from django.shortcuts import render, redirect,HttpResponse
 from django.contrib.auth.hashers import make_password
@@ -22,7 +22,8 @@ def farmer_details(request):
         form = FarmerDetailsForm(request.POST, request.FILES, instance=farmer_details)
         if form.is_valid():
             farmer_profile = form.save()
-            farmer_profile.user = request.user  
+            farmer_profile.user = request.user
+             
             farmer_profile.save()
             messages.success(request, "Your profile has been updated successfully." if farmer_details else "Profile created successfully.")
             return redirect('farmer_dashboard')  
@@ -74,27 +75,35 @@ def index(request):
 def about(request):
     return render(request,'about.html')
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.hashers import make_password
+from .forms import RegisterUserForm
+from .models import Registeruser
+
 def register(request):
     if request.method == 'POST':
         form = RegisterUserForm(request.POST)
         if form.is_valid():
-           
+            # Get the email from the form
             email = form.cleaned_data.get('email')
             
+            # Check if the email is already registered
             if Registeruser.objects.filter(email=email).exists():
                 print('user already existes')
                 messages.info(request, "Email is already registered. Please log in.")
-                return redirect('login')  
+                return redirect('login')  # Redirect to the login page
             
+            # Create a new user instance without saving
             user = form.save(commit=False)
-           
+            # Hash the password and set it
             user.password = make_password(form.cleaned_data.get('password'))
-           
+            # Save the new user
             user.save()
             
             messages.success(request, "Registration successful! You can now log in.")
             print('redirect to login')
-            return redirect('login')  
+            return redirect('login')  # Redirect to the login page
         else:
             print(form.errors)
             print('invalid data')
@@ -155,7 +164,7 @@ def post_rambutan(request):
 
     if request.method == 'POST':
         print(request.POST)
-        form = RambutanPostForm(request.POST)
+        form = RambutanPostForm(request.POST,request.FILES)
         if form.is_valid():
             rambutan_post = form.save(commit=False)
             rambutan_post.farmer = farmer_details  
@@ -211,11 +220,23 @@ def products_browse(request):
 
 @login_required
 def wishlist(request):
-    return render(request, 'wishlist.html')
+    # wishlist_items = Wishlist.objects.filter(user=request.user)
+    
+    wishlist_items = Wishlist.objects.filter(user=request.user).select_related('rambutan_post')
 
-@login_required
-def product_single(request):
-    return render(request, 'product-single.html')
+    wishlists = RambutanPost.objects.filter(id__in=[item.rambutan_post_id for item in wishlist_items])
+
+    # wishlists = []
+    # for item in wishlist_items:
+    #     print(item.rambutan_post_id)
+    #     wishlists.append(RambutanPost.objects.filter(id=item.rambutan_post_id))
+
+    # print(wishlists)
+
+    # print(wishlist_items)
+
+    return render(request, 'wishlist.html', {'wishlist_items': wishlists})
+
 
 @login_required
 def cart(request):
@@ -228,25 +249,6 @@ def checkout(request):
 @login_required
 def blog(request):
     return render(request, 'blog.html')
-
-
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .models import CustomerDetails
-
-@login_required
-def profile_view(request):
-    # Try to get the customer details for the logged-in user
-    try:
-        customer_details = request.user.customerdetails
-    except CustomerDetails.DoesNotExist:
-        # If the user does not have customer details, redirect to the form
-        return redirect('customer_details')  # Make sure to define this URL in your urls.py
-    context = {
-        'customer_details': customer_details,
-    }
-    # If customer details exist, render the profile view
-    return render(request, 'customer_profile.html', context)
     
 
 @login_required
@@ -271,5 +273,212 @@ def customer_details(request):
 
         return redirect('profile_view')  
 
-    return render(request, 'customer_details.html')  
+    return render(request, 'customer_details.html') 
 
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from .models import RambutanPost, Wishlist
+
+@login_required
+def add_to_wishlist(request):
+    if request.method == 'POST':
+        print(request.POST)
+        # product_name = request.POST.get('product_name')  # Get the product name from the form
+        # product = get_object_or_404(RambutanPost, name=product_name)  # Fetch the product
+
+        product_id = request.POST.get('product_name')
+
+# Check if product_id is not None before converting
+        if product_id:
+            
+            product_id = int(product_id) 
+            # Convert the string to an integer
+            
+              
+ # Get the product name from the form
+        product = get_object_or_404(RambutanPost, id=product_id)  # Fetch the product
+
+        wishlist_item, created = Wishlist.objects.get_or_create(
+            user=request.user,
+            rambutan_post=product  # Store the product name in wishlist
+        )
+        if created:
+            messages.success(request, 'Product added to wishlist.')
+        else:
+            messages.info(request, 'Product is already in your wishlist.')
+
+        return redirect('wishlist')  # Redirect to the wishlist page
+
+    return redirect('home')  # Fallback 
+
+
+@login_required
+def product_single(request):
+    return render(request, 'product-single.html')
+
+
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import CustomerDetails
+
+@login_required
+def profile_view(request):
+    # Try to get the customer details for the logged-in user
+    try:
+        customer_details = request.user.customerdetails
+    except CustomerDetails.DoesNotExist:
+        # If the user does not have customer details, redirect to the form
+        return redirect('customer_details')  # Make sure to define this URL in your urls.py
+    context = {
+        'customer_details': customer_details,
+    }
+    # If customer details exist, render the profile view
+    return render(request, 'customer_profile.html', context)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from datetime import datetime
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponseBadRequest
+from django.contrib.auth.decorators import login_required
+from .forms import RambutanPostForm
+from .models import RambutanPost
+
+@login_required
+def update_post(request):
+    # Get the `created_at` from the query parameter
+    created_at_str = request.GET.get('created_at')
+    
+    # Try parsing the created_at using the correct format for "Sept. 20, 2024, 3:49 p.m."
+    try:
+        created_at = datetime.strptime(created_at_str, '%b. %d, %Y, %I:%M %p')
+    except (ValueError, TypeError):
+        return HttpResponseBadRequest("Invalid date format. It must be 'MMM. DD, YYYY, H:MM AM/PM'")
+
+    # Get the post for the current user based on the parsed `created_at`
+    post = get_object_or_404(RambutanPost, user=request.user, created_at=created_at)
+
+    if request.method == 'POST':
+        form = RambutanPostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            return redirect('view_posts')  # Redirect to the posts view after updating
+    else:
+        form = RambutanPostForm(instance=post)
+
+    return render(request, 'update_post.html', {'form': form})
+
+
+from datetime import datetime
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponseBadRequest
+from django.contrib.auth.decorators import login_required
+from .models import RambutanPost
+
+from datetime import datetime
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponseBadRequest
+from django.contrib.auth.decorators import login_required
+from .models import RambutanPost
+
+@login_required
+def delete_post(request):
+    # Get the `created_at` from the query parameter
+    created_at_str = request.GET.get('created_at')
+    
+    # Try parsing the `created_at` using the correct format for "Sept. 20, 2024, 3:49 p.m."
+    try:
+        created_at = datetime.strptime(created_at_str, '%b. %d, %Y, %I:%M %p')
+    except (ValueError, TypeError):
+        return HttpResponseBadRequest("Invalid date format. It must be 'MMM. DD, YYYY, H:MM AM/PM'")
+
+    # Get the post for the current user based on the parsed `created_at`
+    post = get_object_or_404(RambutanPost, user=request.user, created_at=created_at)
+
+    if request.method == 'POST':
+        post.delete()
+        return redirect('view_posts')  # Redirect to the list of posts after deletion
+
+    return render(request, 'confirm_delete.html', {'post': post})
+
+from datetime import datetime
+
+def update_post(request):
+    created_at = request.GET.get('created_at')
+    try:
+        # Try parsing the date in the expected format
+        created_at = datetime.strptime(created_at, '%b. %d, %Y, %I:%M %p')
+        # Further logic to handle post update
+    except ValueError:
+        return HttpResponseBadRequest('Invalid date format. It must be "MMM. DD, YYYY, H:MM AM/PM"')
+
+''' 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import RambutanPost, Wishlist
+from .forms import WishlistForm
+
+@login_required
+def add_to_wishlist(request, product_name):
+    # Fetch the product by name instead of id
+    product = get_object_or_404(RambutanPost, name=product_name)
+    
+    if request.method == 'POST':
+        # Form submission to add product to wishlist
+        wishlist_item, created = Wishlist.objects.get_or_create(
+            user=request.user,
+            rambutan_post=product
+        )
+        if created:
+            messages.success(request, 'Product added to wishlist.')
+        else:
+            messages.info(request, 'Product is already in your wishlist.')
+        return redirect('wishlist')  # Redirect to the wishlist page
+
+    return redirect('shop')  # Redirect back to the shopping page if GET request
+'''

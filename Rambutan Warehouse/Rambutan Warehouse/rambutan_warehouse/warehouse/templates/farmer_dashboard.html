@@ -1,9 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 
 <head>
   <meta charset="UTF-8">
-  <title>Farmers Dashboard | ReArt Vault</title>
+  <title>Farmers Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
   <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,95 +17,75 @@
     /* General Styling */
     body {
       font-family: 'Roboto', sans-serif;
-      background-color: #f7f9f9;
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+      background-color: #f0f4f3;
     }
 
-    /* Sidebar Styling */
     .sidebar {
-      background-color: #2e7d32;
-      height: 100vh;
+      background-color: #4CAF50;
+      height: 100%;
       width: 250px;
       position: fixed;
       top: 0;
       left: 0;
       padding-top: 20px;
-      box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
-      transition: width 0.5s ease;
-    }
-
-    .sidebar:hover {
-      width: 270px;
     }
 
     .sidebar .logo-details {
       text-align: center;
-      margin-bottom: 40px;
+      margin-bottom: 30px;
     }
 
     .sidebar .logo_name {
       font-family: 'Fredoka One', cursive;
-      font-size: 32px;
+      font-size: 30px;
       color: white;
     }
 
     .sidebar ul {
       list-style: none;
       padding: 0;
-      margin: 0;
     }
 
     .sidebar ul li {
-      margin: 20px 0;
+      padding: 15px;
+      text-align: center;
     }
 
     .sidebar ul li a {
-      display: flex;
-      align-items: center;
-      padding: 15px 25px;
+      text-decoration: none;
       font-size: 18px;
       color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      transition: background-color 0.3s ease, padding-left 0.3s ease;
+      display: block;
+      padding: 10px;
     }
 
     .sidebar ul li a:hover,
     .sidebar ul li a.active {
       background-color: #388e3c;
-      padding-left: 35px;
+      border-radius: 8px;
     }
 
-    .sidebar ul li a i {
-      margin-right: 15px;
-    }
-
-    /* Home Section Styling */
     .home-section {
       position: relative;
       min-height: 100vh;
-      background-color: #f0f4f3;
+      background-color: #fff;
       margin-left: 250px;
-      padding: 40px;
+      padding: 20px;
       transition: all 0.5s ease;
     }
 
-    /* Navigation Bar Styling */
     .home-section nav {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      background-color: #66BB6A;
       padding: 20px;
+      background-color: #66BB6A;
       color: white;
-      border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
     }
 
     .home-section nav .dashboard {
-      font-size: 28px;
+      font-size: 24px;
       font-weight: 700;
     }
 
@@ -114,13 +95,9 @@
     }
 
     .home-section nav .profile-details img {
-      width: 45px;
+      width: 40px;
       border-radius: 50%;
-      margin-right: 10px;
-    }
-
-    .home-section nav .profile-details span {
-      font-size: 20px;
+      margin-right: 15px;
     }
 
     /* Profile View Styling */
@@ -129,47 +106,39 @@
     }
 
     .profile-view h2 {
-      font-size: 26px;
+      font-size: 24px;
       color: #2e7d32;
-      margin-bottom: 15px;
-      font-weight: bold;
+      margin-bottom: 20px;
     }
 
     .profile-view .info {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .profile-view .info div {
       font-size: 18px;
       color: #333;
-      padding: 10px 0;
     }
 
-    /* Quick Actions Styling */
     .quick-actions {
       display: flex;
-      justify-content: space-between;
-      margin-top: 40px;
+      justify-content: space-around;
+      margin-top: 30px;
     }
 
     .quick-actions a {
-      display: block;
-      text-align: center;
-      padding: 15px 25px;
+      padding: 12px 20px;
       background-color: #4CAF50;
       color: white;
       text-decoration: none;
-      border-radius: 8px;
+      border-radius: 5px;
       font-size: 18px;
-      transition: background-color 0.3s ease, transform 0.2s ease;
     }
 
     .quick-actions a:hover {
-      background-color: #388e3c;
-      transform: translateY(-5px);
+      background-color: #2e7d32;
     }
   </style>
 </head>
@@ -226,8 +195,8 @@
         <div class="info">
           <div><strong>Name:</strong> {{ farmer.name }}</div>
           <div><strong>Address:</strong> {{ farmer.address }}</div>
-          <div><strong>Email:</strong> {{ farmer.email }}</div>
-          <div><strong>Phone Number:</strong> {{ farmer.phone_number }}</div>
+          <div><strong>Email:</strong> {{ user.username }}</div>
+          <div><strong>Phone Number:</strong> {{ farmer.contact }}</div> 
           <div><strong>Place:</strong> {{ farmer.place }}</div>
         </div>
       </div>

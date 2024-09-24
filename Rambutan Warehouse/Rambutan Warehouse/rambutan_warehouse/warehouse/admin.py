@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import CustomerDetails, Registeruser,FarmerDetails, TreeVariety
+from .models import CustomerDetails, Registeruser,FarmerDetails, TreeVariety , Wishlist
 
 class RegisteruserAdmin(admin.ModelAdmin):
     list_display = ('name', 'username', 'contact', 'role', 'place')  
@@ -44,3 +44,10 @@ class RambutanPostAdmin(admin.ModelAdmin):
     image_display.short_description = 'Image'
 
 admin.site.register(RambutanPost, RambutanPostAdmin)
+
+class WishlistAdmin(admin.ModelAdmin):
+    list_display = ('user', 'rambutan_post', 'added_at')  # Display these fields in the list view
+    search_fields = ('user__username', 'rambutan_post__name')  # Enable searching by username and product name
+    list_filter = ('user',)  # Optional: filter by user
+
+admin.site.register(Wishlist, WishlistAdmin)

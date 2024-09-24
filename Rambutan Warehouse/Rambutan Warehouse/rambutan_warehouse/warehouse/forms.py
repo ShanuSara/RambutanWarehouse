@@ -1,7 +1,7 @@
 import re
 from django import forms
-from .models import CustomerDetails, FarmerDetails, TreeVariety,RambutanPost,Registeruser
-
+from .models import CustomerDetails, FarmerDetails, TreeVariety,RambutanPost,Registeruser, Wishlist
+from django.contrib.auth.password_validation import validate_password
 
 class RegisterUserForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
@@ -14,8 +14,7 @@ class FarmerDetailsForm(forms.ModelForm):
     class Meta:
         model = FarmerDetails
         fields = ['user', 'address', 'mobile_number', 'location', 'aadhar_number', 
-                  'bank_name', 'account_number', 'ifsc_code', 'tree_variety', 
-                  'total_trees', 'total_amount']
+                  'bank_name', 'account_number', 'ifsc_code','tree_variety','total_trees','total_amount']
 
         widgets = {
             'address': forms.Textarea(attrs={'rows': 3}),
@@ -50,14 +49,18 @@ class TreeVarietyForm(forms.ModelForm):
 class RambutanPostForm(forms.ModelForm):
     class Meta:
         model = RambutanPost
-        fields = ['farmer', 'name', 'variety', 'quantity', 'price_per_kg', 'image', 'description']
+        fields = [ 'name', 'variety', 'quantity', 'price_per_kg', 'image', 'description']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
             'quantity': forms.NumberInput(attrs={'min': 1}),
-            'price_per_kg': forms.NumberInput(attrs={'step': 0.01}),
+            'price_per_kg': forms.NumberInput(attrs={'min':0 , 'step': 0.01}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['image'].required = False  # Make image field optional
 
+class WishlistForm(forms.ModelForm):
+    class Meta:
+        model = Wishlist
+        fields = ['rambutan_post'] 

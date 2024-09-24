@@ -214,9 +214,18 @@
         <ul>
           {% for post in posts %}
           <li>
-            <strong>Variety:</strong> {{ post.variety }}<br>
-            <strong>Quantity:</strong> {{ post.quantity }} kg<br>
-            <strong>Date:</strong> {{ post.date_posted|date:"Y-m-d" }}
+            <strong>Variety: </strong> {{ post.variety }}<br>
+            <strong>Quantity: </strong> {{ post.quantity }} kg<br>
+            <strong>price_per_kg: </strong>{{ post.price_per_kg }}<br>
+            <strong>description: </strong>{{ post.description}}<br>
+            {% comment %} <strong>Date: </strong> {{ post.created_at }}<br> {% endcomment %}
+            
+            {% comment %} <!-- Add Update and Delete Links Here -->
+            <button><a href="{% url 'update_post' %}?created_at={{ post.created_at|date:'Y-m-d\TH:i:s' }}">Update</a></button>
+            <form action="{% url 'delete_post' %}?created_at={{ post.created_at|date:'Y-m-d\TH:i:s' }}" method="POST" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit">Delete</button>
+          </form> {% endcomment %}
           </li>
           {% empty %}
           <li>No posts found. Add your first rambutan post.</li>

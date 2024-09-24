@@ -10,28 +10,27 @@
   <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Google Fonts -->
+  <!-- Font Links -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
 
   <style>
-    /* Body styling */
+    /* Main style */
     body {
       font-family: 'Roboto', sans-serif;
-      background: linear-gradient(135deg, #f0f4f3, #ffffff);
+      background-color: #f7f7f7;
       margin: 0;
       padding: 0;
-      display: flex;
     }
 
     .sidebar {
       width: 250px;
       height: 100%;
-      background: linear-gradient(135deg, #43A047, #388E3C);
+      background: #4CAF50;
       position: fixed;
       left: 0;
       top: 0;
-      transition: width 0.5s;
+      transition: all 0.5s ease;
     }
 
     .sidebar .logo-details {
@@ -39,7 +38,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-top: 20px;
     }
 
     .sidebar .logo_name {
@@ -65,13 +63,12 @@
       padding: 12px 30px;
       display: flex;
       align-items: center;
-      transition: background-color 0.3s ease;
     }
 
     .sidebar ul li a.active,
     .sidebar ul li a:hover {
-      background-color: #2E7D32;
-      border-radius: 10px;
+      background-color: #45A049;
+      border-radius: 5px;
     }
 
     .sidebar ul li a .bx {
@@ -79,27 +76,32 @@
       font-size: 24px;
     }
 
+    .sidebar .log_out {
+      margin-top: 10px;
+    }
+
     .home-section {
+    
       width: calc(100% - 250px);
       margin-left: 250px;
       padding: 20px;
       background-color: #f7f7f7;
-      transition: margin-left 0.5s;
     }
 
     nav {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background-color: #43A047;
-      padding: 15px 25px;
+      background-color: #4CAF50;
+      padding: 15px;
       border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       color: white;
     }
 
     nav .dashboard {
-      font-size: 26px;
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
       font-family: 'Fredoka One', cursive;
     }
 
@@ -109,89 +111,64 @@
     }
 
     nav .profile-details img {
-      width: 40px;
-      height: 40px;
+      width: 35px;
+      height: 35px;
       border-radius: 50%;
       margin-right: 10px;
-      border: 2px solid white;
     }
 
-    /* Home content and form section */
     .home-content {
-      background-color: #ffffff;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      max-width: 900px;
-      margin: 30px auto;
-    }
-
-    .form-section h2 {
-      font-size: 28px;
-      margin-bottom: 20px;
-      color: #43A047;
-      font-family: 'Fredoka One', cursive;
-      text-align: center;
-    }
-
-    .form-container {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-top: 30px;
+      height: calc(80vh - 60px);
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-section h2 {
+      width: 100%;
+      max-width: 500px;
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #4CAF50;
+      font-family: 'Fredoka One', cursive;
     }
 
     .input-group {
       margin-bottom: 15px;
-      width: 100%;
     }
 
     .input-group label {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 5px;
       font-size: 18px;
       color: #333;
-      font-weight: 500;
     }
 
     .input-group input,
     .input-group textarea {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       font-size: 16px;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      transition: border-color 0.3s ease;
-    }
-
-    .input-group input:focus,
-    .input-group textarea:focus {
-      border-color: #43A047;
+      border-radius: 5px;
     }
 
     .submit-button {
-      background-color: #43A047;
+      background-color: #4CAF50;
       color: white;
-      padding: 12px 25px;
+      padding: 10px 20px;
       border: none;
-      border-radius: 8px;
+      border-radius: 5px;
       cursor: pointer;
       font-size: 18px;
-      margin: 20px 0;
-      transition: background-color 0.3s ease;
-      display: block;
-      width: 100%;
-      text-align: center;
     }
 
     .submit-button:hover {
-      background-color: #388E3C;
-    }
-
-    /* Align the form to be centered and responsive */
-    form {
-      max-width: 600px;
-      margin: 0 auto;
+      background-color: #45A049;
     }
   </style>
 </head>
@@ -199,7 +176,7 @@
 <body>
   <div class="sidebar">
     <div class="logo-details">
-      <span class="logo_name">Farmers Hub</span>
+      <span class="logo_name">Rambutan Warehouse</span>
     </div>
     <ul class="nav-links">
       <li>
@@ -236,7 +213,7 @@
         {% if user.profile_pic %}
         <img src="{{ user.profile_pic.url }}" alt="Profile">
         {% endif %}
-        <span>Hi, {{ user.username }}</span>
+        <span>Hi, {{ user.name }}</span>
         <i class='bx bx-chevron-down'></i>
       </div>
     </nav>
@@ -244,13 +221,11 @@
     <div class="home-content">
       <div class="form-section">
         <h2>Post Your Rambutan</h2>
-        <div class="form-container">
-          <form method="POST" action="{% url 'post_rambutan' %}">
-            {% csrf_token %}
-            {{ form.as_p }} <!-- Dynamically render the form fields -->
-            <button type="submit" class="submit-button">Post</button>
-          </form>
-        </div>
+        <form method="POST" enctype="multipart/form-data" action="{% url 'post_rambutan' %}">
+          {% csrf_token %}
+          {{ form.as_p }}  <!-- Dynamically render the form fields -->
+          <button type="submit" class="submit-button">Post</button>
+        </form>
       </div>
     </div>
   </section>

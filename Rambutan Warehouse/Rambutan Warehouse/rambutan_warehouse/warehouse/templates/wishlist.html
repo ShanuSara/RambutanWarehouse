@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rambutan Wishlist</title>
+    <title>Wishlist</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -83,19 +83,20 @@
             color: #e3342f;
             cursor: pointer;
         }
+        .product-remove span:hover {
+            color: #c82333;
+        }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>Rambutan Store</h2>
+        <h2>Rambutan Warehouse</h2>
         <a href="{% url 'customer_dashboard' %}">Home</a>
         <a href="{% url 'products_browse' %}">Shop</a>
         <a href="{% url 'wishlist' %}" class="active">Wishlist</a>
-        <a href="{% url 'cart' %}">Cart</a>
-        <a href="{% url 'checkout' %}">Checkout</a>
+        {% comment %} <a href="{% url 'cart' %}">Cart</a> {% endcomment %}
         <a href="{% url 'about' %}">About</a>
-        <a href="{% url 'blog' %}">Blog</a>
         <a href="{% url 'contact' %}">Contact</a>
     </div>
 
@@ -105,6 +106,7 @@
             <thead>
                 <tr>
                     <th>&nbsp;</th>
+                    <th>Image</th>
                     <th>Product Name</th>
                     <th>Description</th>
                     <th>Price</th>
@@ -112,41 +114,45 @@
                 </tr>
             </thead>
             <tbody>
+                {% for item in wishlist_items %}
                 <tr>
-                    <td class="product-remove"><span>&times;</span></td>
-                    <td>Rambutan (Single)</td>
-                    <td>Fresh, juicy rambutan.</td>
-                    <td>$1.00</td>
-                    <td><a href="cart.html" class="btn">Add to Cart</a></td>
+                    <!-- Product remove button -->
+                    <td class="product-remove">
+                        <form method="POST" action="{% url 'remove_from_wishlist' item.rambutan_post.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn" style="background-color:transparent; border:none; cursor:pointer;">
+                                <span>&times;</span>
+                            </button>
+                        </form>
+                    </td>
+                    
+                    <!-- Product image -->
+                    <td>
+                        {% if item.rambutan_post.image %}
+                            <img src="/media/{{ item.rambutan_post.image }}" alt="{{ item.rambutan_post.name }}" width="100px">
+                        {% else %}
+                            <img src="{% static 'images/placeholder.png' %}" alt="No Image" width="100px">
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Product details -->
+                    <td>{{ item.rambutan_post.name }}</td>
+                    <td>{{ item.rambutan_post.description }}</td>
+                    <td>Rs {{ item.rambutan_post.price }}</td>
+                    
+                    <!-- Add to cart button -->
+                    <td>
+                        <form method="POST" action="{% url 'add_to_cart' item.rambutan_post.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn">Add to Cart</button>
+                        </form>
+                    </td>
                 </tr>
+                {% empty %}
                 <tr>
-                    <td class="product-remove"><span>&times;</span></td>
-                    <td>Rambutan (Pack of 5)</td>
-                    <td>Enjoy five pieces of fresh rambutan.</td>
-                    <td>$4.50</td>
-                    <td><a href="cart.html" class="btn">Add to Cart</a></td>
+                    <td colspan="6">Your wishlist is empty.</td>
                 </tr>
-                <tr>
-                    <td class="product-remove"><span>&times;</span></td>
-                    <td>Rambutan (Pack of 10)</td>
-                    <td>Sweet and tangy rambutan, 10 pieces.</td>
-                    <td>$8.00</td>
-                    <td><a href="cart.html" class="btn">Add to Cart</a></td>
-                </tr>
-                <tr>
-                    <td class="product-remove"><span>&times;</span></td>
-                    <td>Rambutan Jam</td>
-                    <td>Homemade rambutan jam, perfect for spreading.</td>
-                    <td>$6.50</td>
-                    <td><a href="cart.html" class="btn">Add to Cart</a></td>
-                </tr>
-                <tr>
-                    <td class="product-remove"><span>&times;</span></td>
-                    <td>Rambutan Juice</td>
-                    <td>Freshly squeezed rambutan juice.</td>
-                    <td>$3.00</td>
-                    <td><a href="cart.html" class="btn">Add to Cart</a></td>
-                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>

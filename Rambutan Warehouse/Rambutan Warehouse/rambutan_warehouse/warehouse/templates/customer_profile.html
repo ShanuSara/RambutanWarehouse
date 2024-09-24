@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Profile</title>
+    <title>Profile</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -137,44 +137,44 @@
 <div class="sidebar">
     <ul>
         <li><a href="{% url 'customer_dashboard' %}">Dashboard</a></li>
-        <li><a href="{% url 'cart' %}">Cart</a></li>
+        {% comment %} <li><a href="{% url 'cart' %}">Cart</a></li> {% endcomment %}
         <li><a href="{% url 'products_browse' %}">Browse Products</a></li>
         <li><a href="{% url 'wishlist' %}">Wishlist</a></li>
         <li><a href="{% url 'logout' %}">Logout</a></li>
     </ul>
     <footer>
-        <p>&copy; 2024 Customer Management. All Rights Reserved.</p>
+        <p>&copy; 2024 Rambutan Warehouse. All Rights Reserved.</p>
     </footer>
 </div>
 
 <!-- Profile Container -->
 <div class="profile-container">
     <div class="profile-box">
-        <h1>Customer Profile</h1>
+        <h1>Profile</h1>
 
         <div class="profile-details">
             <h3>Personal Information</h3>
             {% csrf_token %}
             <div class="profile-info">
                 <div>
-                    <p><span>Username:</span> {{ customer.user.username }}</p>
-                    <p><span>Email:</span> {{ customer.user.email }}</p>
-                    <p><span>Address:</span> {{ customer.address }}</p>
+                    <p><span>Name:</span> {{ user.name }}</p>
+                    <p><span>Email:</span> {{ user.username }}</p>
+                    <p><span>Address:</span> {{ user.address }}</p>
                 </div>
 
                 <div>
-                    <p><span>Mobile Number:</span> {{ customer.mobile_number }}</p>
-                    <p><span>Location:</span> {{ customer.location }}</p>
+                    <p><span>Mobile Number:</span> {{ customer_details.mobile_number }}</p>
+                    <p><span>Location:</span> {{ customer_details.location }}</p>
                 </div>
             </div>
 
             <div class="total-section">
-                <p><strong>Total Orders:</strong> {{ customer.total_orders }}</p>
-                <p><strong>Total Amount Spent:</strong> ${{ customer.total_amount_spent }}</p>
+              <!--  <p><strong>Total Orders:</strong> {{ customer.total_orders }}</p>
+                <p><strong>Total Amount Spent:</strong> ${{ customer.total_amount_spent }}</p> 
             </div>
         </div>
     </div>
-</div>
+</div>  -->
 
 </body>
 </html>

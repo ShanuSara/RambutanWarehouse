@@ -4,7 +4,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Customer Dashboard | ReArt Vault</title>
+  <title>Dashboard</title>
   <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
   <!-- Boxicons CDN Link -->
@@ -162,7 +162,7 @@
 <body>
   <div class="sidebar">
     <div class="logo-details">
-      <span class="logo_name">Customer Dashboard</span>
+      <span class="logo_name">Rambutan Warehouse</span>
     </div>
     <ul class="nav-links">
       <li>
@@ -189,12 +189,12 @@
           <span class="links_name">Wishlisted Items</span>
         </a>
       </li>
-      <li>
-        <a href="{% url 'checkout' %}">
+      {% comment %} <li>
+        <a href="{% url 'cart' %}">
           <i class='bx bx-shopping-bag'></i>
           <span class="links_name">Cart</span>
         </a>
-      </li>
+      </li> {% endcomment %}
       <li class="log_out">
         <a href="{% url 'logout' %}">
           <i class='bx bx-log-out'></i>
@@ -232,20 +232,9 @@
       <!-- Main content for customer dashboard -->
       <div class="form-section">
         <h2>Manage Your Account</h2>
-        <p>Welcome to your dashboard, {{ user.username }}! Here you can view and manage your profile, browse products, and keep track of your wishlisted and carted items.</p>
+        <p>Welcome to your dashboard, {{ user.name }}! Here you can view and manage your profile, browse products, and keep track of your wishlisted and carted items.</p>
       </div>
-
-      <!-- Example: Products List -->
-      <div class="form-section">
-        <h2>Your Cart</h2>
-        <ul>
-          {% for product in cart %}
-          <li>{{ product.name }} - {{ product.quantity }} x {{ product.price }}</li>
-          {% empty %}
-          <li>Your cart is empty.</li>
-          {% endfor %}
-        </ul>
-      </div>
+    
     </div>
   </section>
 

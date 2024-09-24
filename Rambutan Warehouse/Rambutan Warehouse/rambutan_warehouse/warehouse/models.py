@@ -86,3 +86,11 @@ class RambutanPost(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.variety}) - {self.quantity}kg"
+
+class Wishlist(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wishlists')
+    rambutan_post = models.ForeignKey(RambutanPost, on_delete=models.CASCADE, related_name='wishlists')
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'rambutan_post')

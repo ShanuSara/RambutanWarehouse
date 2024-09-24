@@ -74,13 +74,11 @@
         }
 
         .product-listing {
-            display: flex;
-            flex-wrap: wrap;
+            display: block; /* Change to block for vertical display */
         }
 
         .product {
-            width: 23%;
-            margin: 10px;
+            margin: 10px 0; /* Vertical spacing */
             border: 1px solid #ddd;
             padding: 10px;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
@@ -149,27 +147,28 @@
 <body>
 
 <header>
-    <h1>Rambutan Shop</h1>
+    <h1>Rambutan Warehouse</h1>
 </header>
 
 <div class="top-bar">
-    <span>+1235 2355 98 | youremail@email.com</span>
+    <span>+91 7078945522 | rambutanwarehouse@gmail.com</span>
     <span>Fast Delivery & Free Returns</span>
 </div>
 
 <div class="container">
     <!-- Sidebar Navigation -->
     <div class="sidebar">
-        <h2>Categories</h2>
+       <!-- <h2>Categories</h2>
         <a href="#">All Products</a>
         <a href="#">Fresh Rambutans</a>
         <a href="#">Organic Rambutans</a>
-        <a href="#">Juices & Preserves</a>
+        <a href="#">Juices & Preserves</a> -->
         <h2>Quick Links</h2>
         <a href="{% url 'customer_dashboard' %}">Dashboard</a>
         <a href="{% url 'wishlist' %}">Wishlist</a>
-        <a href="{% url 'cart' %}">Cart</a>
-        <a href="{% url 'checkout' %}">Checkout</a>
+        <a href="#">Cart</a>
+        <a href="{% url 'index' %}">Logout</a>
+        {% comment %} <a href="{% url 'checkout' %}">Checkout</a> {% endcomment %}
     </div>
 
     <!-- Main Content Area -->
@@ -178,13 +177,21 @@
         <div class="product-listing">
             {% for product in products %}
             <div class="product">
-                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                <img src="/media/{{ product.image }}" alt="{{ product.name }}" width="100px">
                 <h3>{{ product.name }}</h3>
-                <p class="price">${{ product.price }} / kg</p>
-                <div class="cart-buttons">
-                    <button>Add to Cart</button>
-                    <button>Add to Wishlist</button>
-                </div>
+                <p class="price">Rs{{ product.price_per_kg }} / kg</p>
+                <p>variety: {{ product.variety }}</p>
+                <p>description: {{ product.description }}</p>
+                
+                <form action="{% url 'add_to_wishlist' %}" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_name" value="{{ product.id }}">
+                    <div class="cart-buttons">
+                        <button type="submit">Add to Wishlist</button>
+                        <button>Add to Cart</button>
+                    </div>
+                    </form>
+                
             </div>
             {% empty %}
             <p>No products available at the moment.</p>
@@ -194,7 +201,7 @@
 </div>
 
 <footer>
-    <p>&copy; 2024 Rambutan Shop. All Rights Reserved.</p>
+    <p>&copy; 2024 Rambutan Warehouse. All Rights Reserved.</p>
     <a href="#">Privacy Policy</a> | <a href="#">Terms & Conditions</a> | <a href="#">Contact Us</a>
 </footer>
 
