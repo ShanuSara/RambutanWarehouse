@@ -52,8 +52,8 @@ class RambutanPostForm(forms.ModelForm):
         fields = [ 'name', 'variety', 'quantity', 'price_per_kg', 'image', 'description']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 4}),
-            'quantity': forms.NumberInput(attrs={'min': 1}),
-            'price_per_kg': forms.NumberInput(attrs={'min':0 , 'step': 0.01}),
+            'quantity': forms.NumberInput(attrs={'min': 1, 'step': 0.01}),
+            'price_per_kg': forms.NumberInput(attrs={'min':1 , 'step': 0.01}),
         }
 
     def __init__(self, *args, **kwargs):
