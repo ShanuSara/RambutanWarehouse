@@ -58,14 +58,14 @@ coverage.xml
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# Virtual environment
+# # Virtual environment
 env/
 venv/
 ENV/
 ENV.bak/
 venv.bak/
 
-# VS Code settings
+# # VS Code settings
 .vscode/
 .history/
 
