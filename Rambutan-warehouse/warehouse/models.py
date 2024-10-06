@@ -1,9 +1,9 @@
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import RegexValidator
-
+from django.core.validators import RegexValidator,MinLengthValidator
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.forms import ValidationError
 
 ROLE_CHOICES = [
     ('farmer', 'Farmer'),
@@ -79,13 +79,23 @@ class RambutanPost(models.Model):
     name = models.CharField(max_length=255)
     variety = models.CharField(max_length=100)
     quantity = models.PositiveIntegerField() 
+    quantity_left = models.PositiveIntegerField(default=0)  # Quantity left after sales
     price_per_kg = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to='rambutan_images/', blank=True, null=True) 
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    is_available = models.BooleanField(default=True)  # Whether the post is still available
+    
     def __str__(self):
         return f"{self.name} ({self.variety}) - {self.quantity}kg"
+    def save(self, *args, **kwargs):
+
+        # Update availability status based on quantity left
+        #if self.quantity_left <=0:
+          #  self.is_available = False
+        #else:
+          #  self.is_available = True
+        super().save(*args, **kwargs)
 
 class Wishlist(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wishlists')
@@ -102,3 +112,83 @@ class FarmerProfile(models.Model):
     def __str__(self):
         return f"Profile of {self.farmer}"
     
+class Cart(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='carts')
+    rambutan_post = models.ForeignKey(RambutanPost, on_delete=models.CASCADE, related_name='carts')
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True) 
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'rambutan_post')  
+
+    def save(self, *args, **kwargs):
+        if self.price is not None and self.quantity is not None:
+            self.total_price = self.price * self.quantity
+        else:
+            self.total_price = 0  
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.user} - {self.rambutan_post} - Quantity: {self.quantity}'
+
+class BillingDetail(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='billing_details')
+    
+    first_name = models.CharField(max_length=100, validators=[MinLengthValidator(2)], blank=False)
+    last_name = models.CharField(max_length=100, validators=[MinLengthValidator(2)], blank=False)
+    
+    country = models.CharField(max_length=100, blank=False)
+    street_address = models.CharField(max_length=255, blank=False)
+    city = models.CharField(max_length=100, blank=False)
+    
+    postcode = models.CharField(max_length=20, blank=False, validators=[
+        RegexValidator(
+            regex=r'^\d{4,10}$',
+            message='Postcode must be a number between 4 and 10 digits.'
+        )
+    ])
+    
+    phone = models.CharField(max_length=20, blank=False, validators=[
+        RegexValidator(
+            regex=r'^\+?\d{9,15}$',
+            message='Phone number must be entered in the format: +999999999. Up to 15 digits allowed.'
+        )
+    ])
+    
+    email = models.EmailField(blank=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.first_name} {self.last_name} - {self.email}'
+
+    def clean(self):
+      
+        if not self.email:
+            raise ValidationError('Email is required.')
+        if not self.phone.isdigit():
+            raise ValidationError('Phone number must contain only digits.')
+
+class Order(models.Model):
+    billing_detail = models.ForeignKey(BillingDetail, on_delete=models.CASCADE, related_name='orders')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=50)
+    order_number = models.AutoField(primary_key=True)  
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']  
+
+    def __str__(self):
+        return f'Order {self.order_number} - {self.user.username} - Total: {self.total_amount}'
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    #cart_item = models.ForeignKey(Cart, on_delete=models.CASCADE)  
+    rambutan_post = models.ForeignKey(RambutanPost, on_delete=models.CASCADE, related_name='items')
+    quantity = models.PositiveIntegerField(default=1)  
+    price = models.DecimalField(max_digits=10, decimal_places=2)  
+
+    def __str__(self):
+        return f'{self.order.order_number} - Quantity: {self.quantity}' 

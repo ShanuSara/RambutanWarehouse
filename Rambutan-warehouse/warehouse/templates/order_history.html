@@ -4,9 +4,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Customer Dashboard | Rambutan Warehouse</title>
+    <title>Rambutan Wishlist | Rambutan Warehouse</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
     <!-- Boxicons CDN Link -->
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
 
@@ -188,65 +188,105 @@
             margin-top: 60px; /* To prevent content being hidden behind navbar */
         }
 
-        /* Profile Container */
-        .profile-container {
-            padding: 50px;
-            background-color: #f4f4f4;
+        /* Main Content Area */
+        .main-content {
+            width: 100%;
+            padding: 20px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+
+        .main-content h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        /* Wishlist Product Listing Styles */
+        .product-listing {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .product {
+            flex: 1 1 calc(33.333% - 20px); /* Three products per row */
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            padding: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            background-color: #fff;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .product img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .product h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .product p {
+            font-size: 16px;
+            color: #e74c3c;
+            margin: 5px 0;
+        }
+
+        .product .price {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .product .cart-buttons {
+            margin-top: 10px;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: calc(100vh - 120px); /* Adjust based on header and top-bar heights */
+            gap: 10px;
         }
 
-        .profile-box {
-            background-color: var(--white);
-            padding: 30px;
-            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
+        .cart-buttons button {
+            background-color: #e74c3c;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            font-size: 14px;
+        }
+
+        .cart-buttons button a {
+            color: white;
+            text-decoration: none;
+            display: block;
             width: 100%;
-            max-width: 800px;
-        }
-
-        .profile-box h1 {
+            height: 100%;
             text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 32px;
         }
 
-        .profile-details {
-            margin-top: 20px;
+        .cart-buttons button.remove:hover {
+            background-color: #c0392b;
         }
 
-        .profile-details h3 {
-            margin-bottom: 20px;
-            font-size: 24px;
-            color: #555;
-        }
-
-        .profile-info {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .profile-info div {
-            width: 48%;
-        }
-
-        .profile-info div p {
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .profile-info div span {
-            font-weight: bold;
-            color: #333;
+        .cart-buttons button.add:hover {
+            background-color: #059c00;
         }
 
         /* Responsive Design */
+        @media (max-width: 992px) {
+            .product {
+                flex: 1 1 calc(50% - 20px); /* Two products per row on tablets */
+            }
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 width: 80px;
@@ -278,13 +318,8 @@
                 font-size: 12px;
             }
 
-            .profile-info {
-                flex-direction: column;
-            }
-
-            .profile-info div {
-                width: 100%;
-                margin-bottom: 15px;
+            .product {
+                flex: 1 1 100%; /* One product per row on mobile */
             }
         }
 
@@ -309,59 +344,70 @@
         footer a:hover {
             text-decoration: underline;
         }
+        .order-listing {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
-        /* Additional Styles */
-        .form-section {
+        .order-card {
+            border: 1px solid #ddd;
             padding: 20px;
-            background-color: #f9f9f9;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin: 20px 0;
+            background-color: #fafafa;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .form-section h2 {
-            font-size: 20px;
+        .order-card h3 {
+            font-size: 18px;
+            color: var(--primary-color);
             margin-bottom: 10px;
-            color: #333;
         }
 
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .input-group input,
-        .input-group select {
-            width: calc(100% - 20px);
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .submit-button {
-            background-color: #28a745;
-            color: var(--white);
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
+        .order-card p {
             font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.3s;
+            color: #555;
+            margin: 5px 0;
         }
 
-        .submit-button:hover {
-            background-color: #218838;
-            transform: translateY(-2px);
+        .order-items {
+            margin-top: 10px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .order-items li {
+            font-size: 14px;
+            color: #333;
+            padding: 5px 0;
+        }
+
+        .order-items li span {
+            font-weight: bold;
+        }
+
+        .no-orders {
+            text-align: center;
+            font-size: 16px;
+            color: #777;
+        }
+
+        .go-home {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .go-home a {
+            text-decoration: none;
+            color: var(--accent-color);
+            font-weight: 500;
+            font-size: 18px;
+        }
+
+        .go-home a:hover {
+            color: var(--primary-color);
         }
     </style>
-
 </head>
 
 <body>
@@ -377,7 +423,7 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'profile_view' %}" class="active">
+                <a href="{% url 'profile_view' %}">
                     <i class='bx bx-user'></i>
                     <span class="links_name">View Profile</span>
                 </a>
@@ -389,9 +435,9 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'wishlist' %}">
+                <a href="{% url 'wishlist' %}" class="active">
                     <i class='bx bx-heart'></i>
-                    <span class="links_name">Wishlisted Items</span>
+                    <span class="links_name">Wishlist</span>
                 </a>
             </li>
             <li>
@@ -401,7 +447,7 @@
                 </a>
             </li>
             <li class="log_out">
-                <a href="{% url 'logout' %}" class="logout-button">
+                <a href="{% url 'logout' %}">
                     <i class='bx bx-log-out'></i>
                     <span class="links_name">Log out</span>
                 </a>
@@ -434,58 +480,37 @@
             </ul>
         </nav>
 
-        <!-- Profile Container -->
-        <div class="profile-container">
-            <div class="profile-box">
-                <h1>Customer Profile</h1>
+        
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1>Your Order History</h1>
 
-                <div class="profile-details">
-                    <h3>Personal Information</h3>
-                    {% csrf_token %}
-                    <div class="profile-info">
-                        <div>
-                            <p><span>Name:</span> {{ user.name }}</p>
-                            <p><span>Email:</span> {{ user.username }}</p>
-                            <p><span>Address:</span> {{ user.address }}</p>
-                        </div>
-
-                        <div>
-                            <p><span>Mobile Number:</span> {{ user.contact }}</p>
-                            <p><span>Location:</span> {{ user.place }}</p>
-                        </div>
+        {% if orders %}
+            <div class="order-listing">
+                {% for order in orders %}
+                    <div class="order-card">
+                        <h3>Order Number: {{ order.order_number }}</h3>
+                        <p>Date: {{ order.created_at|date:"F j, Y" }}</p>
+                        <p>Total Amount: ₹{{ order.total_amount }}</p>
+                        <ul class="order-items">
+                            {% for item in order.items.all %}
+                                <img src="{% if item.rambutan_post.image %}/media/{{ item.rambutan_post.image }}{% endif %}" alt="{{ product.name }}" width="100px">
+                                <li><span>{{ item.rambutan_post.name }}</span> - Quantity: {{ item.quantity }} - Price: ${{ item.price }}</li>
+                            {% empty %}
+                                <li>No items in this order.</li>
+                            {% endfor %}
+                        </ul>
                     </div>
-
-                    {% comment %} <!-- Optional: Add more sections such as Order History, Settings, etc. -->
-                    <div class="form-section">
-                        <h2>Update Profile Information</h2>
-                        <form action="{% url 'update_profile' %}" method="POST">
-                            {% csrf_token %}
-                            <div class="input-group">
-                                <label for="name">Name:</label>
-                                <input type="text" id="name" name="name" value="{{ user.name }}" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="email">Email:</label>
-                                <input type="email" id="email" name="email" value="{{ user.username }}" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="address">Address:</label>
-                                <input type="text" id="address" name="address" value="{{ user.address }}" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="contact">Mobile Number:</label>
-                                <input type="tel" id="contact" name="contact" value="{{ user.contact }}" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="place">Location:</label>
-                                <input type="text" id="place" name="place" value="{{ user.place }}" required>
-                            </div>
-                            <button type="submit" class="submit-button">Update Profile</button>
-                        </form>
-                    </div>{% endcomment %}
-                </div>
+                {% endfor %}
             </div>
-        </div> 
+        {% else %}
+            <p class="no-orders">You have not placed any orders yet.</p>
+        {% endif %}
+
+        <div class="go-home">
+            <a href="{% url 'customer_dashboard' %}">Go to Home</a>
+        </div>
+    </div>
 
         <!-- Footer -->
         <footer>
@@ -497,7 +522,7 @@
     <!-- JavaScript Files -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Logout Confirmation
+            // Select all logout links
             const logoutLinks = document.querySelectorAll('.logout-button, .nav-links a[href="{% url 'logout' %}"]');
 
             logoutLinks.forEach(function (element) {
@@ -520,29 +545,28 @@
                 });
             });
 
-            // Optional: Add other SweetAlert2 interactions here, such as profile update confirmations
-            const updateProfileForm = document.querySelector('.form-section form');
+            // Select all remove wishlist links
+            const removeWishlistLinks = document.querySelectorAll('.cart-buttons .remove a');
 
-            if (updateProfileForm) {
-                updateProfileForm.addEventListener('submit', function (event) {
-                    event.preventDefault(); // Prevent the default form submission
+            removeWishlistLinks.forEach(function (element) {
+                element.addEventListener('click', function (event) {
+                    event.preventDefault(); // Prevent the default remove action
 
                     Swal.fire({
-                        title: 'Update Profile?',
-                        text: "Are you sure you want to update your profile information?",
-                        icon: 'question',
+                        title: 'Are you sure you want to remove this item from your wishlist?',
+                        icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonText: 'Yes, update it',
+                        confirmButtonText: 'Yes, remove it',
                         cancelButtonText: 'Cancel',
                         reverseButtons: true
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // Proceed with form submission
-                            updateProfileForm.submit();
+                            // Proceed with removing from wishlist
+                            window.location.href = element.href;
                         }
                     });
                 });
-            }
+            });
         });
     </script>
 

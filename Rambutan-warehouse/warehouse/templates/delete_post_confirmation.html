@@ -122,15 +122,6 @@
     .actions a:hover {
       opacity: 0.9;
     }
-
-    .orders-list {
-      list-style-type: none;
-      padding: 0;
-    }
-
-    .orders-list li {
-      margin-bottom: 10px;
-    }
   </style>
 </head>
 
@@ -146,7 +137,7 @@
       <span class="dashboard">Confirm Deletion</span>
       <div class="profile-details">
         {% if user.profile_pic %}
-        <img src="{{ user.profile_pic.url }}" alt="Profile">
+        <img src="{{ user.profile_pic.url }}" alt="Profile" width="40" height="40" style="border-radius: 50%;">
         {% endif %}
         <span>Hi, {{ user.name }}</span>
       </div>
@@ -155,16 +146,21 @@
     <div class="home-content">
       <div class="confirm-section">
         <h2>Confirm Deletion</h2>
-        <p class="message">Are you sure you want to delete the post titled "{{ post.title }}"?</p>
+        <p class="message">Are you sure you want to delete the post titled "{{ post.name }}"?</p>
 
-        {% if has_orders %}
-        <p class="message warning">Note: This post cannot be deleted because it has associated orders.</p>
-        <ul class="orders-list">
-          <li>Associated Orders:</li>
-          {% for order in associated_orders %}
-          <li>Order Number: {{ order.order_number }}</li>
-          {% endfor %}
-        </ul>
+        {% if in_order %}
+        <p class="message warning">This post cannot be deleted because it has associated orders.</p>
+        <form method="post" class="actions">
+          {% csrf_token %}
+          <a href="{% url 'view_posts' %}">Cancel</a>
+        </form>
+        {% elif in_cart or in_wishlist %}
+        <p class="message warning">This post is in a cart or wishlist. It will be marked as unavailable instead of deleted.</p>
+        <form method="post" class="actions">
+          {% csrf_token %}
+          <button type="submit">Mark as Unavailable</button>
+          <a href="{% url 'view_posts' %}">Cancel</a>
+        </form>
         {% else %}
         <form method="post" class="actions">
           {% csrf_token %}

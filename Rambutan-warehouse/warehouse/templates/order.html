@@ -1,0 +1,192 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation | Farmers Hub</title>
+    <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 1200px;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .confirmation-message {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 22px;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .confirmation-details {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .billing-details, .summary, .payment-method-summary {
+            margin-top: 30px;
+        }
+
+        .billing-details p, .summary .summary-item, .payment-method-summary p {
+            margin: 10px 0;
+            font-size: 18px;
+            color: #555;
+        }
+
+        .summary {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+        }
+
+        .summary .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .summary-item .total {
+            font-weight: bold;
+            font-size: 20px;
+            color: #27ae60;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .cart-item div {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .summary-footer {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .summary-footer button {
+            background-color: #27ae60;
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .summary-footer button:hover {
+            background-color: #2ecc71;
+        }
+        .quick-actions a {
+      padding: 12px 20px;
+      background-color: #4CAF50;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 18px;
+    }
+
+    .quick-actions a:hover {
+      background-color: #2e7d32;
+    }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Order Confirmation</h2>
+    <div class="confirmation-message">
+        Thank you for your order! Your order has been successfully placed.
+    </div>
+    <div class="confirmation-details">
+        <p>Your order number is: <strong>#{{ order.order_number }}</strong></p>
+        <p>You will receive a confirmation email shortly.</p>
+    </div>
+
+    <!-- Billing Details -->
+    <div class="billing-details">
+        <h3>Billing Details</h3>
+        <p><strong>First Name:</strong> {{ billing_details.first_name }}</p>
+        <p><strong>Last Name:</strong> {{ billing_details.last_name }}</p>
+        <p><strong>Country:</strong> {{ billing_details.country }}</p>
+        <p><strong>Street Address:</strong> {{ billing_details.street_address }}</p>
+        <p><strong>City:</strong> {{ billing_details.city }}</p>
+        <p><strong>Postcode / ZIP:</strong> {{ billing_details.postcode }}</p>
+        <p><strong>Phone:</strong> {{ billing_details.phone }}</p>
+        <p><strong>Email:</strong> {{ billing_details.email }}</p>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="summary">
+        <h3>Order Summary</h3>
+        <div class="cart-items">
+            <h4>Products Ordered</h4>
+            {% for item in order_items %}  <!-- Corrected from order.items.all to order_items -->
+            <div class="cart-item">
+                <img src="/media/{{ item.rambutan_post.image }}" alt="{{ item.name }}" width="100px">
+                <div>{{ item.rambutan_post.name }} (x{{ item.quantity }})</div>
+                <div>₹{{ item.price }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="summary-item">
+            <div>Subtotal</div>
+            <div>₹{{ subtotal|floatformat:2 }}</div>
+        </div>
+        <div class="summary-item">
+            <div>Delivery Fee</div>
+            <div>₹{{ delivery_fee|floatformat:2 }}</div>
+        </div>
+        <div class="summary-item">
+            <div>Discount</div>
+            <div>- ₹{{ discount|floatformat:2 }}</div>
+        </div>
+        <div class="summary-item total">
+            <div>Total</div>
+            <div>₹{{ total|floatformat:2 }}</div>
+        </div>
+    </div>
+
+    <!-- Payment Method Summary -->
+    <div class="payment-method-summary">
+        <h3>Payment Method</h3>
+        <p><strong>Method:</strong> {{ order.payment_method }}</p>
+    </div>
+
+    <!-- Button to Continue Shopping -->
+    <div class="summary-footer">
+        <div class="quick-actions">
+            <a href="{% url 'products_browse' %}">Continue Shopping</a>
+        </div>  
+    </div>
+
+</div>
+
+</body>
+</html>

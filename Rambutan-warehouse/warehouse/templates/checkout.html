@@ -123,98 +123,69 @@
 
     <div class="container">
         <h2>Billing Details</h2>
-        <form>
+        <form action="{% url 'billing_view' %}" method="post">
+            {% csrf_token %}
             <div class="form-group">
                 <label for="first-name">First Name</label>
-                <input type="text" id="first-name" name="first-name" placeholder="First Name">
+                <input type="text" id="first-name" name="first-name" placeholder="First Name" required>
             </div>
 
             <div class="form-group">
                 <label for="last-name">Last Name</label>
-                <input type="text" id="last-name" name="last-name" placeholder="Last Name">
+                <input type="text" id="last-name" name="last-name" placeholder="Last Name" required>
             </div>
 
             <div class="form-group">
                 <label for="country">Country</label>
                 <select id="country" name="country">
-                    <option value="india">India</option>
                     <option value="france">France</option>
                     <option value="us">United States</option>
                     <option value="uk">United Kingdom</option>
+                    <option value="india">India</option>
+                    <option value="germany">Germany</option>
+                    <option value="uAE">UAE</option>
+                    <option value="china">China</option>
+                    <option value="japan">Japan</option>
+                    <option value="canada">Canada</option>
+                    <option value="Mexico">Mexico</option>
+                    <option value="spain">Spain</option>
+                    <option value="Thailand">Thailand</option>
+                    
                     <!-- Add more countries as needed -->
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="street-address">Street Address</label>
-                <input type="text" id="street-address" name="street-address" placeholder="House number and street name">
+                <input type="text" id="street-address" name="street-address" placeholder="House number and street name" required>
                 <span>Apartment, suite, unit etc: (optional)</span>
             </div>
 
             <div class="form-group">
                 <label for="city">Town / City</label>
-                <input type="text" id="city" name="city" placeholder="Town / City">
+                <input type="text" id="city" name="city" placeholder="Town / City" required>
             </div>
 
             <div class="form-group">
-                <label for="postcode">Pincode</label>
-                <input type="text" id="postcode" name="postcode" placeholder="Postcode / ZIP">
+                <label for="postcode">Postcode / ZIP *</label>
+                <input type="text" id="postcode" name="postcode" placeholder="Postcode / ZIP" pattern="^\d{4,10}$" title="Postcode must be a number between 4 and 10 digits." required>
             </div>
 
             <div class="form-group">
                 <label for="phone">Phone</label>
-                <input type="text" id="phone" name="phone" placeholder="Phone">
+                <input type="text" id="phone" name="phone" placeholder="Phone"  pattern="^\+?\d{9,15}$" title="Phone number must be entered in the format: +999999999. Up to 15 digits allowed."required>
             </div>
 
             <div class="form-group">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="Email Address">
+                <input type="email" id="email" name="email" placeholder="Email Address"  pattern="^[a-zA-Z0-9_.+-]+@gmail\.(?![a-zA-Z]+$)[a-zA-Z0-9-.]+$" title="Please enter a valid email address."required>
+            </div>
+            <div class="place-order">
+            <button type="submit" class="register-button">next</a></button>
             </div>
         </form>
 
-        <div class="cart-total">
-            <h3>Cart Total</h3>
-            <div class="total-line">
-                <div>Subtotal</div>
-                <div>Rs 20.60</div>
-            </div>
-            <div class="total-line">
-                <div>Delivery</div>
-                <div>Rs 4.00</div>
-            </div>
-            <div class="total-line">
-                <div>Discount</div>
-                <div>Rs 3.00</div>
-            </div>
-            <div class="total-line">
-                <div><strong>Total</strong></div>
-                <div><strong>Rs 17.60</strong></div>
-            </div>
-        </div>
-
-        <div class="payment-method">
-            <h3>Payment Method</h3>
-            <div>
-                <input type="radio" id="bank-transfer" name="payment-method" value="bank-transfer">
-                <label for="bank-transfer">Direct Bank Transfer</label>
-            </div>
-            <div>
-                <input type="radio" id="check-payment" name="payment-method" value="check-payment">
-                <label for="check-payment">Check Payment</label>
-            </div>
-            <div>
-                <input type="radio" id="paypal" name="payment-method" value="paypal">
-                <label for="paypal">Paypal</label>
-            </div>
-            <div>
-                <input type="checkbox" id="terms" name="terms">
-                <label for="terms">I have read and accept the terms and conditions</label>
-            </div>
-        </div>
-
-        <div class="place-order">
-            <button type="submit">Place an order</button>
-        </div>
+        
     </div>
 
 </body>

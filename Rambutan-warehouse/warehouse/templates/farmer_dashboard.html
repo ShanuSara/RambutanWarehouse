@@ -151,11 +151,12 @@
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       margin-bottom: 20px;
     }
+
     .logo-text {
-      font-size: 24px;  /* Adjust the size as needed */
-      color: white;     /* White text color */
-      font-weight: bold; /* Makes the text bold */
-      text-transform: uppercase; /* Optional: Makes the text uppercase */
+      font-size: 24px;
+      color: white;
+      font-weight: bold;
+      text-transform: uppercase;
     }
 
     .top-navbar .logo a {
@@ -173,6 +174,7 @@
       list-style: none;
       display: flex;
       gap: 30px;
+      align-items: center;
     }
 
     .top-navbar ul.nav-icons li a {
@@ -183,6 +185,7 @@
       flex-direction: column;
       align-items: center;
       transition: color 0.3s;
+      position: relative;
     }
 
     .top-navbar ul.nav-icons li a:hover {
@@ -194,6 +197,18 @@
       margin-top: 5px;
       font-weight: 500;
     }
+
+    /* Optional: Adjust the icon size and color if needed */
+  .top-navbar ul.nav-icons li.user-profile a i {
+    font-size: 24px; /* Increase icon size */
+    color: var(--white); 
+  }
+  
+  /* Style the username */
+  .top-navbar ul.nav-icons li.user-profile a .icon-name {
+    font-size: 14px; 
+    color: var(--white); 
+  }
 
     /* Main Navigation Styling */
     .main-nav {
@@ -222,7 +237,7 @@
 
     /* Removed Profile Picture */
     .main-nav .profile-details img {
-      display: none; /* Hide the profile picture */
+      display: none;
     }
 
     .main-nav .profile-details span {
@@ -399,32 +414,19 @@
 
   <!-- Home Section -->
   <section class="home-section">
-    <!-- Top Navbar with Logo and Icons -->
     <nav class="top-navbar">
       <div class="logo">
-          {% comment %} <img src="{% static 'images/logo.png' %}" alt="Rambutan Warehouse Logo"> {% endcomment %}
-          <span class="logo-text">Rambutan Warehouse</span>
-        </a>
+        <span class="logo-text">Rambutan Warehouse</span>
       </div>
       <ul class="nav-icons">
-        <li>
-          <a href="{% url 'index' %}">
-            <i class='bx bx-home'></i>
-            <span class="icon-name">Home</span>
+        <!-- User Profile Section -->
+        <li class="user-profile">
+          <a href="#">
+            <i class='bx bx-user'></i>
+            <span class="icon-name">{{ farmer.name }}</span>
           </a>
         </li>
-        <li>
-          <a href="{% url 'about' %}">
-            <i class='bx bx-info-circle'></i>
-            <span class="icon-name">About</span>
-          </a>
-        </li>
-        <li>
-          <a href="{% url 'contact' %}">
-            <i class='bx bx-envelope'></i>
-            <span class="icon-name">Contact</span>
-          </a>
-        </li>
+        <!-- Logout Icon -->
         <li>
           <a href="{% url 'logout' %}">
             <i class='bx bx-log-out'></i>
@@ -432,21 +434,6 @@
           </a>
         </li>
       </ul>
-    </nav>
-
-    <!-- Main Navigation (Dashboard & Profile) -->
-    <nav class="main-nav">
-      <span class="dashboard">Dashboard - {{ farmer.name }}</span>
-      <div class="profile-details" id="profileDropdown">
-        <!-- Removed the profile picture -->
-        <span>Hi, {{ farmer.name }}</span>
-        <i class='bx bx-chevron-down'></i>
-        <ul class="dropdown-menu">
-          <li><a href="{% url 'farmer_profile' %}">View Profile</a></li>
-          <!-- <li><a href="#">Edit Profile</a></li> -->
-          <li><a href="{% url 'logout' %}">Logout</a></li>
-        </ul>
-      </div>
     </nav>
 
     <div class="home-content">
@@ -486,23 +473,7 @@
 
   <!-- JavaScript Files -->
   <script>
-    // Dropdown Menu Toggle
-    document.getElementById('profileDropdown').addEventListener('click', function (e) {
-      e.stopPropagation();
-      this.querySelector('.dropdown-menu').classList.toggle('active');
-    });
-
-    // Close dropdown when clicking outside
-    window.addEventListener('click', function () {
-      var dropdowns = document.getElementsByClassName("dropdown-menu");
-      for (var i = 0; i < dropdowns.length; i++) {
-        var openDropdown = dropdowns[i];
-        if (openDropdown.classList.contains('active')) {
-          openDropdown.classList.remove('active');
-        }
-      }
-    });
-
+    
     // Confirm Logout with SweetAlert2
     document.querySelectorAll('.log_out a, .top-navbar a[href="{% url 'logout' %}"]').forEach(function (element) {
       element.addEventListener('click', function (event) {
