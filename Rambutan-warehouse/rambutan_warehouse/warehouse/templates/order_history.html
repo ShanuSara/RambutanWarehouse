@@ -495,7 +495,7 @@
                         <ul class="order-items">
                             {% for item in order.items.all %}
                                 <img src="{% if item.rambutan_post.image %}/media/{{ item.rambutan_post.image }}{% endif %}" alt="{{ product.name }}" width="100px">
-                                <li><span>{{ item.rambutan_post.name }}</span> - Quantity: {{ item.quantity }} - Price: ${{ item.price }}</li>
+                                <li><span>{{ item.rambutan_post.name }}</span> - Quantity: {{ item.quantity }} - Price: ₹{{ item.price }}</li>
                             {% empty %}
                                 <li>No items in this order.</li>
                             {% endfor %}

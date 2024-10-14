@@ -368,9 +368,7 @@
 <body>
   <!-- Sidebar Section -->
   <div class="sidebar">
-    <div class="logo-details">
-      <span class="logo_name">Farmer Dashboard</span>
-    </div>
+    
     <ul class="nav-links">
       <li>
         <a href="{% url 'farmer_dashboard' %}" class="active">
@@ -384,12 +382,12 @@
           <span class="links_name">Orders</span>
         </a>
       </li>
-      <li>
+      {% comment %} <li>
         <a href="#">
           <i class='bx bx-cart'></i>
           <span class="links_name">New Sales</span>
         </a>
-      </li>
+      </li> {% endcomment %}
       <li>
         <a href="{% url 'post_rambutan' %}">
           <i class='bx bx-leaf'></i>
@@ -453,19 +451,36 @@
 <!-- Quick Actions Section -->
 <div class="quick-actions">
   <div class="card">
+        <a href="{% url 'post_rambutan' %}">
+            <i class="bx bx-box"></i>
+            <h3>Post your product</h3>
+            <p>Post your Rambutan and their related products</p>
+        </a>
+    </div>
+
+    <div class="card">
+        <a href="{% url 'view_posts' %}">
+              <i class="bx bx-box"></i>
+              <h3>View post</h3>
+              <p>View and manage your products</p>
+        </a>
+    </div>
+
+    <div class="card">
       <a href="{% url 'farmer_orders' %}">
           <i class="bx bx-box"></i>
-          <h3>Manage Orders</h3>
-          <p>View and manage your sales orders</p>
+          <h3>Order History</h3>
+          <p>View sales orders</p>
       </a>
   </div>
-  <div class="card">
+
+  {% comment %} <div class="card">
       <a href="#">
           <i class="bx bx-cart"></i>
           <h3>New Sale</h3>
           <p>Register a new sale of goods</p>
       </a>
-  </div>
+  </div> {% endcomment %}
 </div>
   </section>
 

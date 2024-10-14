@@ -301,15 +301,28 @@
 
 <body>
 
-  <!-- Sidebar -->
+  <!-- Sidebar Section -->
   <div class="sidebar">
+    
     <ul class="nav-links">
       <li>
-        <a href="{% url 'farmer_dashboard' %}">
+        <a href="{% url 'farmer_dashboard' %}" >
           <i class='bx bx-grid-alt'></i>
           <span class="links_name">Dashboard</span>
         </a>
       </li>
+      <li>
+        <a href="{% url 'farmer_orders' %}">
+          <i class='bx bx-box'></i>
+          <span class="links_name">Orders</span>
+        </a>
+      </li>
+      {% comment %} <li>
+        <a href="#">
+          <i class='bx bx-cart'></i>
+          <span class="links_name">New Sales</span>
+        </a>
+      </li> {% endcomment %}
       <li>
         <a href="{% url 'post_rambutan' %}">
           <i class='bx bx-leaf'></i>
@@ -330,6 +343,7 @@
       </li>
     </ul>
   </div>
+
   <section class="home-section">
     <nav class="top-navbar">
       <div class="logo">
