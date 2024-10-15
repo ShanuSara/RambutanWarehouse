@@ -49,10 +49,15 @@
         /* Global Styles */
         body {
             font-family: var(--font-family);
-            background-color: #f4f4f4;
+            background-image: url("{% static 'images/c_profile.jpg' %}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: fixed;
             margin: 0;
             padding: 0;
             display: flex;
+            min-height: 100vh;
         }
 
         /* Sidebar Styling */
@@ -177,21 +182,25 @@
             color: var(--secondary-color);
         }
 
-        /* Home Section Styling */
         .home-section {
             margin-left: 250px;
             width: calc(100% - 250px);
             padding-top: 60px; /* Space for fixed top-navbar */
-            padding: 20px;
+            padding: 0;
             transition: margin-left 0.3s, width 0.3s;
             min-height: 100vh;
-            margin-top: 60px; /* To prevent content being hidden behind navbar */
+            background-image: url("{% static 'images/f_dash.jpg' %}"); 
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat; 
+            background-attachment: fixed; 
         }
+
 
         /* Profile Container */
         .profile-container {
             padding: 50px;
-            background-color: #f4f4f4;
+            background-color: transparent;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -292,7 +301,6 @@
         footer {
             text-align: center;
             padding: 20px;
-            background-color: var(--primary-color);
             color: var(--white);
             margin-top: 20px;
             width: calc(100% - 250px);
@@ -548,4 +556,4 @@
 
 </body>
 
-</html>
+</html> 

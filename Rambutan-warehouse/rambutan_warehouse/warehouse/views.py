@@ -16,6 +16,8 @@ from django.contrib import messages
 from django.db.models import F
 from django.core.mail import send_mail
 from django.conf import settings
+from django.views.decorators.cache import cache_control
+
 
 
 def index(request):
@@ -62,7 +64,7 @@ def verify_otp(request):
     email = request.session.get('user_email') 
 
     if not email:
-        messages.error(request, "Session expired. Please enter your email again.")
+        # messages.error(request, "Session expired. Please enter your email again.")
         return redirect('enter_email')
 
     if request.method == 'POST':
@@ -147,12 +149,16 @@ def logout_view(request):
     return redirect('login') 
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def farmer_dashboard(request):
     try:
         user = Registeruser.objects.get(username=request.user.username,role='farmer')
     except Registeruser.DoesNotExist:
         return render(request, '404.html')  
     return render(request, 'farmer_dashboard.html', {'farmer': user})
+
+@login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def farmer_details(request):
     try:
         farmer_details = FarmerDetails.objects.get(user=request.user)
@@ -196,6 +202,9 @@ def farmer_details(request):
         'farmer_details': farmer_details
     })
 
+
+@login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def post_rambutan(request):
     try:
         farmer_details = request.user.farmerdetails 
@@ -230,6 +239,7 @@ def create_tree_variety(request):
     return render(request, 'forms.html', {'form': form})
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def view_posts(request):
     user = request.user
 
@@ -252,6 +262,8 @@ def view_posts(request):
 
     return render(request, 'view_posts.html', context)
 
+@login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def update_post(request, id):
     post = get_object_or_404(RambutanPost, id=id)
     farmer_details = get_object_or_404(FarmerDetails, user=request.user) 
@@ -306,6 +318,7 @@ def update_quantity(request, id):
     return render(request, 'update_quantity.html', {'post': post})
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def delete_post_confirmation(request, id):
     post = get_object_or_404(RambutanPost, id=id)
 
@@ -332,11 +345,14 @@ def delete_post_confirmation(request, id):
         'in_order': in_order,
     })
 
+
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def delete_post(request, id):
     return redirect('delete_post_confirmation', id=id)
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def farmer_orders(request):
     farmer_details = get_object_or_404(FarmerDetails, user=request.user)
     
@@ -358,14 +374,17 @@ def farmer_orders(request):
     return render(request, 'order_farmer.html', context)
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def customer_dashboard(request):
     return render(request, 'customer_dashboard.html', {'cart': cart})
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def edit_profile(request):
     return render(request, 'edit_profile.html')
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def product_single(request):
     return render(request, 'product-single.html')
 
@@ -375,11 +394,13 @@ def blog(request):
     return render(request, 'blog.html')
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def profile_view(request):
    
     return render(request, 'customer_profile.html')
     
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def products_browse(request):
     products = RambutanPost.objects.all().values('id', 'name', 'variety', 'image', 'price_per_kg', 'created_at', 'description', 'is_available', 'quantity_left')
     
@@ -398,6 +419,7 @@ def products_browse(request):
     return render(request, 'shop.html', context)
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def wishlist(request):
     
     wishlist_items = Wishlist.objects.filter(user=request.user).select_related('rambutan_post')
@@ -407,6 +429,7 @@ def wishlist(request):
     return render(request, 'wishlist.html', {'wishlist_items': wishlists})
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def add_to_wishlist(request, id):
     post = get_object_or_404(RambutanPost, id=id)
 
@@ -422,6 +445,7 @@ def add_to_wishlist(request, id):
 
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def remove_from_wishlist(request, id):
     post = get_object_or_404(RambutanPost, id=id)
     wishlist_item = Wishlist.objects.filter(user=request.user, rambutan_post=post).first()
@@ -430,7 +454,9 @@ def remove_from_wishlist(request, id):
         wishlist_item.delete()
 
     return redirect('wishlist')
+
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def add_to_cart(request, rambutan_post_id):
     rambutan_post = get_object_or_404(RambutanPost, id=rambutan_post_id)
 
@@ -450,6 +476,7 @@ def add_to_cart(request, rambutan_post_id):
     return redirect('cart')
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def cart(request):
     cart_items = Cart.objects.filter(user=request.user)
     for item in cart_items:
@@ -464,13 +491,16 @@ def cart(request):
     return render(request, 'cart.html', context)
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def remove_cart_item(request, cart_item_id):
     cart_item = get_object_or_404(Cart, id=cart_item_id, user=request.user)
     cart_item.delete()
     
     return redirect('cart') 
 
+
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def update_cart_item_quantity(request, cart_item_id):
     cart_item = get_object_or_404(Cart, id=cart_item_id, user=request.user)
     
@@ -489,7 +519,9 @@ def update_cart_item_quantity(request, cart_item_id):
 
     return redirect('cart')
 
+
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def billing_view(request):
     cart_items = Cart.objects.filter(user=request.user)
     for cart_item in cart_items:
@@ -545,6 +577,8 @@ def billing_view(request):
     })
 
 
+@login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def update_billing_details(request, pk):
     billing_details = get_object_or_404(BillingDetail, pk=pk)
 
@@ -569,6 +603,7 @@ def update_billing_details(request, pk):
     return render(request, 'update_billing_details.html', {'billing_details': billing_details})
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def place_order(request):
     billing_details = BillingDetail.objects.filter(user=request.user).last()
 
@@ -585,9 +620,10 @@ def place_order(request):
         return redirect('cart')
 
     subtotal = sum(item.total_price for item in cart_items)
-    delivery_fee = 0
-    discount = 0
-    total = subtotal + delivery_fee - discount
+    delivery_fee = 40
+    platform_fee = 10
+    # discount = 100
+    total = subtotal + delivery_fee + platform_fee
 
     if request.method == 'POST':
         payment_method = request.POST.get('payment-method')
@@ -635,7 +671,7 @@ def place_order(request):
         message = (
             f'Thank you for your order!\n\n'
             f'Order Number: {order.order_number}\n'
-            f'Total Amount: ${total}\n'
+            f'Total Amount: ₹{total}\n'
             f'Payment Method: {payment_method}\n\n'
             f'We will notify you once your items are ready for shipping.'
         )
@@ -649,12 +685,14 @@ def place_order(request):
         'cart_items': cart_items,
         'subtotal': subtotal,
         'delivery_fee': delivery_fee,
-        'discount': discount,
+        'platform_fee' : platform_fee,
+        # 'discount': discount,
         'total': total,
     })
 
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def order_detail(request, order_number):
     try:
         order = Order.objects.get(order_number=order_number, user=request.user)
@@ -681,15 +719,19 @@ def order_detail(request, order_number):
     })
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def order_history(request):
     orders = Order.objects.filter(user=request.user).prefetch_related('items')
     return render(request, 'order_history.html', {
         'orders': orders
     })
 
+@login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def order_notifications(request):
     notifications = OrderNotification.objects.all().order_by('-created_at')  # Fetching all notifications
     return render(request, 'order_notifications.html', {'notifications': notifications})
+
 
 from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
 from django.urls import reverse_lazy

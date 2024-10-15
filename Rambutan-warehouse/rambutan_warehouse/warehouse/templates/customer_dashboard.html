@@ -228,14 +228,18 @@
         }
 
         .home-section {
-          margin-left: 250px;
-          width: calc(100% - 250px);
-          padding-top: 60px; /* Space for fixed top-navbar */
-          padding: 20px;
-          transition: margin-left 0.3s, width 0.3s;
-          min-height: 100vh;
-          margin-top: 60px; /* To prevent content being hidden behind navbar */
-        }
+        margin-left: 250px;
+        width: calc(100% - 250px);
+        padding-top: 60px; /* Space for fixed top-navbar */
+        padding: 0;
+        transition: margin-left 0.3s, width 0.3s;
+        min-height: 100vh;
+        background-image: url("{% static 'images/c_dash.jpg' %}"); 
+        background-size: cover; 
+        background-position: center; 
+        background-repeat: no-repeat; 
+        background-attachment: fixed; 
+    }
 
         /* Profile Container */
         .profile-container {
@@ -302,6 +306,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             margin: 20px 0;
+            margin-top: 7%;
         }
 
         .form-section h2 {
@@ -393,7 +398,6 @@
         footer {
             text-align: center;
             padding: 20px;
-            background-color: var(--primary-color);
             color: var(--white);
             margin-top: 20px;
             width: calc(100% - 250px);
@@ -476,11 +480,6 @@
                         <i class='bx bx-user'></i>
                         <span class="icon-name">{{ user.name }}</span>
                     </a>
-                </li>
-                <a href="{% url 'order_history' %}">
-                    <i class='bx bx-cart'></i>
-                    <span class="links_name">order history</span>
-                  </a>
                 </li>
                 <!-- Logout Icon -->
                 <li>

@@ -186,6 +186,13 @@
             transition: margin-left 0.3s, width 0.3s;
             min-height: 100vh;
             margin-top: 60px; /* To prevent content being hidden behind navbar */
+            min-height: 100vh;
+            background-image: url("{% static 'images/c_shop.jpg' %}"); /* Your background image */
+            background-size: cover; /* Make sure the image covers the entire section */
+            background-position: center; /* Center the image */
+            background-repeat: no-repeat; /* Prevent the image from repeating */
+            background-attachment: fixed; /* Make sure the image stays fixed while scrolling */
+
         }
 
         /* Main Content Area */
@@ -196,11 +203,34 @@
             box-sizing: border-box;
         }
 
-        .main-content h2 {
-            font-size: 28px;
-            margin-bottom: 20px;
-            color: #333;
-        }
+        /* Import the Google font in the HTML file within the <head> tag */
+            @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600&display=swap');
+            
+            .main-content h2 {
+                font-family: 'Lora', serif; /* Lora as primary font */
+                font-size: 28px;
+                font-weight: 600; /* Semi-bold for emphasis */
+                margin-bottom: 20px;
+                color: #df9389;
+                line-height: 1.3; /* A bit looser for readability */
+                font-style: italic; /* Optional: adds a subtle, stylish effect */
+            }
+            
+            /* Form Section */
+            .form-section {
+                padding: 20px;
+                background-color: #f9f9f9;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                margin: 20px 0;
+                margin-top: 7%;
+            }
+    
+            .form-section h2 {
+                font-size: 20px;
+                margin-bottom: 10px;
+                color: #333;
+            }
 
         /* Wishlist Product Listing Styles */
         .product-listing {
@@ -229,8 +259,11 @@
         }
 
         .product h3 {
-            font-size: 18px;
-            color: #333;
+            /* Import the Google font in the HTML file within the <head> tag */
+                @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600&display=swap');
+            font-family: 'Lora', serif; /* Lora as primary font */
+            font-size: 28px;
+            color: #df9389;
             margin-bottom: 5px;
         }
 
@@ -283,7 +316,7 @@
         /* Responsive Design */
         @media (max-width: 992px) {
             .product {
-                flex: 1 1 calc(50% - 20px); /* Two products per row on tablets */
+                flex: 1 1 1 calc(50% - 20px); /* Three products per row on tablets */
             }
         }
 
@@ -323,27 +356,7 @@
             }
         }
 
-        /* Footer Styling */
-        footer {
-            text-align: center;
-            padding: 20px;
-            background-color: var(--primary-color);
-            color: var(--white);
-            margin-top: 20px;
-            width: calc(100% - 250px);
-            margin-left: 250px;
-            box-sizing: border-box;
-        }
 
-        footer a {
-            color: var(--white);
-            text-decoration: none;
-            margin: 0 5px;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
     </style>
 </head>
 
@@ -419,7 +432,7 @@
 
         <!-- Main Content Area -->
         <div class="main-content">
-            <h2>My Rambutan Wishlist</h2>
+            <h2><strong><center> Wishlist</center></strong></h2>
             <div class="product-listing">
                 {% for item in wishlist_items %}
                 <div class="product">
@@ -428,7 +441,7 @@
                     <p class="price">₹{{ item.price_per_kg }} / kg</p>
                     <p>Variety: {{ item.variety }}</p>
                     <p>Description: {{ item.description }}</p>
-                    <p>Farmer: {{ item.farmer.username }}</p>
+                    {% comment %} <p>Farmer: {{ item.farmer.username }}</p> {% endcomment %}
         
                     {% if not item.is_available %}
                         <p class="unavailable">This product is currently unavailable.</p>
@@ -448,18 +461,14 @@
                     </div>
                 </div>
                 {% empty %}
+            <div class="form-section">
                 <p>No products available in your wishlist at the moment.</p>
                 {% endfor %}
             </div>
         </div>
+    </div>
         
-
-        <!-- Footer -->
-        <footer>
-            <p>&copy; 2024 Rambutan Shop. All Rights Reserved.</p>
-            <a href="#">Privacy Policy</a> | <a href="#">Terms & Conditions</a> | <a href="#">Contact Us</a>
-        </footer>
-    </section>
+</section>
 
     <!-- JavaScript Files -->
     <script>

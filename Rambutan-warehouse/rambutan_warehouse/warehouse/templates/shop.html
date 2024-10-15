@@ -340,8 +340,7 @@
         footer {
             text-align: center;
             padding: 20px;
-            background-color: var(--primary-color);
-            color: var(--white);
+            color: var(--black);
             margin-top: 20px;
             width: calc(100% - 250px);
             margin-left: 250px;
@@ -349,7 +348,7 @@
         }
 
         footer a {
-            color: var(--white);
+            color: var(--black);
             text-decoration: none;
             margin: 0 5px;
         }
@@ -394,6 +393,12 @@
                 <a href="{% url 'cart' %}">
                     <i class='bx bx-shopping-bag'></i>
                     <span class="links_name">Cart</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'order_history' %}">
+                  <i class='bx bx-cart'></i>
+                  <span class="links_name">order history</span>
                 </a>
             </li>
             <li class="log_out">
@@ -441,7 +446,7 @@
                     <p class="price">₹{{ product.price_per_kg }} / kg</p>
                     <p>Variety: {{ product.variety }}</p>
                     <p>Description: {{ product.description }}</p>
-                    <p>Farmer: {{ product.farmer.user.username}}</p>
+                    {% comment %} <p>Farmer: {{ product.farmer.user.username}}</p> {% endcomment %}
         
                     {% if product.status_message %}
                         <p class="unavailable">{{ product.status_message }}</p> <!-- Display 'Unavailable' for the product -->

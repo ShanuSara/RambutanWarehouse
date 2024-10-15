@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout | Farmers Hub</title>
+    <title>Checkout</title>
     <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
     
     <!-- Additional Stylesheets -->
@@ -30,11 +30,15 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
 
-    <!-- Boxicons CDN Link -->
-    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Boxicons for Icons -->
+   <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
 
-    <!-- SweetAlert2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+   <!-- SweetAlert2 CSS -->
+   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+   
+   <!-- SweetAlert2 JS -->
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   
 
     <style>
         /* Root Variables for Consistent Styling */
@@ -347,6 +351,12 @@
                         <span class="links_name">Cart</span>
                     </a>
                 </li>
+                <li>
+                    <a href="{% url 'order_history' %}">
+                      <i class='bx bx-cart'></i>
+                      <span class="links_name">Order history</span>
+                    </a>
+                </li>
                 <li class="log_out">
                     <a href="{% url 'logout' %}">
                         <i class='bx bx-log-out'></i>
@@ -428,9 +438,14 @@
                     <div>₹{{ delivery_fee|floatformat:2 }}</div>
                 </div>
                 <div class="summary-item">
+                    <div>Platform Fee</div>
+                    <div>₹{{ platform_fee|floatformat:2 }}</div>
+                </div>
+
+                {% comment %} <div class="summary-item">
                     <div>Discount</div>
                     <div>- ₹{{ discount|floatformat:2 }}</div>
-                </div>
+                </div> {% endcomment %}
                 <div class="summary-item total">
                     <div>Total</div>
                     <div>₹{{ total|floatformat:2 }}</div>
@@ -445,7 +460,7 @@
                         <input type="radio" id="cash_on_delivery" name="payment-method" value="Cash On Delivery" checked>
                         <label for="cash_on_delivery">Cash On Delivery</label>
                     </div>
-                    <div>
+                    {% comment %} <div>
                         <input type="radio" id="bank_transfer" name="payment-method" value="Direct Bank Transfer">
                         <label for="bank_transfer">Direct Bank Transfer</label>
                     </div>
@@ -456,7 +471,7 @@
                     <div>
                         <input type="radio" id="paypal" name="payment-method" value="PayPal">
                         <label for="paypal">PayPal</label>
-                    </div>
+                    </div> {% endcomment %}
                 </div>
     
                 <!-- Place Order Button -->
@@ -491,7 +506,7 @@
         });
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Select all logout links
+            // Logout Confirmation
             const logoutLinks = document.querySelectorAll('.logout-button, .nav-links a[href="{% url 'logout' %}"]');
 
             logoutLinks.forEach(function (element) {
@@ -513,7 +528,7 @@
                     });
                 });
             });
-    </script>
+</script>
 </body>
 
 </html>

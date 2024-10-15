@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Rambutan Warehouse - Sign Up</title>
+    <title>Sign Up</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -241,15 +241,17 @@
         </div>
     </nav>
 
-    
-        <div class="register-container">
-            <div class="register-content">
+    <div class="register-container">
+        <div class="register-content">
             <h2>Enter Your Email</h2>
             <form method="POST">
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" required>
+                    <input type="email" id="email" name="email" 
+                           pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$" 
+                           title="Please enter a valid Gmail address (e.g., yourname@gmail.com)." 
+                           required>
                 </div>
                 <button type="submit">Send OTP</button>
             </form>
@@ -257,7 +259,26 @@
                 <a href="{% url 'login' %}">Already have an account? Login here.</a>
             </div>
         </div>
-        </div>
+    </div>
 
+    <!-- JavaScript for email validation -->
+    <script>
+        // Add event listener to the form's submit event
+        document.querySelector("form").addEventListener("submit", function(event) {
+            // Select the email field
+            var emailField = document.getElementById("email");
+            // Define the regex pattern to match only Gmail addresses
+            var emailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+            
+            // Test the value of the email field against the pattern
+            if (!emailPattern.test(emailField.value)) {
+                // Show a custom alert message if the email is invalid
+                alert("Please enter a valid Gmail address (e.g., yourname@gmail.com).");
+                // Prevent the form from being submitted
+                event.preventDefault();
+            }
+        });
+    </script>
+           
 </body>
 </html>

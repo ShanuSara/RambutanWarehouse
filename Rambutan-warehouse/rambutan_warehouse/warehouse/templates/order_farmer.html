@@ -12,10 +12,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
 
     <!-- Boxicons for Icons -->
-    <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
+  <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
 
-    <!-- SweetAlert2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <!-- SweetAlert2 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  
+  <!-- SweetAlert2 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    
 
     <style>
         /* Reset Margins and Paddings */
@@ -267,6 +272,30 @@
         .order-details div {
             font-size: 16px;
         }
+
+        /* Footer Styling */
+        footer {
+          width: calc(100% - 250px);
+          margin-left: 250px;
+          margin-top: 40px;
+          padding: 20px;
+          color: var(--black);
+          text-align: center;
+          border-radius: 10px;
+        }
+    
+        footer a {
+          color: var(--black);
+          text-decoration: none;
+          margin: 0 10px;
+          transition: color 0.3s;
+        }
+    
+        footer a:hover {
+          color: var(--accent-color);
+          text-decoration: underline;
+        }
+
     </style>
 </head>
 
@@ -364,7 +393,39 @@
                 {% endfor %}
             </div>
         </div>
-    </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2024 Rambutan Warehouse. All Rights Reserved.</p>
+    <a href="#">Privacy Policy</a> |
+    <a href="#">Terms & Conditions</a> |
+    <a href="#">Contact Us</a>
+  </footer>
+
+</section>
+
+<!-- JavaScript Files -->
+<script>
+    
+  // Confirm Logout with SweetAlert2
+  document.querySelectorAll('.log_out a, .top-navbar a[href="{% url 'logout' %}"]').forEach(function (element) {
+    element.addEventListener('click', function (event) {
+      event.preventDefault();
+      Swal.fire({
+        title: 'Are you sure you want to logout?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, logout',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = this.href;
+        }
+      });
+    });
+  });
+</script>
+
 </body>
 
 </html>
