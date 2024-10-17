@@ -139,8 +139,8 @@ def login_view(request):
                 return redirect('customer_dashboard')
             else:
                 return render(request, 'login.html', {'error': 'Invalid user role'})
-        #else:
-            #messages.error(request,message="Invalid Credentials")
+        else:
+            messages.error(request,message="Invalid Credentials")
     return render(request, 'login.html')
 
 @login_required
@@ -701,9 +701,10 @@ def order_detail(request, order_number):
         
         billing_details = order.billing_detail
         subtotal = sum(item.price * item.quantity for item in order_items)
-        delivery_fee = 0 
-        discount = 0     
-        total = subtotal + delivery_fee - discount
+        delivery_fee = 40 
+        platform_fee = 10
+        # discount = 0     
+        total = subtotal + delivery_fee + platform_fee
 
     except Order.DoesNotExist:
         return redirect('order')
@@ -714,7 +715,8 @@ def order_detail(request, order_number):
         'billing_details': billing_details,
         'subtotal': subtotal,
         'delivery_fee': delivery_fee,
-        'discount': discount,
+        'platform_fee' : platform_fee,
+        # 'discount': discount,
         'total': total,
     })
 

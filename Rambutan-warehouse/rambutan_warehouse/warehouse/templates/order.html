@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Confirmation | Farmers Hub</title>
+    <title>Order Confirmation</title>
     <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
@@ -25,7 +25,15 @@
     <link rel="stylesheet" href="{% static 'css/flaticon.css' %}">
     <link rel="stylesheet" href="{% static 'css/icomoon.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Boxicons for Icons -->
+   <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
+
+   <!-- SweetAlert2 CSS -->
+   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+   
+   <!-- SweetAlert2 JS -->
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         /* Root Variables for Consistent Styling */
@@ -261,8 +269,7 @@
         footer {
             text-align: center;
             padding: 20px;
-            background-color: var(--primary-color);
-            color: var(--white);
+            color: var(--black);
             margin-top: 20px;
             width: calc(100% - 250px);
             margin-left: 250px;
@@ -270,7 +277,7 @@
         }
 
         footer a {
-            color: var(--white);
+            color: var(--black);
             text-decoration: none;
             margin: 0 5px;
         }
@@ -304,19 +311,53 @@
 
 <body>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="logo-details">
-           
-        </div>
-        <ul class="nav-links">
-            <li><a href="{% url 'customer_dashboard' %}"><i class='bx bx-home'></i> Dashboard</a></li>
-            <li><a href="{% url 'profile_view' %}"><i class='bx bx-user'></i> Profile</a></li>
-            <li><a href="{% url 'order_history' %}" class="active"><i class='bx bx-cart'></i> Orders</a></li>
-            <li><a href="{% url 'wishlist' %}"><i class='bx bx-heart'></i> Wishlist</a></li>
-            <li><a href="{% url 'logout' %}"><i class='bx bx-log-out'></i> Logout</a></li>
-        </ul>
-    </div>
+<!-- Sidebar -->
+<div class="sidebar">
+    <ul class="nav-links">
+        <li>
+            <a href="{% url 'customer_dashboard' %}">
+                <i class='bx bx-grid-alt'></i>
+                <span class="links_name">Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'profile_view' %}">
+                <i class='bx bx-user'></i>
+                <span class="links_name">View Profile</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'products_browse' %}">
+                <i class='bx bx-cart'></i>
+                <span class="links_name">Browse Products</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'wishlist' %}">
+                <i class='bx bx-heart'></i>
+                <span class="links_name">Wishlist</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'cart' %}" >
+                <i class='bx bx-shopping-bag'></i>
+                <span class="links_name">Cart</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'order_history' %}">
+              <i class='bx bx-cart'></i>
+              <span class="links_name">Order history</span>
+            </a>
+        </li>
+        <li class="log_out">
+            <a href="{% url 'logout' %}">
+                <i class='bx bx-log-out'></i>
+                <span class="links_name">Log out</span>
+            </a>
+        </li>
+    </ul>
+</div>
 
     <!-- Top Navbar -->
     <nav class="top-navbar">
@@ -387,9 +428,13 @@
                 <div>₹{{ delivery_fee|floatformat:2 }}</div>
             </div>
             <div class="summary-item">
+                <div>Platform Fee</div>
+                <div>₹{{ platform_fee|floatformat:2 }}</div>
+            </div>
+            {% comment %} <div class="summary-item">
                 <div>Discount</div>
                 <div>- ₹{{ discount|floatformat:2 }}</div>
-            </div>
+            </div> {% endcomment %}
             <div class="summary-item total">
                 <div>Total</div>
                 <div>₹{{ total|floatformat:2 }}</div>
@@ -412,8 +457,8 @@
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2024 Farmers Hub. All Rights Reserved.</p>
-        <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a>
+        <p>&copy; 2024 Rambutan Warehouse. All Rights Reserved.</p>
+        <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a> | <a href="#">Contact Us</a>
     </footer>
     <script>
         document.getElementById("confirmOrderButton").addEventListener("click", function () {

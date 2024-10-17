@@ -153,7 +153,7 @@ class BillingDetail(models.Model):
     phone = models.CharField(max_length=20, blank=False, validators=[
         RegexValidator(
             regex=r'^\+?\d{9,15}$',
-            message='Phone number must be entered in the format: +999999999. Up to 15 digits allowed.'
+            message='Phone number must be entered in the format, eg: +918541744560. Up to 15 digits allowed.'
         )
     ])
     

@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Rambutan Wishlist | Rambutan Warehouse</title>
+    <title>Orders</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Boxicons CDN Link -->
@@ -323,40 +323,29 @@
             }
         }
 
-        /* Footer Styling */
-        footer {
-            text-align: center;
-            padding: 20px;
-            background-color: var(--primary-color);
-            color: var(--white);
-            margin-top: 20px;
-            width: calc(100% - 250px);
-            margin-left: 250px;
-            box-sizing: border-box;
-        }
-
-        footer a {
-            color: var(--white);
-            text-decoration: none;
-            margin: 0 5px;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
         .order-listing {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
+            flex-wrap: wrap;
+            gap: 20px; /* Adjust spacing between the orders */
         }
-
+        
         .order-card {
+            flex: 1 1 calc(50% - 20px); /* Two order cards per row */
             border: 1px solid #ddd;
             padding: 20px;
             border-radius: 10px;
             background-color: #fafafa;
             box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
         }
+        
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 768px) {
+            .order-card {
+                flex: 1 1 100%; /* One order per row on smaller screens */
+            }
+        }
+        
 
         .order-card h3 {
             font-size: 18px;
@@ -407,6 +396,29 @@
         .go-home a:hover {
             color: var(--primary-color);
         }
+
+        
+        /* Footer Styling */
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--black);
+            margin-top: 20px;
+            width: calc(100% - 250px);
+            margin-left: 150px;
+            box-sizing: border-box;
+        }
+
+        footer a {
+            color: var(--black);
+            text-decoration: none;
+            margin: 0px;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
     </style>
 </head>
 
