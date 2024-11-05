@@ -184,6 +184,7 @@ def farmer_dashboard(request):
 
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def edit_farmer_profile(request):
     user_instance = get_object_or_404(Registeruser, username=request.user.username)
 
@@ -401,6 +402,8 @@ def update_post(request, id):
         form = RambutanPostForm(instance=post)
         return render(request, 'update_post.html', {'form': form, 'post': post})
 
+@login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def update_quantity(request, id):
     post = get_object_or_404(RambutanPost, id=id)
 
@@ -512,6 +515,7 @@ def profile_view(request):
 
 
 @login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def edit_customer_profile(request):
     user = get_object_or_404(Registeruser, username=request.user.username)  
     if request.method == 'POST':
@@ -560,6 +564,8 @@ def products_browse(request):
     }
     return render(request, 'shop.html', context)
 
+@login_required
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def product_detail(request, product_id):
     product = get_object_or_404(RambutanPost, id=product_id)
     

@@ -235,16 +235,20 @@
         }
 
         .orders-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+          list-style: none;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap; 
         }
 
         .order {
-            background-color: #ffffff;
-            padding: 15px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+          width: calc(50% - 20px); /* Two items per row with some spacing */
+      margin: 10px; /* Space around each item */
+      padding: 15px;
+      background-color: #f7f7f7;
+      border-radius: 5px;
+      border-left: 5px solid #4CAF50;
+      box-sizing: border-box; 
         }
 
         .order-item {
