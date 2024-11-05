@@ -11,6 +11,18 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -166,16 +178,20 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'social_core.backends.google.GoogleOAuth2',  
 ]
+OAUTH_KEY = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+OAUTH_SECRET = os.environ.get('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID')
+RAZORPAY_SECRET_KEY= os.environ.get('RAZORPAY_SECRET_KEY')
 
 # Add these settings for social-auth-app-django
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '887549284039-6hqpisbv0kf1rijrjmkrq42nlnll44fb.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = OAUTH_KEY
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = OAUTH_SECRET
 
 LOGIN_REDIRECT_URL = 'register'
 LOGOUT_REDIRECT_URL = '/'
 
 
-RAZORPAY_KEY_ID = 'rzp_test_dH0gyUYUSWXFDR'
-RAZORPAY_SECRET_KEY = 'YHsCIgApgANT2Jb0aQWOlibW'
+RAZORPAY_KEY_ID = RAZORPAY_KEY_ID
+RAZORPAY_SECRET_KEY = RAZORPAY_SECRET_KEY
 
