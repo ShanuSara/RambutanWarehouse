@@ -39,6 +39,8 @@ DEBUG = True
 
 # ALLOWED_HOSTS = ['rambutanwarehouse.onrender.com', 'localhost', '127.0.0.1']
 ALLOWED_HOSTS = ['*']
+BASE_URLS = 'https://rambutanwarehouse.onrender.com'
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
