@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Order Product</title>
+    <link rel="stylesheet" href="{% static 'your_css_file.css' %}"> 
+</head>
+<body>
+    <div class="container">
+        <h1>Order Product Details</h1>
+
+        <h2>Order Information</h2>
+        <p><strong>Order ID:</strong> {{ order.id }}</p>
+        <p><strong>Order Date:</strong> {{ order.created_at }}</p>
+        <p><strong>Status:</strong> {{ order.status }}</p> 
+        
+        <h2>Product Information</h2>
+        <p><strong>Product Name:</strong> {{ product.name }}</p>
+        <p><strong>Description:</strong> {{ product.description }}</p>
+        <p><strong>Price:</strong> {{ product.price }}</p>
+        <p><strong>Quantity Ordered:</strong> {{ order.products.get(id=product.id).quantity }}</p> 
+        
+        <a href="{% url 'manage_orders' %}">Back to Orders</a> 
+    </div>
+</body>
+</html>
