@@ -20,7 +20,7 @@ __pycache__/
 *.env
 
 # Database
-*.sqlite3
+
 
 # Django static and media files
 staticfiles/
