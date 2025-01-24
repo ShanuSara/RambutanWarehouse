@@ -1,0 +1,557 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Dashboard | Rambutan Warehouse</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Boxicons CDN Link -->
+    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
+
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Amatic+SC:400,700&display=swap" rel="stylesheet">
+
+    <!-- Additional CSS Files (Optional) -->
+    <link rel="stylesheet" href="{% static 'css/open-iconic-bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animate.css' %}">
+    <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/owl.theme.default.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/magnific-popup.css' %}">
+    <link rel="stylesheet" href="{% static 'css/aos.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ionicons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-datepicker.css' %}">
+    <link rel="stylesheet" href="{% static 'css/jquery.timepicker.css' %}">
+    <link rel="stylesheet" href="{% static 'css/flaticon.css' %}">
+    <link rel="stylesheet" href="{% static 'css/icomoon.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        /* Root Variables for Consistent Styling */
+        :root {
+            --primary-color: #2c3e50; /* Sidebar and Navbar color */
+            --secondary-color: #ecf0f1; /* Text and Icon color */
+            --accent-color: #16a085; /* Active link color */
+            --hover-color: #34495e; /* Hover background color */
+            --white: #ffffff;
+            --font-family: 'Poppins', sans-serif;
+        }
+
+        /* Global Styles */
+        body {
+            font-family: var(--font-family);
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 250px;
+            background-color: var(--primary-color);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            transition: width 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar .logo-details {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            color: var(--white);
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .sidebar ul.nav-links {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar ul.nav-links li {
+            margin: 20px 0;
+        }
+
+        .sidebar ul.nav-links li a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            transition: background-color 0.3s, color 0.3s;
+            border-radius: 4px;
+        }
+
+        .sidebar ul.nav-links li a:hover,
+        .sidebar ul.nav-links li a.active {
+            background-color: var(--accent-color);
+            color: var(--white);
+        }
+
+        .sidebar ul.nav-links li a i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .logo-details {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            color: var(--white);
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            margin-top: 20px;
+        }
+
+        .nav-links li {
+            list-style: none;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 18px;
+            transition: background-color 0.3s, color 0.3s;
+            border-radius: 4px;
+        }
+
+        .nav-links a.active,
+        .nav-links a:hover {
+            background-color: var(--accent-color);
+            color: var(--white);
+        }
+
+        .nav-links a i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        /* Top Navbar Styling */
+        .top-navbar {
+            background-color: var(--primary-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            position: fixed;
+            top: 0;
+            left: 250px;
+            right: 0;
+            z-index: 1001; /* Ensure navbar is above the sidebar */
+        }
+
+        .logo-text {
+            font-size: 24px;
+            color: var(--white);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .top-navbar .logo a {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .top-navbar .logo img {
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .nav-icons {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-icons li a {
+            text-decoration: none;
+            color: var(--secondary-color);
+            font-size: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: color 0.3s;
+        }
+
+        .nav-icons li a:hover {
+            color: var(--accent-color);
+        }
+
+        .nav-icons li.user-profile a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 5px;
+        }
+
+        .nav-icons li.user-profile a i {
+            font-size: 24px; /* Increase icon size */
+            color: var(--secondary-color);
+        }
+
+        .nav-icons li.user-profile a .icon-name {
+            font-size: 14px; 
+            color: var(--secondary-color); 
+        }
+
+        .home-section {
+        margin-left: 250px;
+        width: calc(100% - 250px);
+        padding-top: 60px; /* Space for fixed top-navbar */
+        padding: 0;
+        transition: margin-left 0.3s, width 0.3s;
+        min-height: 100vh;
+        background-image: url("{% static 'images/c_dash.jpg' %}"); 
+        background-size: cover; 
+        background-position: center; 
+        background-repeat: no-repeat; 
+        background-attachment: fixed; 
+    }
+
+        /* Profile Container */
+        .profile-container {
+            padding: 50px;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 120px); /* Adjust based on header and top-bar heights */
+        }
+
+        .profile-box {
+            background-color: var(--white);
+            padding: 30px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .profile-box h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+
+        .profile-details {
+            margin-top: 20px;
+        }
+
+        .profile-details h3 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #555;
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .profile-info div {
+            width: 48%;
+        }
+
+        .profile-info div p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .profile-info div span {
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Form Section */
+        .form-section {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+            margin-top: 7%;
+        }
+
+        .form-section h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .submit-button {
+            background-color: var(--accent-color);
+            color: var(--white);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .submit-button:hover {
+            background-color: #128776;
+            transform: translateY(-2px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 80px;
+            }
+
+            .top-navbar {
+                width: calc(100% - 80px);
+                left: 80px;
+            }
+
+            .home-section {
+                margin-left: 80px;
+                width: calc(100% - 80px);
+                padding-top: 60px; /* Adjusted padding-top */
+            }
+
+            .sidebar ul.nav-links li a .links_name {
+                display: none;
+            }
+
+            .sidebar ul.nav-links li a i {
+                margin-right: 0;
+            }
+
+            .nav-icons {
+                gap: 10px;
+            }
+
+            .nav-icons li a .icon-name {
+                font-size: 12px;
+            }
+
+            .profile-info {
+                flex-direction: column;
+            }
+
+            .profile-info div {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+        }
+
+        /* Footer Styling */
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--white);
+            margin-top: 20px;
+            width: calc(100% - 250px);
+            margin-left: 250px;
+            box-sizing: border-box;
+        }
+
+        footer a {
+            color: var(--white);
+            text-decoration: none;
+            margin: 0 5px;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul class="nav-links">
+            <li>
+                <a href="{% url 'customer_dashboard' %}" class="active">
+                    <i class='bx bx-grid-alt'></i>
+                    <span class="links_name">Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'profile_view' %}">
+                    <i class='bx bx-user'></i>
+                    <span class="links_name">View Profile</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'products_browse' %}">
+                    <i class='bx bx-cart'></i>
+                    <span class="links_name">Browse Products</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'wishlist' %}">
+                    <i class='bx bx-heart'></i>
+                    <span class="links_name">Wishlisted Items</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'cart' %}">
+                    <i class='bx bx-shopping-bag'></i>
+                    <span class="links_name">Cart</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'order_history' %}">
+                  <i class='bx bx-cart'></i>
+                  <span class="links_name">order history</span>
+                </a></li>
+            <li class="log_out">
+                <a href="{% url 'logout' %}" class="logout-button">
+                    <i class='bx bx-log-out'></i>
+                    <span class="links_name">Log out</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Home Section -->
+    <section class="home-section">
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <div class="logo">
+                <span class="logo-text">Rambutan Warehouse</span>
+            </div>
+            <ul class="nav-icons">
+                <!-- User Profile Section -->
+                <li class="user-profile">
+                    <a href="{% url 'profile_view' %}">
+                        <i class='bx bx-user'></i>
+                        <span class="icon-name">{{ user.name }}</span>
+                    </a>
+                </li>
+                <!-- Logout Icon -->
+                <li>
+                    <a href="{% url 'logout' %}" class="logout-button">
+                        <i class='bx bx-log-out'></i>
+                        <span class="icon-name">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="home-content">
+            <!-- Main content for customer dashboard -->
+            <div class="form-section">
+                <h2>Manage Your Account</h2>
+                <p>Welcome to your dashboard, {{ user.name }}! Here you can view and manage your profile, browse products, and keep track of your wishlisted and carted items.</p>
+            </div>
+        </div>
+        <a href="{% url 'chatbot_page' %}">
+            <i class='bx bx-cart'></i>
+            <span class="links_name">chatbot</span>
+          </a></li>
+
+
+        
+    </section>
+
+
+    <!-- JavaScript Files -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Logout Confirmation
+            const logoutLinks = document.querySelectorAll('.logout-button, .nav-links a[href="{% url 'logout' %}"]');
+
+            logoutLinks.forEach(function (element) {
+                element.addEventListener('click', function (event) {
+                    event.preventDefault(); // Prevent the default logout action
+
+                    Swal.fire({
+                        title: 'Are you sure you want to logout?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, logout',
+                        cancelButtonText: 'Cancel',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Proceed with logout
+                            window.location.href = element.href;
+                        }
+                    });
+                });
+            });
+
+            // Optional: Add other SweetAlert2 interactions here, such as profile update confirmations
+
+            // Remove the following code if you do not have a sidebar toggle button
+            /*
+            let sidebar = document.querySelector(".sidebar");
+            let sidebarBtn = document.querySelector(".sidebarBtn");
+            sidebarBtn.onclick = function () {
+                sidebar.classList.toggle("active");
+                if (sidebar.classList.contains("active")) {
+                    sidebarBtn.classList.replace("bx-menu", "bx-menu-alt-right");
+                } else {
+                    sidebarBtn.classList.replace("bx-menu-alt-right", "bx-menu");
+                }
+            }
+            */
+        });
+    </script>
+
+</body>
+
+</html>

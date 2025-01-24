@@ -1,0 +1,272 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Rambutan Post Quantity</title>
+    
+    <!-- External CSS and font links -->
+    <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom CSS copied from earlier */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            width: 250px;
+            height: 100%;
+            background: #4CAF50;
+            position: fixed;
+            left: 0;
+            top: 0;
+            transition: all 0.5s ease;
+        }
+        .sidebar .logo-details {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar .logo_name {
+            font-size: 24px;
+            font-weight: 600;
+            color: white;
+            font-family: 'Fredoka One', cursive;
+        }
+        
+        .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        }
+        
+        .sidebar ul li {
+        padding: 15px 0;
+        }
+        .sidebar ul li a {
+            text-decoration: none;
+            color: white;
+            padding: 12px 30px;
+            display: flex;
+            align-items: center;
+        }
+        
+    .sidebar ul li a.active,
+    .sidebar ul li a:hover {
+      background-color: #45A049;
+      border-radius: 5px;
+    }
+
+    .sidebar ul li a .bx {
+      margin-right: 15px;
+      font-size: 24px;
+    }
+
+    .sidebar .log_out {
+      margin-top: 10px;
+    }
+        .home-section {
+            width: calc(100% - 250px);
+            margin-left: 250px;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #4CAF50;
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+        }
+        nav .dashboard {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            font-family: 'Fredoka One', cursive;
+        }
+        
+    nav .profile-details {
+      display: flex;
+      align-items: center;
+    }
+
+    nav .profile-details img {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    
+    .home-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: calc(90vh - 40px);
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .form-section h2 {
+      width: 100%;
+      max-width: 500px;
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #4CAF50;
+      font-family: 'Fredoka One', cursive;
+    }
+        .form-section {
+            margin-top: 5px;
+        }
+        .form-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+    flex: 1;
+}
+
+.form-group input {
+    width: 100px; /* Adjust the width of the input field */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-left: 10px; /* Add space between the label and input */
+}
+
+        .submit-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 15px;
+        }
+        .submit-button:hover {
+            background-color: #45A049;
+        }
+        .post-details img {
+            display: block;
+            margin-bottom: 15px;
+        }
+        
+    .quick-actions {
+      margin-top: 20px;
+    }
+
+    .quick-actions a {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 18px;
+    }
+
+    .quick-actions a:hover {
+      background-color: #45A049;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+      }
+
+      .home-section {
+        width: 100%;
+        margin-left: 0;
+        padding: 10px;
+      }
+
+      nav {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .home-content {
+        height: auto;
+        flex-direction: column;
+        padding: 10px;
+      }
+    }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-details">
+            <span class="logo_name">Farmers Hub</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="{% url 'farmer_dashboard' %}"><i class='bx bx-grid-alt'></i><span class="links_name">Dashboard</span></a></li>
+            <li><a href="{% url 'post_rambutan' %}"><i class='bx bx-leaf'></i><span class="links_name">Post Rambutan</span></a></li>
+            <li><a href="{% url 'view_posts' %}"><i class='bx bx-list-ul'></i><span class="links_name">View My Posts</span></a></li>
+            <li class="log_out"><a href="{% url 'logout' %}"><i class='bx bx-log-out'></i><span class="links_name">Log out</span></a></li>
+        </ul>
+    </div>
+
+    <section class="home-section">
+        <nav>
+            <span class="dashboard">Update Rambutan Post Quantity</span>
+            <div class="profile-details">
+                {% if user.profile_pic %}
+                <img src="{{ user.profile_pic.url }}" alt="Profile">
+                {% endif %}
+                <span>Hi, {{ user.name }}</span>
+                <i class='bx bx-chevron-down'></i>
+            </div>
+        </nav>
+
+        <div class="home-content">
+            <div class="form-section">
+                <h2>Update Quantity for {{ post.name }}</h2>
+
+                <!-- Display all the post details -->
+                <div class="post-details">
+                    <img src="/media/{{ post.image }}" alt="{{ post.name }}" width="150px"><br>
+                    <strong>Name:</strong> {{ post.name }}<br>
+                    <strong>Variety:</strong> {{ post.variety }}<br>
+                    <strong>Price per kg:</strong> ₹{{ post.price_per_kg }}<br>
+                    <strong>Description:</strong> {{ post.description }}<br>
+                    <strong>Current Quantity Left:</strong> {{ post.quantity_left }} kg<br>
+                    <strong>Status:</strong> {{ post.is_available|yesno:"Available,Out of Stock" }}<br>
+                </div>
+
+                <!-- Form for updating the quantity -->
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="quantity">New Quantity Left:</label>
+                        <input type="number" id="quantity" name="quantity_left" value="{{ post.quantity_left }}" min="1" required>
+                    </div>
+
+                    <button type="submit" class="submit-button">Update Quantity</button>
+                </form> <div class="quick-actions">
+                    <a href="{% url 'view_posts' %}">Back</a>
+                  </div>
+                </div>
+        </div>
+    </section>
+</body>
+</html>
