@@ -1,0 +1,323 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Rambutan Warehouse - Delivery Boy Registration</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Amatic+SC:400,700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/open-iconic-bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animate.css' %}">
+    <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/owl.theme.default.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/magnific-popup.css' %}">
+    <link rel="stylesheet" href="{% static 'css/aos.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ionicons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-datepicker.css' %}">
+    <link rel="stylesheet" href="{% static 'css/jquery.timepicker.css' %}">
+    <link rel="stylesheet" href="{% static 'css/flaticon.css' %}">
+    <link rel="stylesheet" href="{% static 'css/icomoon.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    <style>
+        body {
+            background-size: cover;
+            background-position: center;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .register-container {
+            width: 400px;
+            padding: 20px;
+            margin: 50px auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .register-button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .register-button:hover {
+            background-color: #218838;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .login-link a {
+            color: #007bff;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+
+</head>
+<body class="goto-here">
+    <div class="py-1 bg-primary">
+        <div class="container">
+            <div class="row no-gutters d-flex align-items-start align-items-center px-md-0">
+                <div class="col-lg-12 d-block">
+                    <div class="row d-flex">
+                        <div class="col-md pr-4 d-flex topper align-items-center">
+                            <div class="icon mr-2 d-flex justify-content-center align-items-center" style="margin-left: 100px;"><span class="icon-phone2"></span></div>
+                            <span class="text">+91 7078945522</span>
+                        </div>
+                        <div class="col-md pr-4 d-flex topper align-items-center">
+                            <div class="icon mr-2 d-flex justify-content-center align-items-center"><span class="icon-paper-plane"></span></div>
+                            <span class="text">rambutanwarehouse@gmail.com</span>
+                        </div>
+                        <div class="col-md-5 pr-4 d-flex topper align-items-center text-lg-right">
+                            <span class="text">Fast delivery &amp; Free Returns</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'index' %}" style="margin-left: 200px;">Rambutan Warehouse</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="oi oi-menu"></span> Menu
+            </button>
+
+            <div class="collapse navbar-collapse" id="ftco-nav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item active"><a href="{% url 'index' %}" class="nav-link">Home</a></li>
+                    <li class="nav-item"><a href="{% url 'login' %}" class="nav-link">Shop</a></li>
+                    <li class="nav-item"><a href="{% url 'about' %}" class="nav-link">About</a></li>
+                    <li class="nav-item"><a href="{% url 'contact' %}" class="nav-link">Contact</a></li>
+                    <li class="nav-item"><a href="{% url 'register' %}" class="nav-link">SignUp</a></li>
+                    <li class="nav-item"><a href="{% url 'login' %}" class="nav-link">Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="register-container">
+        <h2>Delivery Boy Registration</h2>
+        {% for message in messages %}
+        <div class="alert alert-danger" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+
+        <form action="{% url 'deliveryboy_register' %}" method="post" enctype="multipart/form-data" onsubmit="return validateForm();">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="full_name">Full Name:</label>
+                <input type="text" id="full_name" name="full_name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" value="{{ request.session.delivery_email }}" readonly required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number:</label>
+                <input type="tel" id="phone" name="phone" pattern="[0-9]{10}" required>
+            </div>
+            <div class="form-group">
+                <label for="address">Address:</label>
+                <input type="text" id="address" name="address" required>
+            </div>
+            {% comment %} <div class="form-group">
+                <label for="vehicle_type">Vehicle Type:</label>
+                <select id="vehicle_type" name="vehicle_type" required>
+                    <option value="">Select Vehicle Type</option>
+                    <option value="bike">Bike</option>
+                    <option value="scooter">Scooter</option>
+                    <option value="cycle">Cycle</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="vehicle_number">Vehicle Number:</label>
+                <input type="text" id="vehicle_number" name="vehicle_number" required>
+            </div> {% endcomment %}
+            <div class="form-group">
+                <label for="license">Driving License Number:</label>
+                <input type="text" id="license" name="license" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            <button type="submit" class="register-button">Register</button>
+        </form>
+        <div class="login-link">
+            <p>Already have an account? <a href="{% url 'deliveryboy_login' %}">Login here</a></p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Define regular expressions for validation
+        const licensePattern = /^[A-Z]{2} [0-9]{2} [0-9]{9}$/;
+        const phonePattern = /^[0-9]{10}$/;
+
+        // Helper function to show error messages
+        function showError(input, message) {
+            const errorDiv = document.getElementById(input.id + "Error");
+            errorDiv.textContent = message;
+        }
+
+        // Helper function to hide error messages
+        function hideError(input) {
+            const errorDiv = document.getElementById(input.id + "Error");
+            errorDiv.textContent = "";
+        }
+
+        // Validation functions
+        function validateFullName() {
+            const fullName = document.getElementById("fullName");
+            if (fullName.value.trim() === "") {
+                showError(fullName, "Full name is required.");
+                return false;
+            }
+            hideError(fullName);
+            return true;
+        }
+
+        function validatePhone() {
+            const phone = document.getElementById("phone");
+            if (!phonePattern.test(phone.value)) {
+                showError(phone, "Please enter a valid 10-digit phone number.");
+                return false;
+            }
+            hideError(phone);
+            return true;
+        }
+
+        function validateAddress() {
+            const address = document.getElementById("address");
+            if (address.value.trim() === "") {
+                showError(address, "Address is required.");
+                return false;
+            }
+            hideError(address);
+            return true;
+        }
+
+        function validateLicense() {
+            const license = document.getElementById("license");
+            if (!licensePattern.test(license.value.toUpperCase())) {
+                showError(license, "Please enter a valid driving license number in the format XX YY NNNNNNNNN (e.g., AB 12 345678901).");
+                return false;
+            }
+            hideError(license);
+            return true;
+        }
+
+        function validatePassword() {
+            const password = document.getElementById("password");
+            if (password.value.length < 8) {
+                showError(password, "Password must be at least 8 characters long.");
+                return false;
+            }
+            hideError(password);
+            return true;
+        }
+
+        function validateConfirmPassword() {
+            const password = document.getElementById("password");
+            const confirmPassword = document.getElementById("confirmPassword");
+            if (password.value !== confirmPassword.value) {
+                showError(confirmPassword, "Passwords do not match.");
+                return false;
+            }
+            hideError(confirmPassword);
+            return true;
+        }
+
+        // Form validation on submission
+        function validateForm() {
+            const isNameValid = validateFullName();
+            const isPhoneValid = validatePhone();
+            const isAddressValid = validateAddress();
+            const isLicenseValid = validateLicense();
+            const isPasswordValid = validatePassword();
+            const isConfirmPasswordValid = validateConfirmPassword();
+
+            if (isNameValid && isPhoneValid && isAddressValid &&
+                isLicenseValid && isPasswordValid && isConfirmPasswordValid) {
+                return true;
+            }
+
+            alert("Please fix the errors in the form before submitting.");
+            return false;
+        }
+
+        // Attach blur event listeners for real-time validation
+        document.getElementById("fullName").addEventListener("blur", validateFullName);
+        document.getElementById("phone").addEventListener("blur", validatePhone);
+        document.getElementById("address").addEventListener("blur", validateAddress);
+        document.getElementById("license").addEventListener("blur", validateLicense);
+        document.getElementById("password").addEventListener("blur", validatePassword);
+        document.getElementById("confirmPassword").addEventListener("blur", validateConfirmPassword);
+
+    </script>
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/jquery-migrate-3.0.1.min.js' %}"></script>
+    <script src="{% static 'js/popper.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/jquery.easing.1.3.js' %}"></script>
+    <script src="{% static 'js/jquery.waypoints.min.js' %}"></script>
+    <script src="{% static 'js/jquery.stellar.min.js' %}"></script>
+    <script src="{% static 'js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'js/jquery.magnific-popup.min.js' %}"></script>
+    <script src="{% static 'js/aos.js' %}"></script>
+    <script src="{% static 'js/jquery.animateNumber.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap-datepicker.js' %}"></script>
+    <script src="{% static 'js/scrollax.min.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/jquery.validate.min.js' %}"></script>
+</body>
+</html>

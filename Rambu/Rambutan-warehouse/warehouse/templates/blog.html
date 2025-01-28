@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Rambutan Warehouse - Blog</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background-color: #343a40;
+            color: #fff;
+            padding: 1rem;
+        }
+        .navbar a {
+            color: #fff;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+        }
+        .hero-wrap {
+            background-image: url('images/bg_1.jpg');
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+        }
+        .blog-entry {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .blog-entry img {
+            width: 150px;
+            height: auto;
+            margin-right: 20px;
+        }
+        .sidebar {
+            border-left: 1px solid #ccc;
+            padding: 20px;
+        }
+        .footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        
+        <a href="{% url 'index' %}">Rambutan Warehouse</a>
+        <a href="{% url 'products_browse' %}">Shop</a>
+        <a href="{% url 'about' %}">About</a>
+        <a href="{% url 'blog' %}" class="active">Blog</a>
+        <a href="{% url 'contact' %}">Contact</a>
+    </nav>
+
+    <div class="hero-wrap">
+        <h1>Blog</h1>
+    </div>
+    <section class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="blog-entry">
+                  <img src="{% static 'images/N18_rambu.jpg' %}" alt="Rambutan 3">
+                    <div>
+                        <h3><a href="#">The Benefits of Eating Rambutans</a></h3>
+                        <p>Rambutans are packed with nutrients and can boost your health.</p>
+                        <a href="#" class="btn btn-primary">Read more</a>
+                    </div>
+                </div>
+                <div class="blog-entry">
+                  <img src="{% static 'images/bg2_new.jpg' %}" alt="Rambutan 4">
+                    <div>
+                        <h3><a href="#">How to Choose the Best Rambutans</a></h3>
+                        <p>Learn how to select ripe and fresh rambutans at the market.</p>
+                        <a href="#" class="btn btn-primary">Read more</a>
+                    </div>
+                </div>
+                <div class="blog-entry">
+                  <img src="{% static 'images/Rongrien.jpg' %}" alt="Rambutan 1">
+                    <div>
+                        <h3><a href="#">Rambutan Recipes You Must Try</a></h3>
+                        <p>Discover delicious recipes featuring rambutan as a star ingredient.</p>
+                        <a href="#" class="btn btn-primary">Read more</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 sidebar">
+                <h3>Categories</h3>
+                <ul>
+                    <li><a href="#">Health Benefits</a></li>
+                    <li><a href="#">Recipes</a></li>
+                    <li><a href="#">Tips & Tricks</a></li>
+                </ul>
+                <h3>Recent Posts</h3>
+                <ul>
+                    <li><a href="#">The Health Benefits of Rambutans</a></li>
+                    <li><a href="#">Rambutan: A Tropical Delight</a></li>
+                    <li><a href="#">5 Ways to Enjoy Rambutans</a></li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>&copy; 2024 Rambutan Warehouse. All rights reserved.</p>
+        <p>Follow us on: <a href="#" style="color: white;">Facebook</a>, <a href="#" style="color: white;">Instagram</a></p>
+    </footer>
+
+</body>
+</html>

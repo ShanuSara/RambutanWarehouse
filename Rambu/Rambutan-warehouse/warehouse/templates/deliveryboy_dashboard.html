@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Boy Dashboard</title>
+    <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #f5f5f5;
+            display: flex;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e3c72, #2a5298);
+            padding: 20px;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .profile-section {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .profile-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #fff;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #2a5298;
+        }
+
+        .profile-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .profile-status {
+            font-size: 14px;
+            color: #a5c0f3;
+        }
+
+        .nav-menu {
+            margin-top: 30px;
+        }
+
+        .nav-item {
+            list-style: none;
+            margin-bottom: 10px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            padding: 30px;
+            border-radius: 20px;
+            color: white;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(46, 125, 50, 0.2);
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .welcome-text {
+            flex: 1;
+        }
+
+        .dashboard-header h1 {
+            font-size: 28px;
+            color:rgb(227, 234, 228);
+            margin-bottom: 10px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            background: #e3f2fd;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon i {
+            font-size: 24px;
+            color: #2a5298;
+        }
+
+        .stat-info {
+            flex: 1;
+        }
+
+        .stat-info h3 {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2a5298;
+        }
+
+        .orders-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .section-header {
+            margin-bottom: 25px;
+        }
+
+        .section-header h2 {
+            color: #2a5298;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .orders-table {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8f9fa;
+            color: #2a5298;
+            font-weight: 600;
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 2px solid #eee;
+        }
+
+        td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .action-btn.update-status {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.update-status:hover {
+            background: #1e3c72;
+            transform: translateY(-2px);
+        }
+
+        .action-btn.update-status[disabled] {
+            background: #cccccc;
+            pointer-events: none;
+        }
+
+        .no-orders-message {
+            text-align: center;
+            padding: 40px !important;
+            color: #666;
+        }
+
+        .no-orders-message i {
+            font-size: 40px;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+                padding: 15px;
+            }
+
+            .profile-section, .nav-link span {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 80px;
+            }
+
+            .nav-link {
+                justify-content: center;
+                padding: 15px;
+            }
+
+            .nav-link i {
+                margin: 0;
+                font-size: 20px;
+            }
+
+            .orders-grid {
+                overflow-x: auto;
+            }
+            
+            .orders-grid table {
+                min-width: 800px;
+            }
+
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .orders-section {
+            padding: 20px;
+        }
+
+            .dashboard-header {
+                padding: 20px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .profile-menu {
+                margin-left: 0;
+            }
+
+            .profile-dropdown {
+                right: 50%;
+                transform: translateX(50%);
+            }
+        }
+
+        /* Notification Modal Styles */
+        .notification-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .notification-content {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            width: 350px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .notification-header h3 {
+            color: #2a5298;
+            font-size: 18px;
+        }
+
+        .notification-body {
+            margin-bottom: 15px;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .accept-order-btn {
+            background: #2a5298;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .decline-order-btn {
+            background: #dc3545;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .accept-order-btn:hover {
+            background: #1e3c72;
+        }
+
+        .decline-order-btn:hover {
+            background: #c82333;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-header h2 {
+            color: #2a5298;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .status-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .status-option {
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .status-option:hover {
+            border-color: #2a5298;
+            background: #f5f5f5;
+        }
+
+        .status-option.selected {
+            background: #2a5298;
+            color: white;
+            border-color: #2a5298;
+        }
+
+        .status-option i {
+            font-size: 20px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .update-btn {
+            width: 100%;
+            padding: 12px;
+            background: #2a5298;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .update-btn:hover {
+            background: #1e3c72;
+            transform: translateY(-2px);
+        }
+
+        /* Enhanced table styles */
+        .orders-table tr {
+            transition: all 0.3s ease;
+        }
+
+        .orders-table tr:hover {
+            background: #f5f5f5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn.update-status {
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.update-status:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-nav {
+            position: fixed;
+            top: 0;
+            right: 0;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .profile-menu {
+            position: relative;
+        }
+
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-trigger:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-trigger i {
+            font-size: 20px;
+            color: white;
+        }
+
+        .profile-trigger span {
+            color: white;
+            font-size: 14px;
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 200px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .profile-dropdown a {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: #333;
+            text-decoration: none;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .profile-dropdown a:hover {
+            background: #f5f5f5;
+            color: #2a5298;
+        }
+
+        /* Profile Modal Styles */
+        .profile-details {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            background: #f5f5f5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-avatar i {
+            font-size: 50px;
+            color: #2a5298;
+        }
+
+        .detail-item {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .detail-item label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .detail-item p {
+            font-size: 16px;
+            color: #333;
+        }
+
+        /* Modal Action Buttons */
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .logout-btn, .cancel-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .cancel-btn {
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        .cancel-btn:hover {
+            background: #e2e6ea;
+        }
+
+        /* Updated status colors */
+        .status-pending {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .status-assigned {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-accepted {
+            background: #e3f2fd;
+            color: #2a5298;
+        }
+
+        .status-outfordelivery {
+            background: #e3f2fd;
+            color: #1e3c72;
+        }
+
+        .status-delivered {
+            background: #e3f2fd;
+            color: #2a5298;
+        }
+
+        .view-items-btn {
+            background: none;
+            border: none;
+            color: #2a5298;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .view-items-btn:hover {
+            background: #e3f2fd;
+        }
+
+        .order-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-details h4 {
+            margin: 0 0 10px 0;
+            color: #2a5298;
+        }
+
+        .item-details p {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .order-total {
+            margin-top: 20px;
+            padding: 15px;
+            border-top: 2px solid #2a5298;
+            text-align: right;
+        }
+
+        .order-total h3 {
+            color: #2a5298;
+            font-size: 1.2em;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="profile-section">
+            <div class="profile-image">
+                <i class="fas fa-user"></i>
+            </div>
+            <h2 class="profile-name">{{ delivery_boy.full_name }}</h2>
+            <p class="profile-status">Active</p>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            {% comment %} <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-box"></i>
+                    <span>Active Orders</span>
+                </a>
+            </li>                        {% endcomment %}
+            
+            <li class="nav-item">
+                <a href="#" onclick="openLogoutModal()" style="color: white; text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <div class="header-content">
+                <div class="welcome-text">
+                    <h1>Welcome back, {{ delivery_boy.full_name }}!</h1>
+                    <p>Here's your delivery overview</p>
+        </div>
+                <div class="profile-menu">
+                    <div class="profile-trigger" onclick="toggleProfileMenu()">
+                        <i class="fas fa-user-circle"></i>
+                        <span>{{ delivery_boy.name }}</span>
+                    </div>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <a href="#" onclick="openProfileModal()">
+                            <i class="fas fa-user"></i> View Profile
+                        </a>
+                        <a href="#" onclick="openLogoutModal()">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-boxes"></i>
+            </div>
+                <div class="stat-info">
+                    <h3>Total Orders</h3>
+                    <div class="stat-value">{{ total_orders }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                <h3>Pending Orders</h3>
+                    <div class="stat-value">{{ pending_orders }}</div>
+                </div>
+            </div>
+            {% comment %} <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-box-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Completed Orders</h3>
+                    <div class="stat-value">{{ completed_orders }}</div>
+                </div>
+            </div> {% endcomment %}
+        </div>
+
+        <!-- Orders Section -->
+        <div class="orders-section">
+            <div class="section-header">
+                <h2><i class="fas fa-list"></i> My Assigned Orders</h2>
+                        </div>
+
+            <div class="orders-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer Name</th>
+                            <th>Contact</th>
+                            <th>Delivery Address</th>
+                            <th>Items</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in assigned_orders %}
+                        <tr data-order-id="{{ order.order_number }}">
+                            <td>#{{ order.order_number }}</td>
+                            <td>{{ order.user.name }}</td>
+                            <td>{{ order.billing_detail.phone }}</td>
+                            <td>
+                                {{ order.billing_detail.street_address }},
+                                {{ order.billing_detail.city }},
+                                {{ order.billing_detail.postcode }}
+                            </td>
+                            <td>
+                                <button onclick="viewOrderItems('{{ order.order_number }}')" class="view-items-btn">
+                                    <i class="fas fa-eye"></i> View Items
+                                </button>
+                            </td>
+                            <td>₹{{ order.total_amount }}</td>
+                            <td>
+                                <span class="status-badge status-{{ order.order_status|lower }}">
+                                    {{ order.order_status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if order.order_status.lower != 'delivered' and order.order_status != 'Delivered' %}
+                                    <button onclick="openStatusModal('{{ order.order_number }}')" class="action-btn update-status">
+                                        <i class="fas fa-edit"></i> Update Status
+                                    </button>
+                                {% else %}
+                                    <button class="action-btn update-status" disabled style="opacity: 0.5; cursor: not-allowed;">
+                                        <i class="fas fa-check-circle"></i> Delivered
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                {% empty %}
+                        <tr>
+                            <td colspan="8" class="no-orders-message">
+                                <i class="fas fa-inbox"></i>
+                                <p>No orders assigned yet</p>
+                            </td>
+                        </tr>
+                {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+            </div>
+
+    <!-- Add this right before closing body tag -->
+    <div id="newOrderNotification" class="notification-modal">
+        <div class="notification-content">
+            <div class="notification-header">
+                <h3><i class="fas fa-bell"></i> New Order Assignment</h3>
+                <button onclick="closeNotification()" style="background: none; border: none; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+                        </div>
+            <div class="notification-body">
+                <p><strong>Order #<span id="orderNumber"></span></strong></p>
+                <p><strong>Customer:</strong> <span id="customerName"></span></p>
+                <p><strong>Location:</strong> <span id="deliveryLocation"></span></p>
+                <p><strong>Amount:</strong> ₹<span id="orderAmount"></span></p>
+            </div>
+            <div class="notification-actions">
+                <button onclick="declineOrder()" class="decline-order-btn">
+                    <i class="fas fa-times"></i> Decline
+                </button>
+                <button onclick="acceptOrder()" class="accept-order-btn">
+                    <i class="fas fa-check"></i> Accept
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this modal at the bottom of the body tag -->
+    <div id="statusModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Update Order Status</h2>
+                <span class="close" onclick="closeStatusModal()">&times;</span>
+                        </div>
+            <div class="modal-body">
+                <form id="statusUpdateForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="orderId" name="order_id">
+                    <div class="status-options">
+                        <div class="status-option" data-status="packed">
+                            <i class="fas fa-box"></i> Packed
+                    </div>
+                        <div class="status-option" data-status="shipped">
+                            <i class="fas fa-shipping-fast"></i> Shipped
+            </div>
+                        <div class="status-option" data-status="out_for_delivery">
+                            <i class="fas fa-truck"></i> Out for Delivery
+                        </div>
+                        <div class="status-option" data-status="Delivered">
+                            <i class="fas fa-box-check"></i> Delivered
+                        </div>
+                    </div>
+                    <button type="submit" class="update-btn">Update Status</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add these modals before closing body tag -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user"></i> Profile Details</h2>
+                <span class="close" onclick="closeProfileModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="profile-details">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="detail-item">
+                        <label>Name</label>
+                        <p>{{ delivery_boy.full_name }}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Phone Number</label>
+                        <p>{{ delivery_boy.phone }}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Email</label>
+                        <p>{{ delivery_boy.user.email }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="logoutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-sign-out-alt"></i> Logout</h2>
+                <span class="close" onclick="closeLogoutModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to logout?</p>
+                <div class="modal-actions">
+                    <a href="{% url 'logout' %}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Yes, Logout
+                    </a>
+                    <button onclick="closeLogoutModal()" class="cancel-btn">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Items Modal -->
+    <div id="orderItemsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-box"></i> Order Items</h2>
+                <span class="close" onclick="closeOrderItemsModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="orderItemsList">
+                    <!-- Items will be loaded here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this JavaScript for status updates -->
+    <script>
+        // Check for new orders when page loads
+        document.addEventListener('DOMContentLoaded', checkNewOrders);
+
+        function checkNewOrders() {
+            // Make an AJAX call to check for new orders
+            fetch('/check-new-orders/')
+            .then(response => response.json())
+            .then(data => {
+                    if (data.new_order) {
+                        showNotification(data.order);
+                }
+            });
+        }
+
+        function showNotification(order) {
+            document.getElementById('orderNumber').textContent = order.id;
+            document.getElementById('customerName').textContent = order.customer_name;
+            document.getElementById('deliveryLocation').textContent = order.delivery_location;
+            document.getElementById('orderAmount').textContent = order.amount;
+            document.getElementById('newOrderNotification').style.display = 'block';
+        }
+
+        function closeNotification() {
+            document.getElementById('newOrderNotification').style.display = 'none';
+        }
+
+        function acceptOrder() {
+            const orderId = document.getElementById('orderNumber').textContent;
+            fetch('/accept-order/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    action: 'accept'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeNotification();
+                    location.reload(); // Refresh to show updated order list
+                }
+            });
+        }
+
+        function declineOrder() {
+            const orderId = document.getElementById('orderNumber').textContent;
+            fetch('/decline-order/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    action: 'decline'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    closeNotification();
+                }
+            });
+        }
+
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Check for new orders periodically (every 30 seconds)
+        setInterval(checkNewOrders, 30000);
+
+        const statusOptions = document.querySelectorAll('.status-option');
+        let selectedStatus = null;
+
+        statusOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                statusOptions.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedStatus = this.dataset.status;
+            });
+        });
+
+        document.getElementById('statusUpdateForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!selectedStatus) {
+                alert('Please select a status');
+                return;
+            }
+
+            const orderId = document.getElementById('orderId').value;
+            const formData = new FormData();
+            formData.append('order_id', orderId);
+            formData.append('status', selectedStatus);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+            fetch('/update-order-status/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error || 'Error updating status');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating status');
+            });
+        });
+
+        function openStatusModal(orderId) {
+            // Get the order status from the table row
+            const orderRow = document.querySelector(`tr[data-order-id="${orderId}"]`);
+            const orderStatus = orderRow.querySelector('.status-badge').textContent.trim().toLowerCase();
+            
+            if (orderStatus === 'delivered') {
+                return; // Don't open modal if order is delivered
+            }
+            
+            document.getElementById('orderId').value = orderId;
+            document.getElementById('statusModal').style.display = 'block';
+            statusOptions.forEach(opt => opt.classList.remove('selected'));
+            selectedStatus = null;
+        }
+
+        function closeStatusModal() {
+            document.getElementById('statusModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('statusModal');
+            if (event.target == modal) {
+                closeStatusModal();
+            }
+        }
+
+        function toggleProfileMenu() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function openProfileModal() {
+            document.getElementById('profileModal').style.display = 'block';
+            document.getElementById('profileDropdown').style.display = 'none';
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').style.display = 'none';
+        }
+
+        function openLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'block';
+            document.getElementById('profileDropdown').style.display = 'none';
+        }
+
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+        }
+
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-trigger') && 
+                !event.target.matches('.profile-trigger *')) {
+                document.getElementById('profileDropdown').style.display = 'none';
+            }
+        }
+
+        function viewOrderItems(orderNumber) {
+            // Show loading state
+            const itemsList = document.getElementById('orderItemsList');
+            itemsList.innerHTML = '<p>Loading items...</p>';
+            document.getElementById('orderItemsModal').style.display = 'block';
+
+            fetch(`/delivery/order-items/${orderNumber}/`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data); // For debugging
+                    if (data.status === 'success') {
+                        itemsList.innerHTML = '';
+                        
+                        let totalAmount = 0;
+                        data.items.forEach(item => {
+                            totalAmount += item.total;
+                            itemsList.innerHTML += `
+                                <div class="order-item">
+                                    <div class="item-details">
+                                        <h4>${item.product_name || 'Product Name Not Available'}</h4>
+                                        <p>Quantity: ${item.quantity}</p>
+                                        <p>Price per unit: ₹${parseFloat(item.price).toFixed(2)}</p>
+                                        <p>Item Total: ₹${parseFloat(item.total).toFixed(2)}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        itemsList.innerHTML += `
+                            <div class="order-total">
+                                <h3>Order Total: ₹${parseFloat(data.order_total).toFixed(2)}</h3>
+                            </div>
+                        `;
+                    } else {
+                        itemsList.innerHTML = '<p>Error loading order items</p>';
+                        console.error('Error:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    itemsList.innerHTML = '<p>Error loading order items. Please try again.</p>';
+                });
+        }
+
+        function closeOrderItemsModal() {
+            document.getElementById('orderItemsModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,403 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="{% static 'css/admin_manage_users.css' %}">
+    <style>
+        .nav-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .nav-tabs button {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+        .nav-tabs button.active {
+            border-bottom: 2px solid #007bff;
+            color: #007bff;
+        }
+        .tab-content > div {
+            display: none;
+        }
+        .tab-content > div.active {
+            display: block;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .status-pending {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .status-approved {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .status-rejected {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .action-btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            margin: 0 2px;
+        }
+        .approve-btn {
+            background-color: #28a745;
+        }
+        .reject-btn {
+            background-color: #dc3545;
+        }
+        .sorting-container {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .sort-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .sort-select,
+        .order-select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        .sort-button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .sort-button:hover {
+            background-color: #0056b3;
+        }
+        .delete-button {
+            background-color: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-left: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .delete-button:hover {
+            background-color: #c82333;
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul>
+            <li><a href="{% url 'admin_dashboard' %}"><i class="fas fa-chart-pie"></i> Overview</a></li>
+            {% comment %} <li><a href="{% url 'manage_farmers' %}"><i class="fas fa-users"></i> Manage Farmers</a></li> 
+            <li><a href="{% url 'manage_customers' %}"><i class="fas fa-users"></i> Manage customers</a></li> {% endcomment %}
+            <li><a href="{% url 'manage_users' %}"><i class="fas fa-users"></i> Manage users</a></li>
+            <li><a href="{% url 'manage_rambutan_posts' %}"><i class="fas fa-lemon"></i> Manage Rambutan Posts</a></li>
+            <li><a href="{% url 'view_orders' %}"><i class="fas fa-shopping-cart"></i> View Orders</a></li>
+            <li><a href="{% url 'logout' %}" id="sidebar-logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <!-- Top Navbar -->
+    <section>
+        <div class="top-navbar">
+            <div class="logo">
+                <span class="logo-text">Rambutan Warehouse</span>
+            </div>
+            <ul style="margin-left: auto;">
+                <li><a href="{% url 'logout' %}" id="navbar-logout"><i class="fa fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main">
+            <h2>Manage Users</h2>
+
+            <!-- Add tab navigation -->
+            <div class="nav-tabs">
+                <button class="tab-button active" data-tab="regular-users">Regular Users</button>
+                <button class="tab-button" data-tab="delivery-boys">Delivery Boys</button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="search-container">
+                <form method="GET" action="">
+                    <input type="text" name="search" placeholder="Search by User Name or Email...">
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+
+            <!-- Add this after your existing search container -->
+            <div class="sorting-container" style="margin: 20px 0;">
+                <form method="GET" class="sort-form" style="display: flex; gap: 10px; align-items: center;">
+                    <!-- Preserve search query if exists -->
+                    {% if search_query %}
+                    <input type="hidden" name="search" value="{{ search_query }}">
+                    {% endif %}
+                    
+                    <select name="sort_by" class="sort-select" style="padding: 8px; border-radius: 4px;">
+                        <option value="id" {% if current_sort == 'id' %}selected{% endif %}>Sort by ID</option>
+                        <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Sort by Name</option>
+                        <option value="username" {% if current_sort == 'username' %}selected{% endif %}>Sort by Username</option>
+                        <option value="role" {% if current_sort == 'role' %}selected{% endif %}>Sort by Role</option>
+                        <option value="status" {% if current_sort == 'status' %}selected{% endif %}>Sort by Status</option>
+                    </select>
+                    
+                    <select name="order" class="order-select" style="padding: 8px; border-radius: 4px;">
+                        <option value="asc" {% if current_order == 'asc' %}selected{% endif %}>Ascending</option>
+                        <option value="desc" {% if current_order == 'desc' %}selected{% endif %}>Descending</option>
+                    </select>
+                    
+                    <button type="submit" class="sort-button" style="padding: 8px 16px; border-radius: 4px; background-color: #007bff; color: white; border: none; cursor: pointer;">
+                        Apply Sort
+                    </button>
+                </form>
+            </div>
+
+            <!-- Tab content -->
+            <div class="tab-content">
+                <!-- Regular Users Tab -->
+                <div id="regular-users" class="tab-pane active">
+                    <div class="table-container">
+                        <h3>Regular Users</h3>
+                        <table>
+                            <tr>
+                                <th>ID</th>
+                                <th>User Name</th>
+                                <th>Name</th>
+                                <th>Contact</th>
+                                <th>Address</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            {% for user in users %}
+                            {% if user.role != 'delivery_boy' %}
+                            <tr>
+                                <td>{{ user.id }}</td>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.name }}</td>
+                                <td>{{ user.contact }}</td>
+                                <td>{{ user.address }}</td>
+                                <td>{{ user.role }}</td>
+                                <td>
+                                    {% if user.is_active %}
+                                        <a href="{% url 'toggle_user_availability' user.id %}" class="toggle-availability-button" data-status="unavailable">Set as Unavailable</a>
+                                    {% else %}
+                                        <a href="{% url 'toggle_user_availability' user.id %}" class="toggle-availability-button" data-status="available">Set as Available</a>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'delete_user' user.id %}" 
+                                       class="delete-button"
+                                       style="background-color: #dc3545; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; margin-left: 5px;">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Delivery Boys Tab -->
+                <div id="delivery-boys" class="tab-pane">
+                    <div class="table-container">
+                        <h3>Delivery Boys</h3>
+                        <table>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Username</th>
+                                <th>Contact</th>
+                                <th>Address</th>
+                                <th>License Number</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            {% for delivery_boy in delivery_boys %}
+                            <tr>
+                                <td>{{ delivery_boy.user.id }}</td>
+                                <td>{{ delivery_boy.full_name }}</td>
+                                <td>{{ delivery_boy.user.username }}</td>
+                                <td>{{ delivery_boy.phone }}</td>
+                                <td>{{ delivery_boy.user.address }}</td>
+                                <td>{{ delivery_boy.license_number }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ delivery_boy.approval_status }}">
+                                        {{ delivery_boy.get_approval_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if delivery_boy.approval_status == 'pending' %}
+                                    <a href="{% url 'approve_delivery_boy' delivery_boy.user.id %}" 
+                                       class="action-btn approve-btn">Approve</a>
+                                    <a href="{% url 'reject_delivery_boy' delivery_boy.user.id %}" 
+                                       class="action-btn reject-btn">Reject</a>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'delete_user' delivery_boy.user.id %}" 
+                                       class="delete-button"
+                                       style="background-color: #dc3545; color: white; padding: 5px 10px; border-radius: 4px; text-decoration: none; margin-left: 5px;">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- JavaScript -->
+    <script>
+        // Logout confirmation
+        function handleLogout(logoutLink) {
+            logoutLink.addEventListener('click', function(event) {
+                event.preventDefault();
+                Swal.fire({
+                    title: 'Are you sure you want to logout?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, logout',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = this.href;
+                    }
+                });
+            });
+        }
+
+        // Apply logout confirmation
+        handleLogout(document.getElementById('sidebar-logout'));
+        handleLogout(document.getElementById('navbar-logout'));
+
+        // Toggle availability confirmation
+        document.querySelectorAll('.toggle-availability-button').forEach(function (element) {
+            element.addEventListener('click', function (event) {
+                event.preventDefault();
+                const status = this.getAttribute('data-status');
+                Swal.fire({
+                    title: `Are you sure you want to set this user as ${status}?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: `Yes, set as ${status}`,
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = this.href;
+                    }
+                });
+            });
+        });
+
+        // Add tab functionality
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and panes
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                
+                // Add active class to clicked button and corresponding pane
+                button.classList.add('active');
+                document.getElementById(button.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Add confirmation for approve/reject actions
+        document.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const action = button.classList.contains('approve-btn') ? 'approve' : 'reject';
+                Swal.fire({
+                    title: `Are you sure you want to ${action} this delivery boy?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: `Yes, ${action}`,
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = button.href;
+                    }
+                });
+            });
+        });
+
+        // Auto-submit form when selections change
+        document.querySelectorAll('.sort-select, .order-select').forEach(select => {
+            select.addEventListener('change', () => {
+                document.querySelector('.sort-form').submit();
+            });
+        });
+
+        // Add delete confirmation
+        document.querySelectorAll('.delete-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "This action cannot be undone!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading state
+                        Swal.fire({
+                            title: 'Deleting...',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        
+                        // Redirect to delete URL
+                        window.location.href = button.href;
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
