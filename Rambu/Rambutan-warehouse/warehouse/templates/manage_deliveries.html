@@ -190,6 +190,33 @@
                 padding: 20px;
             }
         }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .status-packed {
+            background-color: #ffeeba;
+            color: #856404;
+        }
+        
+        .status-out {
+            background-color: #b8daff;
+            color: #004085;
+        }
+        
+        .status-delivered {
+            background-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .status-cancelled {
+            background-color: #f5c6cb;
+            color: #721c24;
+        }
     </style>
 </head>
 <body>
@@ -238,7 +265,18 @@
                         <td>{{ order.user.name }}</td>
                         <td>{{ order.billing_detail.street_address }}, {{ order.billing_detail.city }},{{ order.billing_detail.postcode }},{{ order.billing_detail.country }}</td>
                         <td>{{ order.created_at|date:"M d, Y" }}</td>
-                        <td>{{ order.order_status|title }}</td>
+                        <td>
+                            <span class="status-badge 
+                                {% if order.order_status == 'pending' %}status-pending
+                                {% elif order.order_status == 'packed' %}status-packed
+                                {% elif order.order_status == 'shipped' %}status-shipped
+                                {% elif order.order_status == 'out_for_delivery' %}status-out
+                                {% elif order.order_status == 'delivered' %}status-delivered
+                                {% elif order.order_status == 'cancelled' %}status-cancelled
+                                {% endif %}">
+                                {{ order.order_status|title }}
+                            </span>
+                        </td>
                         <td>
                             <button type="button" class="action-btn" data-bs-toggle="modal" data-bs-target="#assignModal{{ order.order_number }}">
                                 Assign Delivery Boy
@@ -300,12 +338,23 @@
                         <td>{{ order.order_number }}</td>
                         <td>{{ order.user.name }}</td>
                         <td>{{ order.delivery_boy.full_name }}</td>
-                        <td>{{ order.order_status|title }}</td>
+                        <td>
+                            <span class="status-badge 
+                                {% if order.order_status == 'pending' %}status-pending
+                                {% elif order.order_status == 'packed' %}status-packed
+                                {% elif order.order_status == 'shipped' %}status-shipped
+                                {% elif order.order_status == 'out_for_delivery' %}status-out
+                                {% elif order.order_status == 'delivered' %}status-delivered
+                                {% elif order.order_status == 'cancelled' %}status-cancelled
+                                {% endif %}">
+                                {{ order.order_status|title }}
+                            </span>
+                        </td>
                         <td>{{ order.created_at|date:"M d, Y" }}</td>
                         <td>
                             <form action="{% url 'unassign_delivery_boy' order.order_number %}" method="POST" style="display: inline;">
                                 {% csrf_token %}
-                                {% if order.order_status not in "shipped,out_for_delivery,delivered" %}
+                                {% if order.order_status not in "delivered" %}
                                     <button type="submit" class="action-btn" 
                                             onclick="return confirm('Are you sure you want to unassign this delivery boy?')">
                                         Unassign

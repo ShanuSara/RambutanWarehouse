@@ -80,6 +80,10 @@ urlpatterns = [
     path('deliveryboy_dashboard/', views.deliveryboy_dashboard, name='deliveryboy_dashboard'),
     path('chat/', views.chat_with_bot, name='chat_with_bot'),
     path('chat-interface/', views.chatbot_page, name='chatbot_page'),
+
+
+
+    
     path('delivery/order-items/<str:order_number>/', views.get_order_items, name='get_order_items'),
     path('password-reset/', 
          auth_views.PasswordResetView.as_view(

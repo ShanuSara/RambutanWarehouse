@@ -975,11 +975,10 @@ def order_history(request):
     order_details = []
 
     for order in orders:
-        tracking_stages = ["ordered", "packed", "shipped", "out_for_delivery", "delivered"]
+        # Get the current status of the order
+        current_status = order.order_status
 
-        current_time = timezone.now()
-        elapsed_time = current_time - order.created_at
-
+        # Initialize stage status based on the current order status
         stage_status = {
             'ordered': 'inactive',
             'packed': 'inactive',
@@ -988,25 +987,36 @@ def order_history(request):
             'delivered': 'inactive'
         }
 
-        if elapsed_time < timedelta(days=1):
+        # Update stage status based on the current order status
+        if current_status == 'pending':
             stage_status['ordered'] = 'active'
-        elif elapsed_time < timedelta(days=2):
+        elif current_status == 'packed':
             stage_status['ordered'] = 'active'
             stage_status['packed'] = 'active'
-        elif elapsed_time < timedelta(days=4):
+        elif current_status == 'shipped':
             stage_status['ordered'] = 'active'
             stage_status['packed'] = 'active'
             stage_status['shipped'] = 'active'
-        elif elapsed_time < timedelta(days=5):
+        elif current_status == 'out_for_delivery':
             stage_status['ordered'] = 'active'
             stage_status['packed'] = 'active'
             stage_status['shipped'] = 'active'
             stage_status['out_for_delivery'] = 'active'
-        else:
-            for stage in stage_status:
-                stage_status[stage] = 'active'
+        elif current_status == 'delivered':
+            stage_status['ordered'] = 'active'
+            stage_status['packed'] = 'active'
+            stage_status['shipped'] = 'active'
+            stage_status['out_for_delivery'] = 'active'
+            stage_status['delivered'] = 'active'
+        elif current_status == 'cancelled':
+            stage_status['ordered'] = 'inactive'
+            stage_status['packed'] = 'inactive'
+            stage_status['shipped'] = 'inactive'
+            stage_status['out_for_delivery'] = 'inactive'
+            stage_status['delivered'] = 'inactive'
 
-        if stage_status['delivered'] == 'active' and order.order_status != 'completed':
+        # Check if the order is completed
+        if current_status == 'delivered' and order.order_status != 'completed':
             order.order_status = 'completed'
             order.save()
 
@@ -1040,13 +1050,35 @@ def cancel_order(request, order_number):
 
     # Check if the order is eligible for cancellation (created within the last 48 hours)
     if order.created_at >= timezone.now() - timedelta(hours=48):
+        # First, update the order status to 'cancelled'
+        order.order_status = 'cancelled'
+        order.save()
+
+        # If there's an assigned delivery boy, notify them
+        if order.delivery_boy:
+            try:
+                subject = 'Order Cancelled'
+                message = f'Order #{order.order_number} has been cancelled by the customer.'
+                from_email = settings.DEFAULT_FROM_EMAIL
+                recipient_list = [order.delivery_boy.user.username]
+                
+                send_mail(subject, message, from_email, recipient_list)
+            except Exception as e:
+                print(f"Error sending email: {str(e)}")
+
+        # Return items to inventory
         order_items = OrderItem.objects.filter(order=order)
         for item in order_items:
             rambutan_post = item.rambutan_post
             rambutan_post.quantity += item.quantity
             rambutan_post.save()
 
+        # Delete the order
         order.delete()
+
+        messages.success(request, 'Order has been successfully cancelled.')
+    else:
+        messages.error(request, 'This order cannot be cancelled as it is past the 48-hour cancellation window.')
 
     return redirect('order_history')
 
@@ -1613,13 +1645,13 @@ def assign_delivery_boy(request, order_number):
         try:
             delivery_boy = DeliveryBoy.objects.get(id=delivery_boy_id)
             
-            # Update order status and assign delivery boy
-            order.order_status = 'packed'
+            # Set order status to 'pending' when assigning a delivery boy
+            order.order_status = 'pending'  # Ensure the status is set to 'pending'
             order.delivery_boy = delivery_boy
-            order.save()
+            order.save()  # Save the order to update the status
             
             # Send notification to delivery boy
-            subject = 'New Delivery Assignment'
+            subject = 'New Delivery Assigned'
             message = f'You have been assigned to deliver Order #{order.order_number}.'
             from_email = settings.DEFAULT_FROM_EMAIL
             recipient_list = [delivery_boy.user.username]
