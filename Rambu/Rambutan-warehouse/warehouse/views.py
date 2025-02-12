@@ -28,6 +28,10 @@ import razorpay
 from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import get_user_model
+from google.cloud import vision
+from google.oauth2 import service_account
+import json
+
 
 def index(request):
     if request.method =='POST':
@@ -277,6 +281,7 @@ def farmer_details(request):
 
 
 PRODUCT_CHOICES = [
+    ('Select Product', 'Select Product'),
     ('Muar Gading', 'Muar Gading'),
     ('Caesar', 'Caesar'),
     ('Hg Deli Baling', 'Hg Deli Baling'),
@@ -1752,4 +1757,119 @@ def update_order_status(request):
     return JsonResponse({
         'success': False,
         'error': 'Invalid request method'
+    }, status=400)
+
+def validate_rambutan_image(request):
+    if request.method == 'POST' and request.FILES.get('image'):
+        try:
+            # Your existing credentials setup
+            credentials_dict = {
+                "type": "service_account",
+                "project_id": "gen-lang-client-0211780297",
+                "private_key_id": settings.private_key_id,
+                "private_key": settings.private_key,
+                "client_email": settings.client_email,
+                "client_id": settings.client_id,
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/rsmbutan-botowla%40gen-lang-client-0211780297.iam.gserviceaccount.com",
+                "universe_domain": "googleapis.com"
+            }
+            credentials = service_account.Credentials.from_service_account_info(credentials_dict)
+            client = vision.ImageAnnotatorClient(credentials=credentials)
+
+            # Read the image file
+            image_file = request.FILES['image'].read()
+            image = vision.Image(content=image_file)
+
+            # Get category from request
+            category = request.POST.get('category', 'fresh_fruit')
+            print(f"Validating image for category: {category}")  # Debug print
+
+            # Perform label detection
+            label_response = client.label_detection(image=image)
+            labels = label_response.label_annotations
+
+            # Print detected labels for debugging
+            print("Detected labels:", [f"{label.description}: {label.score}" for label in labels])
+
+            # Define valid keywords for different categories
+            valid_keywords = {
+                'fresh_fruit': [
+                    'rambutan', 'fruit', 'tropical fruit', 'fresh fruit',
+                    'produce', 'food', 'natural foods'
+                ],
+                'wine': [
+                    'wine', 'bottle', 'alcohol', 'beverage', 'drink',
+                    'glass bottle', 'alcoholic beverage', 'wine bottle',
+                    'red wine', 'fruit wine'
+                ],
+                'juice': [
+                    'juice', 'drink', 'bottle', 'liquid',
+                    'fruit juice', 'container', 'smoothie', 'fruit drink'
+                ],
+                'pickle': [
+                    'pickle', 'jar', 'food', 'preserved food', 'container',
+                    'preserved', 'fermented', 'pickled', 'preserved fruit'
+                ]
+            }
+
+            # Get the keywords for the selected category
+            category_keywords = valid_keywords.get(category, [])
+            
+            # Check for matches with lower confidence threshold
+            is_valid = False
+            matched_labels = []
+            
+            # List of invalid fruits
+            invalid_fruits = [
+                'strawberry', 'tomato', 'sphere', 'apple', 
+                'lychee', 'longan', 'pulasan', 'mangosteen', 
+                'chico', 'ackee', 'sugar apple', 'okra', 
+                'hairy gourd', 'bitter melon'
+            ]
+
+            # Check for invalid fruits in detected labels
+            for label in labels:
+                label_text = label.description.lower()
+                if label_text in invalid_fruits:
+                    return JsonResponse({
+                        'is_valid': False,
+                        'message': f'Invalid image detected for {category}. The image contains prohibited fruits.',
+                        'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
+                    })
+
+                for keyword in category_keywords:
+                    if keyword.lower() in label_text and label.score > 0.5:
+                        is_valid = True
+                        matched_labels.append(f"{label_text} ({label.score:.2f})")
+                        break
+
+            print(f"Matched labels: {matched_labels}")
+
+            if is_valid:
+                return JsonResponse({
+                    'is_valid': True,
+                    'message': f'Valid image detected for {category}',
+                    'matched_labels': matched_labels
+                })
+            else:
+                category_name = category.replace('_', ' ').title()
+                return JsonResponse({
+                    'is_valid': False,
+                    'message': f'Could not detect valid {category_name} image. Please ensure the image clearly shows the appropriate content.',
+                    'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
+                })
+
+        except Exception as e:
+            print(f"Error in image validation: {str(e)}")
+            return JsonResponse({
+                'is_valid': False,
+                'message': f'Error processing image: {str(e)}'
+            }, status=500)
+
+    return JsonResponse({
+        'is_valid': False,
+        'message': 'Invalid request'
     }, status=400)

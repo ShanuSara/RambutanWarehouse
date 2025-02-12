@@ -329,6 +329,19 @@
         font-size: 18px;
       }
     }
+
+    .image-preview-container {
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    #imagePreview {
+        max-width: 300px;
+        max-height: 300px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        display: none;
+    }
   </style>
 </head>
 
@@ -454,7 +467,14 @@
 
             <!-- Image Field -->
             <label for="image">Image:</label>
-            <input type="file" name="image" accept="image/*" required><br><br>
+            <input type="file" name="image" accept="image/*" required>
+            <div id="imageValidationMessage" style="color: red; display: none;"></div>
+            <br><br>
+
+            <!-- Image Preview Container -->
+            <div class="image-preview-container">
+                <img id="imagePreview" src="" alt="Image Preview" style="display: none;">
+            </div>
         
             <!-- Description Field -->
             <label for="description">Description:</label>
@@ -542,6 +562,138 @@
           }
         });
       });
+    });
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const imageInput = document.querySelector('input[type="file"]');
+        const categorySelect = document.getElementById('category');
+        const submitButton = document.querySelector('button[type="submit"]');
+        const imagePreview = document.getElementById('imagePreview');
+        const imageValidationMessage = document.getElementById('imageValidationMessage');
+
+        async function validateImage(file, category) {
+            // Show loading alert
+            Swal.fire({
+                title: 'Validating image...',
+                text: 'Please wait',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('category', category);
+
+            try {
+                const response = await fetch('/validate-rambutan-image/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                });
+
+                const data = await response.json();
+                console.log('Validation response:', data); // Debug log
+                
+                if (data.is_valid) {
+                    // Show success message with image preview
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Image Validated Successfully!',
+                        text: data.message,
+                        imageUrl: URL.createObjectURL(file),
+                        imageWidth: 300,
+                        imageHeight: 300,
+                        imageAlt: 'Product Image',
+                        confirmButtonText: 'OK'
+                    });
+
+                    // Update preview image
+                    imagePreview.src = URL.createObjectURL(file);
+                    imagePreview.style.display = 'block'; // Show the image preview
+                    submitButton.disabled = false; // Enable the submit button
+                    imageValidationMessage.style.display = 'none'; // Clear validation message
+                } else {
+                    // Show error message
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Image',
+                        text: data.message,
+                        confirmButtonText: 'Try Again'
+                    });
+                    imageInput.value = ''; // Clear the file input
+                    imagePreview.style.display = 'none'; // Hide the image preview
+                    submitButton.disabled = true; // Disable the submit button
+                    imageValidationMessage.textContent = 'Invalid image. Please upload a valid image.'; // Set validation message
+                    imageValidationMessage.style.display = 'block'; // Show validation message
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error validating image. Please try again.',
+                    confirmButtonText: 'OK'
+                });
+                imageInput.value = '';
+                imagePreview.style.display = 'none'; // Hide the image preview
+                submitButton.disabled = true; // Disable the submit button
+            }
+        }
+
+        // Function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Disable submit button by default
+        submitButton.disabled = true;
+
+        // Add event listener for file input
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const category = categorySelect.value;
+            
+            if (file) {
+                validateImage(file, category);
+            }
+        });
+
+        // Add event listener for category changes
+        categorySelect.addEventListener('change', function() {
+            const file = imageInput.files[0];
+            if (file) {
+                validateImage(file, this.value);
+            }
+        });
+
+        // Add form submit handler
+        document.getElementById('rambutanForm').addEventListener('submit', function(event) {
+            if (submitButton.disabled) {
+                event.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Invalid Image',
+                    text: 'Please upload and validate a proper image before submitting.',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
     });
   </script>
 </body>

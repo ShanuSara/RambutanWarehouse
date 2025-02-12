@@ -106,6 +106,7 @@ urlpatterns = [
     path('assign-delivery-boy/<int:order_number>/', views.assign_delivery_boy, name='assign_delivery_boy'),
     path('unassign-delivery-boy/<int:order_number>/', views.unassign_delivery_boy, name='unassign_delivery_boy'),
     path('update-order-status/', views.update_order_status, name='update_order_status'),
+     path('validate-rambutan-image/', views.validate_rambutan_image, name='validate_rambutan_image'),
 ]
 
 

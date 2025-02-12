@@ -15,6 +15,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+private_key_id = os.environ.get('private_key_id')
+private_key = os.environ.get('private_key')
+client_email = os.environ.get('client_email')
+client_id = os.environ.get('client_id')
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
