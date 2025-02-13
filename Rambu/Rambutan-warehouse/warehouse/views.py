@@ -17,7 +17,7 @@ from django.contrib.auth.hashers import make_password
 from .forms import RegisterUserForm
 from .forms import FarmerDetailsForm, TreeVarietyForm, RambutanPostForm
 from django.contrib import messages
-from django.db.models import F,Q
+from django.db.models import F,Q, Count
 from django.core.mail import send_mail
 from django.conf import settings
 from django.views.decorators.cache import cache_control
@@ -869,6 +869,7 @@ def razorpay_payment_complete(request):
     if request.method == "POST":
         data = request.POST
         try:
+            # Verify Razorpay payment
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
             params_dict = {
                 'razorpay_order_id': data['razorpay_order_id'],
@@ -877,23 +878,43 @@ def razorpay_payment_complete(request):
             }
             client.utility.verify_payment_signature(params_dict)
 
+            # Get and update order
             order = Order.objects.get(razorpay_order_id=data['razorpay_order_id'])
             order.razorpay_payment_id = data['razorpay_payment_id']
             order.razorpay_signature = data['razorpay_signature']
             order.payment_status = 'completed'
+            order.order_status = 'processed'
             order.save()
 
+            # Save order items
             cart_items = Cart.objects.filter(user=order.user)
-            save_order_items(cart_items, order)
+            for item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    rambutan_post=item.rambutan_post,
+                    quantity=item.quantity,
+                    price=item.rambutan_post.price
+                )
+
+            # Automatically assign a delivery boy
+            assign_delivery_boy_auto()
+
+            # Send confirmation email
             send_order_confirmation_email(order.user, order, order.total_amount, order.payment_method)
+            
+            # Clear the cart
             cart_items.delete()
 
+            messages.success(request, 'Order placed successfully!')
             return redirect('order_detail', order_number=order.order_number)
 
         except razorpay.errors.SignatureVerificationError:
             return HttpResponseBadRequest("Signature verification failed.")
         except Order.DoesNotExist:
             return HttpResponseBadRequest("Order does not exist.")
+        except Exception as e:
+            print(f"Error processing payment: {str(e)}")
+            return HttpResponseBadRequest(f"Error processing payment: {str(e)}")
 
     return HttpResponseBadRequest("Invalid request.")
 
@@ -938,7 +959,7 @@ def send_order_confirmation_email(user, order, total, payment_method):
         f'Order Number: {order.order_number}\n'
         f'Total Amount: ₹{total}\n'
         f'Payment Method: {payment_method}\n\n'
-        f'We will notify you once your items are ready for shipping.'
+        f'We will notify you once your items are ready for delivery.'
     )
     recipient_list = [user.username]
     send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
@@ -1616,60 +1637,96 @@ def chatbot_page(request):
 
 @user_passes_test(is_admin)
 def manage_deliveries(request):
-    # Get all orders that need delivery assignment
-    pending_orders = Order.objects.filter(
-        Q(order_status='pending') | Q(order_status='processed'),
-        delivery_boy__isnull=True
-    ).order_by('-created_at')
+    # Auto-assign any unassigned orders
+    assign_delivery_boy_auto()
     
-    # Get all approved delivery boys
-    delivery_boys = DeliveryBoy.objects.filter(
-        approval_status='approved',
-        is_available=True
-    )
-
     # Get all orders with assigned delivery boys
     assigned_orders = Order.objects.filter(
         delivery_boy__isnull=False
+    ).select_related(
+        'user', 
+        'delivery_boy', 
+        'billing_detail'
     ).order_by('-created_at')
 
     context = {
-        'pending_orders': pending_orders,
-        'delivery_boys': delivery_boys,
         'assigned_orders': assigned_orders,
     }
     
     return render(request, 'manage_deliveries.html', context)
 
-@user_passes_test(is_admin)
-def assign_delivery_boy(request, order_number):
-    if request.method == 'POST':
-        order = get_object_or_404(Order, order_number=order_number)
-        delivery_boy_id = request.POST.get('delivery_boy')
+def assign_delivery_boy_auto():
+    """Automatically assigns unassigned orders to available delivery boys."""
+    # Get unassigned orders that are ready for delivery
+    unassigned_orders = Order.objects.filter(
+        Q(order_status='pending') | Q(order_status='processed'),
+        delivery_boy__isnull=True
+    ).order_by('created_at')  # Process older orders first
+    
+    # Get available delivery boys
+    available_boys = DeliveryBoy.objects.filter(
+        approval_status='approved',
+        is_available=True
+    )
+    
+    for order in unassigned_orders:
+        # Find the least busy delivery boy
+        least_busy_boy = available_boys.annotate(
+            order_count=Count('assigned_orders', 
+                filter=Q(assigned_orders__order_status__in=['pending', 'packed', 'shipped', 'out_for_delivery']))
+        ).order_by('order_count').first()
         
-        try:
-            delivery_boy = DeliveryBoy.objects.get(id=delivery_boy_id)
-            
-            # Set order status to 'pending' when assigning a delivery boy
-            order.order_status = 'pending'  # Ensure the status is set to 'pending'
-            order.delivery_boy = delivery_boy
-            order.save()  # Save the order to update the status
-            
-            # Send notification to delivery boy
-            subject = 'New Delivery Assigned'
-            message = f'You have been assigned to deliver Order #{order.order_number}.'
-            from_email = settings.DEFAULT_FROM_EMAIL
-            recipient_list = [delivery_boy.user.username]
-            
-            send_mail(subject, message, from_email, recipient_list)
-            
-            messages.success(request, f'Order #{order_number} has been successfully assigned to {delivery_boy.full_name}')
-        except DeliveryBoy.DoesNotExist:
-            messages.error(request, 'Selected delivery boy not found')
-        except Exception as e:
-            messages.error(request, f'Error assigning delivery boy: {str(e)}')
-        
-    return redirect('manage_deliveries')
+        if least_busy_boy:
+            try:
+                # Assign the order to the delivery boy
+                order.delivery_boy = least_busy_boy
+                order.order_status = 'pending'
+                order.save()
+
+                # Prepare detailed order information for email
+                order_items = OrderItem.objects.filter(order=order)
+                items_details = []
+                total_amount = 0
+                
+                for item in order_items:
+                    item_total = item.quantity * item.price
+                    total_amount += item_total
+                    items_details.append(
+                        f"{item.rambutan_post.product} - Quantity: {item.quantity}, "
+                        f"Price: ₹{item.price:.2f}, Total: ₹{item_total:.2f}"
+                    )
+
+                items_summary = "\n".join(items_details)
+                delivery_details = f"""
+                Order #{order.order_number}
+                
+                Customer Details:
+                Name: {order.user.name}
+                Phone: {order.billing_detail.phone}
+                
+                Delivery Address:
+                {order.billing_detail.street_address}
+                {order.billing_detail.city}, {order.billing_detail.postcode}
+                
+                Order Items:
+                {items_summary}
+                
+                Total Amount: ₹{total_amount:.2f}
+                """
+                
+                # Send notification email to delivery boy
+                subject = 'New Delivery Assignment'
+                message = f"Hello {least_busy_boy.full_name},\n\nYou have been assigned a new delivery:\n\n{delivery_details}"
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [least_busy_boy.user.username]
+                )
+                
+                print(f"Assigned Order #{order.order_number} to {least_busy_boy.full_name}")
+            except Exception as e:
+                print(f"Error assigning order #{order.order_number}: {str(e)}")
 
 @user_passes_test(is_admin)
 def unassign_delivery_boy(request, order_number):
@@ -1683,6 +1740,9 @@ def unassign_delivery_boy(request, order_number):
             order.order_status = 'processed'
             order.delivery_boy = None
             order.save()
+            
+            # Try to reassign the order automatically
+            assign_delivery_boy_auto()
             
             messages.success(request, f'Order #{order_number} has been unassigned from {delivery_boy_name}')
         except Exception as e:
@@ -1703,7 +1763,7 @@ def get_order_items(request, order_number):
         for item in items:
             try:
                 items_data.append({
-                    'product_name': item.rambutan_post.product,  # Changed from title to product
+                    'product_name': item.rambutan_post.product,
                     'quantity': item.quantity,
                     'price': float(item.price),
                     'total': float(item.price * item.quantity)
@@ -1722,12 +1782,12 @@ def get_order_items(request, order_number):
             'message': 'Order not found'
         }, status=404)
     except Exception as e:
-        print(f"Error in get_order_items: {str(e)}")  # Add this for debugging
+        print(f"Error in get_order_items: {str(e)}")
         return JsonResponse({
             'status': 'error',
             'message': str(e)
         }, status=500)
-    
+
 @login_required
 def update_order_status(request):
     if request.method == 'POST':
@@ -1873,3 +1933,4 @@ def validate_rambutan_image(request):
         'is_valid': False,
         'message': 'Invalid request'
     }, status=400)
+

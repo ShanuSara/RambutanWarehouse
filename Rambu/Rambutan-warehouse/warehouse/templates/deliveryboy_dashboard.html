@@ -745,6 +745,12 @@
             font-size: 1.2em;
             margin: 0;
         }
+
+        .status-option.disabled {
+            background: #f0f0f0; /* Light gray background */
+            color: #999; /* Gray text */
+            cursor: not-allowed; /* Not allowed cursor */
+        }
     </style>
 </head>
 <body>
@@ -1026,6 +1032,23 @@
         </div>
     </div>
 
+    <!-- Confirmation Modal for Status Update -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirm Status Update</h2>
+                <span class="close" onclick="closeConfirmationModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to update the status to <span id="confirmStatus"></span>?</p>
+            </div>
+            <div class="modal-actions">
+                <button onclick="confirmStatusUpdate()" class="update-btn">Yes, Update</button>
+                <button onclick="closeConfirmationModal()" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Add this JavaScript for status updates -->
     <script>
         // Check for new orders when page loads
@@ -1121,6 +1144,9 @@
 
         statusOptions.forEach(option => {
             option.addEventListener('click', function() {
+                if (this.classList.contains('disabled')) {
+                    return; // Don't allow selection of disabled options
+                }
                 statusOptions.forEach(opt => opt.classList.remove('selected'));
                 this.classList.add('selected');
                 selectedStatus = this.dataset.status;
@@ -1135,6 +1161,62 @@
                 return;
             }
 
+            openConfirmationModal();
+        });
+
+        function openStatusModal(orderId) {
+            // Get the order status from the table row
+            const orderRow = document.querySelector(`tr[data-order-id="${orderId}"]`);
+            const currentStatus = orderRow.querySelector('.status-badge').textContent.trim().toLowerCase();
+            
+            if (currentStatus === 'delivered') {
+                return; // Don't open modal if order is delivered
+            }
+            
+            document.getElementById('orderId').value = orderId;
+            document.getElementById('statusModal').style.display = 'block';
+            statusOptions.forEach(opt => opt.classList.remove('selected'));
+            
+            // Define the status order
+            const statusOrder = ['packed', 'shipped', 'out_for_delivery', 'delivered'];
+            const currentStatusIndex = statusOrder.indexOf(currentStatus);
+            
+            // Disable previous status options and enable next options
+            statusOptions.forEach(option => {
+                const optionStatus = option.dataset.status.toLowerCase();
+                const optionIndex = statusOrder.indexOf(optionStatus);
+                
+                if (optionIndex <= currentStatusIndex) {
+                    // Disable previous and current status options
+                    option.classList.add('disabled');
+                    option.style.pointerEvents = 'none';
+                    option.style.opacity = '0.5';
+                } else {
+                    // Enable next status options
+                    option.classList.remove('disabled');
+                    option.style.pointerEvents = 'auto';
+                    option.style.opacity = '1';
+                }
+            });
+            
+            selectedStatus = null;
+        }
+
+        function closeStatusModal() {
+            document.getElementById('statusModal').style.display = 'none';
+        }
+
+        function openConfirmationModal() {
+            const selectedStatusText = selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1); // Capitalize first letter
+            document.getElementById('confirmStatus').textContent = selectedStatusText;
+            document.getElementById('confirmationModal').style.display = 'block';
+        }
+
+        function closeConfirmationModal() {
+            document.getElementById('confirmationModal').style.display = 'none';
+        }
+
+        function confirmStatusUpdate() {
             const orderId = document.getElementById('orderId').value;
             const formData = new FormData();
             formData.append('order_id', orderId);
@@ -1157,25 +1239,8 @@
                 console.error('Error:', error);
                 alert('Error updating status');
             });
-        });
 
-        function openStatusModal(orderId) {
-            // Get the order status from the table row
-            const orderRow = document.querySelector(`tr[data-order-id="${orderId}"]`);
-            const orderStatus = orderRow.querySelector('.status-badge').textContent.trim().toLowerCase();
-            
-            if (orderStatus === 'delivered') {
-                return; // Don't open modal if order is delivered
-            }
-            
-            document.getElementById('orderId').value = orderId;
-            document.getElementById('statusModal').style.display = 'block';
-            statusOptions.forEach(opt => opt.classList.remove('selected'));
-            selectedStatus = null;
-        }
-
-        function closeStatusModal() {
-            document.getElementById('statusModal').style.display = 'none';
+            closeConfirmationModal(); // Close the confirmation modal after confirming
         }
 
         window.onclick = function(event) {
