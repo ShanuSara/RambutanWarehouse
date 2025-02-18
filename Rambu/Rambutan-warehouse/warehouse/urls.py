@@ -4,7 +4,7 @@ from .import views
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from .views import  CustomPasswordResetConfirmView, CustomPasswordResetView, add_to_wishlist, remove_from_wishlist, update_billing_details
-from .views import order_history
+from .views import order_history, classify_rambutan_image
 from .views import verify_otp, enter_email,register
 from django.views.generic import TemplateView
 
@@ -106,6 +106,8 @@ urlpatterns = [
     path('unassign-delivery-boy/<int:order_number>/', views.unassign_delivery_boy, name='unassign_delivery_boy'),
     path('update-order-status/', views.update_order_status, name='update_order_status'),
      path('validate-rambutan-image/', views.validate_rambutan_image, name='validate_rambutan_image'),
+
+     path("classify_rambutan/", views.classify_rambutan_image, name="classify_rambutan"),
 ]
 
 

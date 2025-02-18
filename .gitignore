@@ -16,6 +16,7 @@ __pycache__/
 *.db
 
 # Env files
+rambutan-vision-key.json
 .env
 *.env
 

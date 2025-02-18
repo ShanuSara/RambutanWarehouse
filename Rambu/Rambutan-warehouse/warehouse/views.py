@@ -31,6 +31,12 @@ from django.contrib.auth import get_user_model
 from google.cloud import vision
 from google.oauth2 import service_account
 import json
+import os
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from django.core.files.storage import default_storage
+from tensorflow.keras.preprocessing import image
 
 
 def index(request):
@@ -1822,22 +1828,11 @@ def update_order_status(request):
 def validate_rambutan_image(request):
     if request.method == 'POST' and request.FILES.get('image'):
         try:
-            # Your existing credentials setup
-            credentials_dict = {
-                "type": "service_account",
-                "project_id": "gen-lang-client-0211780297",
-                "private_key_id": settings.private_key_id,
-                "private_key": settings.private_key,
-                "client_email": settings.client_email,
-                "client_id": settings.client_id,
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://oauth2.googleapis.com/token",
-                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/rsmbutan-botowla%40gen-lang-client-0211780297.iam.gserviceaccount.com",
-                "universe_domain": "googleapis.com"
-            }
-            credentials = service_account.Credentials.from_service_account_info(credentials_dict)
-            client = vision.ImageAnnotatorClient(credentials=credentials)
+            # Set the path to the credentials file
+            credentials_path = 'C:\\xampp\\htdocs\\RambutanWarehouse\\Rambu\\Rambutan-warehouse\\warehouse\\rambutan-vision-key.json'
+            os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
+
+            client = vision.ImageAnnotatorClient()
 
             # Read the image file
             image_file = request.FILES['image'].read()
@@ -1858,7 +1853,7 @@ def validate_rambutan_image(request):
             valid_keywords = {
                 'fresh_fruit': [
                     'rambutan', 'fruit', 'tropical fruit', 'fresh fruit',
-                    'produce', 'food', 'natural foods'
+                    'produce', 'food', 'natural foods', 'dried rambutan fruit'
                 ],
                 'wine': [
                     'wine', 'bottle', 'alcohol', 'beverage', 'drink',
@@ -1933,4 +1928,67 @@ def validate_rambutan_image(request):
         'is_valid': False,
         'message': 'Invalid request'
     }, status=400)
+
+
+# At the top of views.py with your other imports
+MODEL_PATH = os.path.join("ml_models", "rambutan_cnn_model.keras")
+model = keras.models.load_model(MODEL_PATH)
+CLASS_LABELS = ["Healthy_Rambutan", "Defective_Rambutan", "Raw_Rambutan"]
+
+def classify_rambutan_image(request):
+    if request.method == "POST" and request.FILES.get("image"):
+        uploaded_image = request.FILES["image"]
+
+        # ✅ First, validate image using Google Vision API
+        validate_response = validate_rambutan_image(request)  # Call function properly
+        validate_data = validate_response.content.decode("utf-8")
+
+        if '"is_valid": false' in validate_data:
+            return JsonResponse({
+                "status": "error",
+                "message": "❌ Invalid Rambutan Image! Upload a proper image."
+            })
+
+        # ✅ Save the image temporarily
+        image_path = default_storage.save("temp/" + uploaded_image.name, uploaded_image)
+        full_image_path = default_storage.path(image_path)
+
+        try:
+            # ✅ Load and preprocess the image for CNN model
+            img = image.load_img(full_image_path, target_size=(150, 150))
+            img_array = image.img_to_array(img)
+            img_array = np.expand_dims(img_array, axis=0) / 255.0  # Normalize
+
+            # ✅ Predict Using CNN Model
+            prediction = model.predict(img_array)
+            predicted_class = CLASS_LABELS[np.argmax(prediction)]  # Get class name
+
+            # Clean up temporary file
+            default_storage.delete(image_path)
+
+            # ✅ Return response based on classification result
+            if predicted_class in ["Defective", "Raw"]:
+                return JsonResponse({
+                    "status": "error",
+                    "message": f"❌ {predicted_class} Rambutan is not allowed to post!"
+                })
+
+            return JsonResponse({
+                "status": "success",
+                "message": "✅ Healthy Rambutan uploaded successfully!"
+            })
+
+        except Exception as e:
+            # Clean up temporary file in case of error
+            default_storage.delete(image_path)
+            return JsonResponse({
+                "status": "error",
+                "message": f"Error processing image: {str(e)}"
+            })
+
+    return JsonResponse({
+        "status": "error",
+        "message": "No image provided!"
+    })
+
 

@@ -695,6 +695,123 @@
             }
         });
     });
+
+
+    async function classifyRambutanImage(file) {
+      const formData = new FormData();
+      formData.append('image', file);
+  
+      try {
+          const response = await fetch('/classify_rambutan/', {
+              method: 'POST',
+              body: formData,
+              headers: {
+                  'X-CSRFToken': getCookie('csrftoken')
+              }
+          });
+  
+          const data = await response.json();
+          
+          if (data.status === 'success') {
+              return true;
+          } else {
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Classification Failed',
+                  text: data.message,
+                  confirmButtonText: 'OK'
+              });
+              return false;
+          }
+      } catch (error) {
+          console.error('Classification error:', error);
+          Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Error classifying image. Please try again.',
+              confirmButtonText: 'OK'
+          });
+          return false;
+      }
+  }
+
+  async function validateImage(file, category) {
+    // Show loading alert
+    Swal.fire({
+        title: 'Processing image...',
+        text: 'Please wait while we validate and classify your image',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    try {
+        // First validate using Google Vision API
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('category', category);
+
+        const response = await fetch('/validate-rambutan-image/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+
+        const data = await response.json();
+        
+        if (data.is_valid) {
+            // If validation passes, proceed with classification
+            const isHealthy = await classifyRambutanImage(file);
+            
+            if (isHealthy) {
+                // Show success message with image preview
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Image Validated Successfully!',
+                    text: 'Healthy rambutan detected. You can proceed with posting.',
+                    imageUrl: URL.createObjectURL(file),
+                    imageWidth: 300,
+                    imageHeight: 300,
+                    imageAlt: 'Product Image',
+                    confirmButtonText: 'OK'
+                });
+
+                imagePreview.src = URL.createObjectURL(file);
+                imagePreview.style.display = 'block';
+                submitButton.disabled = false;
+                imageValidationMessage.style.display = 'none';
+            } else {
+                imageInput.value = '';
+                imagePreview.style.display = 'none';
+                submitButton.disabled = true;
+            }
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Image',
+                text: data.message,
+                confirmButtonText: 'Try Again'
+            });
+            imageInput.value = '';
+            imagePreview.style.display = 'none';
+            submitButton.disabled = true;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Error processing image. Please try again.',
+            confirmButtonText: 'OK'
+        });
+        imageInput.value = '';
+        imagePreview.style.display = 'none';
+        submitButton.disabled = true;
+    }
+}
   </script>
 </body>
 
