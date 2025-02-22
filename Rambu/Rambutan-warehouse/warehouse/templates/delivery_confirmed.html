@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delivery Confirmation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f0f2f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .success {
+            color: #4CAF50;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .error {
+            color: #f44336;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .order-details {
+            margin: 20px 0;
+            text-align: left;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .order-details h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            margin: 10px 0;
+            color: #34495e;
+        }
+
+        .confirm-button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+
+        .confirm-button:hover {
+            background: #388E3C;
+        }
+
+        .confirm-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .items-list {
+            list-style: none;
+            margin: 15px 0;
+        }
+
+        .items-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 500;
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if success %}
+            <h1 class="success">✓ Delivery Confirmed!</h1>
+            <div class="order-details">
+                <h3>Order Details</h3>
+                <div class="detail-item">Order #{{ order.order_number }}</div>
+                <div class="detail-item">Customer: {{ order.user.name }}</div>
+                <div class="detail-item">Delivery Address: {{ order.billing_detail.street_address }}, {{ order.billing_detail.city }}</div>
+                <div class="detail-item">Phone: {{ order.billing_detail.phone }}</div>
+                <div class="detail-item">Total Amount: ₹{{ order.total_amount }}</div>
+                <div class="detail-item">Status: <span class="status-badge">{{ order.order_status }}</span></div>
+                
+                <h3>Items</h3>
+                <ul class="items-list">
+                    {% for item in order.items.all %}
+                        <li>{{ item.rambutan_post.product }} x {{ item.quantity }} - ₹{{ item.price }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% else %}
+            <h1 class="error">✗ Error</h1>
+            <p>{{ message }}</p>
+        {% endif %}
+    </div>
+</body>
+</html> 

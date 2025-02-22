@@ -214,29 +214,33 @@ class Order(models.Model):
         ('cancelled', 'Cancelled'),
     ]
     
-    order_status = models.CharField(
-        max_length=20,
-        choices=ORDER_STATUS_CHOICES,
-        default='pending'
-    )
-    billing_detail = models.ForeignKey(BillingDetail, on_delete=models.CASCADE, related_name='orders')
+    order_number = models.AutoField(primary_key=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
+    billing_detail = models.ForeignKey(BillingDetail, on_delete=models.CASCADE, related_name='orders')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=50)
-    order_number = models.AutoField(primary_key=True)  
-
+    
+    # Payment related fields
     razorpay_order_id = models.CharField(max_length=255, blank=True, null=True)
     razorpay_payment_id = models.CharField(max_length=255, blank=True, null=True)
     razorpay_signature = models.CharField(max_length=255, blank=True, null=True)
     
-    PAYMENT_STATUS_CHOICES = [
+    # Status fields
+    order_status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
+    payment_status = models.CharField(max_length=20, choices=[
         ('pending', 'Pending'),
         ('completed', 'Completed'),
         ('failed', 'Failed')
-    ]
-    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    ], default='pending')
     
-    created_at = models.DateTimeField(default=timezone.now)
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    packed_at = models.DateTimeField(null=True, blank=True)
+    shipped_at = models.DateTimeField(null=True, blank=True)
+    out_for_delivery_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    
+    # Delivery boy assignment
     delivery_boy = models.ForeignKey(
         'DeliveryBoy',
         on_delete=models.SET_NULL,
@@ -244,17 +248,9 @@ class Order(models.Model):
         blank=True,
         related_name='assigned_orders'
     )
-    STATUS_CHOICES = [
-        ('cancelled', 'Cancelled'),
-        ('pending', 'Pending'),
-        ('processed', 'Processed'),
-        ('shipped', 'Shipped'),
-        ('out_for_delivery', 'Out for Delivery'),
-        ('delivered', 'Delivered')
-    ]
-    order_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
     class Meta:
-        ordering = ['-created_at']  
+        ordering = ['-created_at']
 
     def __str__(self):
         return f'Order {self.order_number} - {self.user.username} - Total: {self.total_amount}'

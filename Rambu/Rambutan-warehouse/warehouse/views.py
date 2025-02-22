@@ -34,9 +34,20 @@ import json
 import os
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
 from django.core.files.storage import default_storage
+from tensorflow import keras
 from tensorflow.keras.preprocessing import image
+from keras.models import load_model
+from io import BytesIO
+import qrcode
+
+# Load model without optimizer state
+model = load_model('ml_models/rambutan_cnn_model.keras', compile=False)
+CLASS_LABELS = ["Healthy_Rambutan", "Defective_Rambutan", "Raw_Rambutan"]
+
+# Load the saved model
+load_model = tf.keras.models.load_model('ml_models/rambutan_cnn_model.keras')
+load_model.summary()
 
 
 def index(request):
@@ -1007,10 +1018,9 @@ def order_history(request):
     order_details = []
 
     for order in orders:
-        # Get the current status of the order
         current_status = order.order_status
-
-        # Initialize stage status based on the current order status
+        
+        # Initialize stage status
         stage_status = {
             'ordered': 'inactive',
             'packed': 'inactive',
@@ -1018,62 +1028,48 @@ def order_history(request):
             'out_for_delivery': 'inactive',
             'delivered': 'inactive'
         }
+        
+        # Get status dates safely
+        status_dates = {
+            'ordered': order.created_at,
+            'packed': getattr(order, 'packed_at', None),
+            'shipped': getattr(order, 'shipped_at', None),
+            'out_for_delivery': getattr(order, 'out_for_delivery_at', None),
+            'delivered': getattr(order, 'delivered_at', None)
+        }
 
-        # Update stage status based on the current order status
+        # Update stage status based on current status
         if current_status == 'pending':
             stage_status['ordered'] = 'active'
         elif current_status == 'packed':
-            stage_status['ordered'] = 'active'
+            stage_status['ordered'] = 'completed'
             stage_status['packed'] = 'active'
         elif current_status == 'shipped':
-            stage_status['ordered'] = 'active'
-            stage_status['packed'] = 'active'
+            stage_status['ordered'] = 'completed'
+            stage_status['packed'] = 'completed'
             stage_status['shipped'] = 'active'
         elif current_status == 'out_for_delivery':
-            stage_status['ordered'] = 'active'
-            stage_status['packed'] = 'active'
-            stage_status['shipped'] = 'active'
+            stage_status['ordered'] = 'completed'
+            stage_status['packed'] = 'completed'
+            stage_status['shipped'] = 'completed'
             stage_status['out_for_delivery'] = 'active'
         elif current_status == 'delivered':
-            stage_status['ordered'] = 'active'
-            stage_status['packed'] = 'active'
-            stage_status['shipped'] = 'active'
-            stage_status['out_for_delivery'] = 'active'
-            stage_status['delivered'] = 'active'
-        elif current_status == 'cancelled':
-            stage_status['ordered'] = 'inactive'
-            stage_status['packed'] = 'inactive'
-            stage_status['shipped'] = 'inactive'
-            stage_status['out_for_delivery'] = 'inactive'
-            stage_status['delivered'] = 'inactive'
-
-        # Check if the order is completed
-        if current_status == 'delivered' and order.order_status != 'completed':
-            order.order_status = 'completed'
-            order.save()
-
-        order_items = OrderItem.objects.filter(order=order)
-        subtotal = sum(item.price * item.quantity for item in order_items)
-        delivery_fee = 0  
-        platform_fee = 0  
-        total = subtotal + delivery_fee + platform_fee
-
-        delete_allowed = order.created_at >= timezone.now() - timedelta(hours=48)
+            stage_status['ordered'] = 'completed'
+            stage_status['packed'] = 'completed'
+            stage_status['shipped'] = 'completed'
+            stage_status['out_for_delivery'] = 'completed'
+            stage_status['delivered'] = 'completed'
 
         order_details.append({
             'order': order,
-            'order_items': order_items,
-            'subtotal': subtotal,
-            'delivery_fee': delivery_fee,
-            'platform_fee': platform_fee,
-            'total': total,
-            'delete_allowed': delete_allowed,
+            'order_items': order.items.all(),
+            'total': sum(item.price for item in order.items.all()),
             'stage_status': stage_status,
+            'status_dates': status_dates,
+            'delete_allowed': order.order_status in ['pending', 'packed']
         })
 
-    return render(request, 'order_history.html', {
-        'order_details': order_details,
-    })
+    return render(request, 'order_history.html', {'order_details': order_details})
 
 
 @login_required
@@ -1828,94 +1824,119 @@ def update_order_status(request):
 def validate_rambutan_image(request):
     if request.method == 'POST' and request.FILES.get('image'):
         try:
-            # Set the path to the credentials file
+            # Get the image and category
+            image_file = request.FILES['image']
+            category = request.POST.get('category', 'rambutan')
+
+            # Only proceed with ML classification for fresh rambutan category
+            if category == 'fresh_fruit' or category == 'rambutan':
+                # First do ML model classification
+                try:
+                    # Save image temporarily
+                    temp_path = default_storage.save("temp/" + image_file.name, image_file)
+                    full_temp_path = default_storage.path(temp_path)
+
+                    # Load and preprocess image for ML model
+                    img = image.load_img(full_temp_path, target_size=(150, 150))
+                    img_array = image.img_to_array(img)
+                    img_array = np.expand_dims(img_array, axis=0) / 255.0
+
+                    # Get prediction
+                    prediction = model.predict(img_array)
+                    predicted_class = CLASS_LABELS[np.argmax(prediction)]
+
+                    # Clean up temp file
+                    default_storage.delete(temp_path)
+
+                    # If rambutan is defective or raw, return early
+                    if predicted_class in ["Defective_Rambutan", "Raw_Rambutan"]:
+                        return JsonResponse({
+                            'is_valid': False,
+                            'message': f'Invalid rambutan detected: {predicted_class}. Please upload a healthy rambutan.',
+                            'ml_result': predicted_class
+                        })
+
+                except Exception as e:
+                    print(f"ML Model Error: {str(e)}")
+                    # Continue with Vision API even if ML fails
+                    pass
+
+            # Proceed with Vision API validation
             credentials_path = 'C:\\xampp\\htdocs\\RambutanWarehouse\\Rambu\\Rambutan-warehouse\\warehouse\\rambutan-vision-key.json'
             os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
 
             client = vision.ImageAnnotatorClient()
+            
+            # Reset file pointer if needed
+            image_file.seek(0)
+            content = image_file.read()
+            image = vision.Image(content=content)
 
-            # Read the image file
-            image_file = request.FILES['image'].read()
-            image = vision.Image(content=image_file)
-
-            # Get category from request
-            category = request.POST.get('category', 'fresh_fruit')
-            print(f"Validating image for category: {category}")  # Debug print
-
-            # Perform label detection
+            # Perform both label and object detection
             label_response = client.label_detection(image=image)
-            labels = label_response.label_annotations
+            object_response = client.object_localization(image=image)
+            
+            # Get color detection
+            image_properties = client.image_properties(image=image).image_properties_annotation
 
-            # Print detected labels for debugging
-            print("Detected labels:", [f"{label.description}: {label.score}" for label in labels])
+            labels = label_response.label_annotations
+            objects = object_response.localized_object_annotations
 
             # Define valid keywords for different categories
             valid_keywords = {
-                'fresh_fruit': [
-                    'rambutan', 'fruit', 'tropical fruit', 'fresh fruit',
-                    'produce', 'food', 'natural foods', 'dried rambutan fruit'
-                ],
-                'wine': [
-                    'wine', 'bottle', 'alcohol', 'beverage', 'drink',
-                    'glass bottle', 'alcoholic beverage', 'wine bottle',
-                    'red wine', 'fruit wine'
-                ],
-                'juice': [
-                    'juice', 'drink', 'bottle', 'liquid',
-                    'fruit juice', 'container', 'smoothie', 'fruit drink'
-                ],
-                'pickle': [
-                    'pickle', 'jar', 'food', 'preserved food', 'container',
-                    'preserved', 'fermented', 'pickled', 'preserved fruit'
-                ]
+                'rambutan': {
+                    'positive': ['rambutan', 'fruit', 'tropical fruit', 'fresh fruit', 'produce', 'food'],
+                    'negative': ['mold', 'rot', 'decay', 'bruise', 'damage', 'brown spots']
+                },
+                'wine': ['wine', 'bottle', 'alcohol', 'beverage', 'drink'],
+                'juice': ['juice', 'drink', 'bottle', 'beverage'],
+                'pickle': ['pickle', 'jar', 'preserved', 'container']
             }
 
-            # Get the keywords for the selected category
-            category_keywords = valid_keywords.get(category, [])
-            
-            # Check for matches with lower confidence threshold
-            is_valid = False
-            matched_labels = []
-            
-            # List of invalid fruits
-            invalid_fruits = [
-                'strawberry', 'tomato', 'sphere', 'apple', 
-                'lychee', 'longan', 'pulasan', 'mangosteen', 
-                'chico', 'ackee', 'sugar apple', 'okra', 
-                'hairy gourd', 'bitter melon'
-            ]
-
-            # Check for invalid fruits in detected labels
-            for label in labels:
-                label_text = label.description.lower()
-                if label_text in invalid_fruits:
+            # Category-specific validation
+            if category == 'wine':
+                wine_valid = any(
+                    any(keyword in label.description.lower() for keyword in valid_keywords['wine'])
+                    and label.score > 0.5 for label in labels
+                )
+                if not wine_valid:
                     return JsonResponse({
                         'is_valid': False,
-                        'message': f'Invalid image detected for {category}. The image contains prohibited fruits.',
+                        'message': 'Could not detect a valid wine bottle.',
                         'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
                     })
 
-                for keyword in category_keywords:
-                    if keyword.lower() in label_text and label.score > 0.5:
-                        is_valid = True
-                        matched_labels.append(f"{label_text} ({label.score:.2f})")
-                        break
+            elif category == 'juice':
+                juice_valid = any(
+                    any(keyword in label.description.lower() for keyword in valid_keywords['juice'])
+                    and label.score > 0.5 for label in labels
+                )
+                if not juice_valid:
+                    return JsonResponse({
+                        'is_valid': False,
+                        'message': 'Could not detect a valid juice container.',
+                        'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
+                    })
 
-            print(f"Matched labels: {matched_labels}")
+            elif category == 'pickle':
+                pickle_valid = any(
+                    any(keyword in label.description.lower() for keyword in valid_keywords['pickle'])
+                    and label.score > 0.5 for label in labels
+                )
+                if not pickle_valid:
+                    return JsonResponse({
+                        'is_valid': False,
+                        'message': 'Could not detect a valid pickle jar.',
+                        'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
+                    })
 
-            if is_valid:
-                return JsonResponse({
-                    'is_valid': True,
-                    'message': f'Valid image detected for {category}',
-                    'matched_labels': matched_labels
-                })
-            else:
-                category_name = category.replace('_', ' ').title()
-                return JsonResponse({
-                    'is_valid': False,
-                    'message': f'Could not detect valid {category_name} image. Please ensure the image clearly shows the appropriate content.',
-                    'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
-                })
+            # If we get here, both ML and Vision API validations passed
+            return JsonResponse({
+                'is_valid': True,
+                'message': f'Valid {category} image detected',
+                'ml_result': 'Healthy_Rambutan' if category == 'rambutan' else None,
+                'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
+            })
 
         except Exception as e:
             print(f"Error in image validation: {str(e)}")
@@ -1929,11 +1950,6 @@ def validate_rambutan_image(request):
         'message': 'Invalid request'
     }, status=400)
 
-
-# At the top of views.py with your other imports
-MODEL_PATH = os.path.join("ml_models", "rambutan_cnn_model.keras")
-model = keras.models.load_model(MODEL_PATH)
-CLASS_LABELS = ["Healthy_Rambutan", "Defective_Rambutan", "Raw_Rambutan"]
 
 def classify_rambutan_image(request):
     if request.method == "POST" and request.FILES.get("image"):
@@ -1992,3 +2008,122 @@ def classify_rambutan_image(request):
     })
 
 
+
+def generate_qr_code(request, order_id):
+    """Generate QR code for order delivery confirmation"""
+    try:
+        order = get_object_or_404(Order, order_number=order_id)
+        
+        if order.order_status != "out_for_delivery":
+            return HttpResponse("QR Code is only available when order is out for delivery", status=400)
+
+        # Include order details in the URL
+        confirmation_url = request.build_absolute_uri(
+            reverse('confirm_delivery', args=[order.order_number])
+        )
+
+        # Create QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(confirmation_url)
+        qr.make(fit=True)
+
+        # Create image with custom styling
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+        buffer.seek(0)
+
+        response = HttpResponse(buffer.getvalue(), content_type="image/png")
+        response['Cache-Control'] = 'no-cache'
+        return response
+
+    except Exception as e:
+        print(f"Error generating QR code: {str(e)}")
+        return HttpResponse("Error generating QR code", status=500)
+
+
+
+
+def verify_qr(request, order_id):
+    """Verify QR Code and mark order as delivered"""
+    try:
+        order = get_object_or_404(Order, order_number=order_id)
+        
+        if order.order_status == "out_for_delivery":
+            order.order_status = "delivered"
+            order.save()
+            
+            # Send confirmation email
+            try:
+                subject = 'Order Delivered Successfully'
+                message = f'Your order #{order.order_number} has been delivered successfully.'
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [order.user.email],
+                    fail_silently=True,
+                )
+            except Exception as e:
+                print(f"Email sending failed: {str(e)}")
+            
+            return JsonResponse({"message": "Order successfully delivered!"})
+        else:
+            return JsonResponse({"error": "Invalid order status"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+def confirm_delivery(request, order_id):
+    """Handle delivery confirmation when QR code is scanned"""
+    try:
+        order = get_object_or_404(Order, order_number=order_id)
+        
+        if order.order_status == "out_for_delivery":
+            if request.method == "POST":
+                order.order_status = "delivered"
+                order.save()
+                
+                # Send confirmation email
+                try:
+                    subject = 'Order Delivery Confirmation'
+                    message = f'Your order #{order.order_number} has been successfully delivered.'
+                    send_mail(
+                        subject,
+                        message,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [order.user.email],
+                        fail_silently=True,
+                    )
+                except Exception as e:
+                    print(f"Email sending failed: {str(e)}")
+                
+                return render(request, 'delivery_confirmed.html', {
+                    'order': order,
+                    'success': True,
+                    'message': 'Delivery confirmed successfully!'
+                })
+            else:
+                # Show confirmation page with order details
+                return render(request, 'delivery_confirmed.html', {
+                    'order': order,
+                    'success': False,
+                    'show_confirm': True,
+                    'message': 'Please confirm delivery'
+                })
+        else:
+            return render(request, 'delivery_confirmed.html', {
+                'order': order,
+                'success': False,
+                'message': 'Invalid order status or already delivered'
+            })
+    except Order.DoesNotExist:
+        return render(request, 'delivery_confirmed.html', {
+            'success': False,
+            'message': 'Order not found'
+        })

@@ -1,4 +1,5 @@
 {% load static %}
+{% load order_tags %}
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 
@@ -375,7 +376,7 @@
 
         .order-items {
             display: flex;
-        flex-wrap: wrap; /* allows items to wrap to the next line if they don’t fit */
+        flex-wrap: wrap; /* allows items to wrap to the next line if they don't fit */
         gap: 20px; /* adds spacing between items */
             margin-top: 10px;
             padding: 0;
@@ -454,137 +455,171 @@
 }
 
 .tracking-container {
-    margin-top: 20px;
-}
-
-.tracking-stage {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.stage-icon {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background-color: #4CAF50;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-}
-
-.stage-line {
-    flex: 1;
-    height: 2px;
-    background-color: #4CAF50;
-    margin: 0 10px;
-}
-
-.stage-inactive .stage-icon {
-    background-color: #ccc;
-}
-
-.stage-inactive .stage-line {
-    background-color: #ccc;
-}
-
-.stage-name {
-    color: #333;
-}
-
-.no-orders {
-    text-align: center;
-    color: #777;
-}
-
-.go-home a {
-    color: #16a085;
-    font-weight: 500;
-    text-decoration: none;
-}
-
-.go-home a:hover {
-    color: #2c3e50;
-}
-.tracking-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    padding: 30px;
     margin: 20px 0;
-    padding: 10px 0;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.timeline {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.timeline::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background: #e0e0e0;
+    top: 25px;
+    left: 0;
+    z-index: 1;
+}
+
+.order-completed .timeline::after {
+    background: #4CAF50;
 }
 
 .tracking-stage {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    width: 100px;
     position: relative;
+    z-index: 2;
+    flex: 1;
+    text-align: center;
+    padding: 0 15px;
 }
 
 .stage-icon {
-    background-color: #f0f0f0;
-    color: #999;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    width: 35px;
-    height: 35px;
+    background: #f5f5f5;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    font-size: 16px;
-}
-
-.stage-active .stage-icon {
-    background-color: #2874f0; /* Flipkart blue */
-    color: white;
+    margin: 0 auto 10px;
+    font-size: 20px;
+    color: #757575;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
 }
 
 .stage-name {
-    margin-top: 8px;
     font-size: 14px;
-    color: #333;
+    font-weight: 500;
+    color: #757575;
+    margin-bottom: 5px;
 }
 
+.stage-date {
+    font-size: 12px;
+    color: #9e9e9e;
+    margin-top: 5px;
+}
+
+/* Active stage styling */
+.stage-active .stage-icon {
+    background: #2196F3;
+    color: white;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+}
+
+.stage-active .stage-name {
+    color: #2196F3;
+    font-weight: 600;
+}
+
+/* Completed stage styling */
+.stage-completed .stage-icon,
+.all-completed .stage-icon {
+    background: #4CAF50;
+    color: white;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+.stage-completed .stage-name,
+.all-completed .stage-name {
+    color: #4CAF50;
+}
+
+.stage-completed .stage-date,
+.all-completed .stage-date {
+    color: #66BB6A;
+}
+
+/* Connecting lines */
 .stage-line {
-    flex-grow: 1;
-    height: 2px;
-    margin: 0 10px;
-    background-color: #ccc;
+    position: absolute;
+    height: 3px;
+    top: 25px;
+    width: calc(100% - 50px);
+    left: calc(50% + 25px);
+    background: #e0e0e0;
+    z-index: 1;
+    transition: background-color 0.3s ease;
 }
 
-.line-active {
-    background-color: #2874f0;
+.stage-completed .stage-line,
+.all-completed .stage-line {
+    background: #4CAF50;
 }
 
-.line-inactive {
-    background-color: #ddd;
+.stage-active .stage-line {
+    background: linear-gradient(to right, #4CAF50 50%, #e0e0e0 50%);
 }
-.stage-name {
-        color: #333;
-        font-size: 14px;
+
+.order-completed .tracking-stage .stage-icon {
+    background: #4CAF50 !important;
+    color: white !important;
+}
+
+.order-completed .tracking-stage .stage-name {
+    color: #4CAF50;
+}
+
+.order-completed .tracking-stage .stage-line {
+    background: #4CAF50;
+}
+
+@media (max-width: 768px) {
+    .timeline {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-left: 30px;
     }
 
-    .stage-active .stage-icon {
-        background-color: #4CAF50; /* Active stage color */
+    .timeline::after {
+        width: 3px;
+        height: 100%;
+        left: 30px;
+        top: 0;
     }
 
-    .stage-active .stage-line {
-        background-color: #4CAF50;
+    .tracking-stage {
+        width: 100%;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
     }
 
-    .stage-inactive .stage-icon {
-        background-color: #ccc; /* Inactive stage color */
+    .stage-icon {
+        margin: 0 15px 0 0;
     }
 
-    .stage-inactive .stage-line {
-        background-color: #ccc;
+    .stage-info {
+        text-align: left;
     }
 
-
+    .stage-line {
+        display: none;
+    }
+}
     </style>
 </head>
 
@@ -671,12 +706,28 @@
             <div class="order-listing">
                 {% if order_details %}
                     {% for details in order_details %}
-                        <div class="order-card">
+                        <div class="order-card {% if details.order.order_status == 'completed' %}order-completed{% endif %}">
                             <h3>Order ID: {{ details.order.order_number }}</h3>
                             <p>Status: <span class="order-status">{{ details.order.order_status }}</span></p>
                             <p>Order Date: {{ details.order.created_at|date:"F j, Y" }}</p>
                             <p>Total: <span class="price">₹{{ details.total }}</span></p>
-        
+
+                            <!-- QR Code Section -->
+                            {% if details.order.order_status == "out_for_delivery" %}
+                                <div class="qr-code-section" style="text-align: center; margin-top: 30px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    <h3 style="color: #2c3e50; margin-bottom: 15px;">Delivery QR Code</h3>
+                                    <div style="background: white; padding: 15px; display: inline-block; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                        <img src="{% url 'generate_qr_code' details.order.order_number %}" 
+                                             alt="Order QR Code" 
+                                             style="max-width: 200px; height: auto; margin: 0;"
+                                             onerror="this.onerror=null; this.style.display='none'; alert('Error loading QR code');">
+                                    </div>
+                                    <p style="margin-top: 15px; color: #666; font-size: 14px;">
+                                        <i class="bx bx-scan"></i> Scan this QR code to confirm delivery
+                                    </p>
+                                </div>
+                            {% endif %}
+
                             <h4>Items:</h4>
                             <ul class="order-items">
                                 {% for item in details.order_items %}
@@ -689,15 +740,28 @@
                             </ul>
         
                             <div class="tracking-container">
-                                {% for stage, status in details.stage_status.items %}
-                                    <div class="tracking-stage {% if status == 'active' %}stage-active{% else %}stage-inactive{% endif %}">
-                                        <div class="stage-icon">{{ forloop.counter }}</div>
-                                        <div class="stage-name">{{ stage|capfirst }}</div>
-                                    </div>
-                                    {% if not forloop.last %}
-                                        <div class="stage-line {% if status == 'active' %}line-active{% else %}line-inactive{% endif %}"></div>
-                                    {% endif %}
-                                {% endfor %}
+                                <div class="timeline">
+                                    {% for stage, status in details.stage_status.items %}
+                                        <div class="tracking-stage {% if status == 'active' %}stage-active{% elif status == 'completed' or details.order.order_status == 'delivered' %}stage-completed{% else %}stage-inactive{% endif %}">
+                                            <div class="stage-icon">
+                                                {% if status == 'completed' or details.order.order_status == 'delivered' %}
+                                                    <i class='bx bx-check'></i>
+                                                {% else %}
+                                                    {{ forloop.counter }}
+                                                {% endif %}
+                                            </div>
+                                            <div class="stage-info">
+                                                <div class="stage-name">{{ stage|title }}</div>
+                                                {% if status == 'completed' and details.status_dates|get_item:stage %}
+                                                    <div class="stage-date">{{ details.status_dates|get_item:stage|date:"M d, Y" }}</div>
+                                                {% endif %}
+                                            </div>
+                                            {% if not forloop.last %}
+                                                <div class="stage-line"></div>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                             
                             <!-- Cancel Order Button -->

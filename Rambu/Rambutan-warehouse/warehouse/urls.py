@@ -80,10 +80,6 @@ urlpatterns = [
     path('deliveryboy_dashboard/', views.deliveryboy_dashboard, name='deliveryboy_dashboard'),
     path('chat/', views.chat_with_bot, name='chat_with_bot'),
     path('chat-interface/', views.chatbot_page, name='chatbot_page'),
-
-
-
-    
     path('delivery/order-items/<str:order_number>/', views.get_order_items, name='get_order_items'),
     path('password-reset/', 
          auth_views.PasswordResetView.as_view(
@@ -105,9 +101,10 @@ urlpatterns = [
     path('manage-deliveries/', views.manage_deliveries, name='manage_deliveries'),
     path('unassign-delivery-boy/<int:order_number>/', views.unassign_delivery_boy, name='unassign_delivery_boy'),
     path('update-order-status/', views.update_order_status, name='update_order_status'),
-     path('validate-rambutan-image/', views.validate_rambutan_image, name='validate_rambutan_image'),
-
-     path("classify_rambutan/", views.classify_rambutan_image, name="classify_rambutan"),
+    path('validate-rambutan-image/', views.validate_rambutan_image, name='validate_rambutan_image'),
+    path('generate-qr-code/<str:order_id>/', views.generate_qr_code, name='generate_qr_code'),
+    path('verify-qr/<str:order_id>/', views.verify_qr, name='verify_qr'),
+    path('confirm-delivery/<str:order_id>/', views.confirm_delivery, name='confirm_delivery'),
 ]
 
 

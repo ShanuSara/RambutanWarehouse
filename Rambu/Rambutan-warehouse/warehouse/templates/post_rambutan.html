@@ -444,7 +444,7 @@
             <!-- Category Field -->
             <label for="category">Category:</label>
             <select id="category" name="category" required>
-                <option value="fresh_fruit">Fresh Fruit</option>
+                <option value="fresh_fruit">Rambutan</option>
                 <option value="wine">Wine</option>
                 <option value="juice">Juice</option>
                 <option value="pickle">Pickle</option>
@@ -575,8 +575,8 @@
         async function validateImage(file, category) {
             // Show loading alert
             Swal.fire({
-                title: 'Validating image...',
-                text: 'Please wait',
+                title: 'Processing image...',
+                text: 'Please wait while we validate your image',
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
@@ -600,11 +600,16 @@
                 console.log('Validation response:', data); // Debug log
                 
                 if (data.is_valid) {
-                    // Show success message with image preview
+                    // Show success message with image preview and ML result if available
+                    let successMessage = data.message;
+                    if (data.ml_result === 'Healthy_Rambutan') {
+                        successMessage += '\nML Classification: Healthy Rambutan';
+                    }
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Image Validated Successfully!',
-                        text: data.message,
+                        text: successMessage,
                         imageUrl: URL.createObjectURL(file),
                         imageWidth: 300,
                         imageHeight: 300,
@@ -614,22 +619,28 @@
 
                     // Update preview image
                     imagePreview.src = URL.createObjectURL(file);
-                    imagePreview.style.display = 'block'; // Show the image preview
-                    submitButton.disabled = false; // Enable the submit button
-                    imageValidationMessage.style.display = 'none'; // Clear validation message
+                    imagePreview.style.display = 'block';
+                    submitButton.disabled = false;
+                    imageValidationMessage.style.display = 'none';
                 } else {
                     // Show error message
+                    let errorMessage = data.message;
+                    if (data.ml_result) {
+                        errorMessage += `\nML Classification: ${data.ml_result}`;
+                    }
+
                     Swal.fire({
                         icon: 'error',
                         title: 'Invalid Image',
-                        text: data.message,
+                        text: errorMessage,
                         confirmButtonText: 'Try Again'
                     });
-                    imageInput.value = ''; // Clear the file input
-                    imagePreview.style.display = 'none'; // Hide the image preview
-                    submitButton.disabled = true; // Disable the submit button
-                    imageValidationMessage.textContent = 'Invalid image. Please upload a valid image.'; // Set validation message
-                    imageValidationMessage.style.display = 'block'; // Show validation message
+                    
+                    imageInput.value = '';
+                    imagePreview.style.display = 'none';
+                    submitButton.disabled = true;
+                    imageValidationMessage.textContent = errorMessage;
+                    imageValidationMessage.style.display = 'block';
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -640,8 +651,8 @@
                     confirmButtonText: 'OK'
                 });
                 imageInput.value = '';
-                imagePreview.style.display = 'none'; // Hide the image preview
-                submitButton.disabled = true; // Disable the submit button
+                imagePreview.style.display = 'none';
+                submitButton.disabled = true;
             }
         }
 
@@ -697,61 +708,24 @@
     });
 
 
-    async function classifyRambutanImage(file) {
-      const formData = new FormData();
-      formData.append('image', file);
-  
-      try {
-          const response = await fetch('/classify_rambutan/', {
-              method: 'POST',
-              body: formData,
-              headers: {
-                  'X-CSRFToken': getCookie('csrftoken')
-              }
-          });
-  
-          const data = await response.json();
-          
-          if (data.status === 'success') {
-              return true;
-          } else {
-              Swal.fire({
-                  icon: 'error',
-                  title: 'Classification Failed',
-                  text: data.message,
-                  confirmButtonText: 'OK'
-              });
-              return false;
-          }
-      } catch (error) {
-          console.error('Classification error:', error);
-          Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: 'Error classifying image. Please try again.',
-              confirmButtonText: 'OK'
-          });
-          return false;
-      }
-  }
+   
 
   async function validateImage(file, category) {
     // Show loading alert
     Swal.fire({
         title: 'Processing image...',
-        text: 'Please wait while we validate and classify your image',
+        text: 'Please wait while we validate your image',
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
         }
     });
 
-    try {
-        // First validate using Google Vision API
-        const formData = new FormData();
-        formData.append('image', file);
-        formData.append('category', category);
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('category', category);
 
+    try {
         const response = await fetch('/validate-rambutan-image/', {
             method: 'POST',
             body: formData,
@@ -761,50 +735,57 @@
         });
 
         const data = await response.json();
+        console.log('Validation response:', data); // Debug log
         
         if (data.is_valid) {
-            // If validation passes, proceed with classification
-            const isHealthy = await classifyRambutanImage(file);
-            
-            if (isHealthy) {
-                // Show success message with image preview
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Image Validated Successfully!',
-                    text: 'Healthy rambutan detected. You can proceed with posting.',
-                    imageUrl: URL.createObjectURL(file),
-                    imageWidth: 300,
-                    imageHeight: 300,
-                    imageAlt: 'Product Image',
-                    confirmButtonText: 'OK'
-                });
-
-                imagePreview.src = URL.createObjectURL(file);
-                imagePreview.style.display = 'block';
-                submitButton.disabled = false;
-                imageValidationMessage.style.display = 'none';
-            } else {
-                imageInput.value = '';
-                imagePreview.style.display = 'none';
-                submitButton.disabled = true;
+            // Show success message with image preview and ML result if available
+            let successMessage = data.message;
+            if (data.ml_result === 'Healthy_Rambutan') {
+                successMessage += '\nML Classification: Healthy Rambutan';
             }
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Image Validated Successfully!',
+                text: successMessage,
+                imageUrl: URL.createObjectURL(file),
+                imageWidth: 300,
+                imageHeight: 300,
+                imageAlt: 'Product Image',
+                confirmButtonText: 'OK'
+            });
+
+            // Update preview image
+            imagePreview.src = URL.createObjectURL(file);
+            imagePreview.style.display = 'block';
+            submitButton.disabled = false;
+            imageValidationMessage.style.display = 'none';
         } else {
+            // Show error message
+            let errorMessage = data.message;
+            if (data.ml_result) {
+                errorMessage += `\nML Classification: ${data.ml_result}`;
+            }
+
             Swal.fire({
                 icon: 'error',
                 title: 'Invalid Image',
-                text: data.message,
+                text: errorMessage,
                 confirmButtonText: 'Try Again'
             });
+            
             imageInput.value = '';
             imagePreview.style.display = 'none';
             submitButton.disabled = true;
+            imageValidationMessage.textContent = errorMessage;
+            imageValidationMessage.style.display = 'block';
         }
     } catch (error) {
         console.error('Error:', error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Error processing image. Please try again.',
+            text: 'Error validating image. Please try again.',
             confirmButtonText: 'OK'
         });
         imageInput.value = '';
