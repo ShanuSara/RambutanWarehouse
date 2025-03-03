@@ -223,10 +223,55 @@
         }
 
         .status-badge {
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
+            padding: 5px 15px;
+            border-radius: 15px;
             font-weight: 500;
+            text-transform: capitalize;
+            transition: all 0.3s ease;
+        }
+
+        .status-badge.order_placed {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .status-badge.processing {
+            background-color: #FF9800;
+            color: white;
+        }
+
+        .status-badge.out_for_delivery {
+            background-color: #9C27B0;
+            color: white;
+        }
+
+        .status-badge.delivered {
+            background-color: #4CAF50 !important;
+            color: white !important;
+        }
+
+        tr.delivered {
+            background-color: #e8f5e9 !important;
+        }
+
+        tr.delivered td {
+            color: #2e7d32;
+        }
+
+        tr.delivered .status-badge {
+            background-color: #4CAF50 !important;
+            color: white !important;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        @keyframes statusChange {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .status-badge.delivered {
+            animation: statusChange 0.3s ease;
         }
 
         .action-btn.update-status {
@@ -866,7 +911,7 @@
                     <tbody>
                         {% for order in assigned_orders %}
                         <tr data-order-id="{{ order.order_number }}">
-                            <td>#{{ order.order_number }}</td>
+                            <td>{{ order.order_number }}</td>
                             <td>{{ order.user.name }}</td>
                             <td>{{ order.billing_detail.phone }}</td>
                             <td>
@@ -881,9 +926,11 @@
                             </td>
                             <td>₹{{ order.total_amount }}</td>
                             <td>
-                                <span class="status-badge status-{{ order.order_status|lower }}">
-                                    {{ order.order_status }}
-                                </span>
+                                <div class="order-status">
+                                    <span class="status-badge {{ order.order_status|lower }}" data-order-number="{{ order.order_number }}">
+                                        {{ order.order_status }}
+                                    </span>
+                                </div>
                             </td>
                             <td>
                                 {% if order.order_status.lower != 'delivered' and order.order_status != 'Delivered' %}
@@ -1333,6 +1380,38 @@
         function closeOrderItemsModal() {
             document.getElementById('orderItemsModal').style.display = 'none';
         }
+
+        // Function to update order status in the dashboard
+        function updateOrderStatus(orderNumber, newStatus) {
+            const statusBadge = document.querySelector(`[data-order-number="${orderNumber}"]`);
+            const orderRow = statusBadge?.closest('tr');
+            
+            if (statusBadge && orderRow) {
+                // Update status badge
+                statusBadge.textContent = newStatus;
+                statusBadge.className = `status-badge ${newStatus.toLowerCase()}`;
+                
+                // If delivered, update row styling
+                if (newStatus.toLowerCase() === 'delivered') {
+                    orderRow.classList.add('delivered');
+                    
+                    // Disable any action buttons in the row
+                    const actionButtons = orderRow.querySelectorAll('button');
+                    actionButtons.forEach(button => {
+                        button.disabled = true;
+                        if (button.classList.contains('update-status')) {
+                            button.textContent = 'Delivered';
+                        }
+                    });
+                }
+            }
+        }
+
+        // Add data attribute to status elements
+        document.querySelectorAll('.order-status').forEach(element => {
+            const orderNumber = element.closest('.order-card').dataset.orderNumber;
+            element.setAttribute('data-order-number', orderNumber);
+        });
     </script>
 </body>
 </html>

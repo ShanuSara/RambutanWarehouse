@@ -1,0 +1,590 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bid History | Farmer Dashboard</title>
+    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Fredoka+One&display=swap" rel="stylesheet">
+
+   <!-- Boxicons for Icons -->
+   <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
+
+   <!-- SweetAlert2 CSS -->
+   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+   
+   <!-- SweetAlert2 JS -->
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    /* Reset Margins and Paddings */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Root Variables for Consistent Styling */
+    :root {
+      --primary-color: #4CAF50;
+      --secondary-color: #66BB6A;
+      --accent-color: #388e3c;
+      --light-bg: #f0f4f3;
+      --dark-bg: #333;
+      --text-color: #333;
+      --white: #ffffff;
+      --font-family: 'Roboto', sans-serif;
+      --font-family-logo: 'Fredoka One', cursive;
+    }
+
+    /* General Styling */
+    body {
+      font-family: var(--font-family);
+      background-color: var(--light-bg);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Styling */
+    .sidebar {
+      background-color: var(--primary-color);
+      width: 250px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      padding-top: 40px;
+      transition: width 0.3s ease;
+      z-index: 1000;
+    }
+
+    .sidebar .logo-details {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .sidebar .logo_name {
+      font-family: var(--font-family-logo);
+      font-size: 28px;
+      color: var(--white);
+    }
+
+    .sidebar ul {
+      list-style: none;
+    }
+
+    .sidebar ul li {
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .sidebar ul li a {
+      text-decoration: none;
+      color: var(--white);
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+
+    .sidebar ul li a:hover,
+    .sidebar ul li a.active {
+      background-color: var(--accent-color);
+      transform: translateX(5px);
+    }
+
+    .sidebar ul li a i {
+      margin-right: 10px;
+      font-size: 20px;
+    }
+
+    /* Home Section Styling */
+    .home-section {
+      margin-left: 250px;
+      padding: 20px;
+      width: calc(100% - 250px);
+      transition: margin-left 0.3s ease, width 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Footer Styling */
+    footer {
+      width: calc(100% - 250px);
+      margin-left: 250px;
+      margin-top: 40px;
+      padding: 20px;
+      color: var(--black);
+      text-align: center;
+      border-radius: 10px;
+    }
+
+    footer a {
+      color: var(--black);
+      text-decoration: none;
+      margin: 0 10px;
+      transition: color 0.3s;
+    }
+
+    footer a:hover {
+      color: var(--accent-color);
+      text-decoration: underline;
+    }
+
+    /* Responsive Sidebar */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 80px;
+      }
+
+      .home-section {
+        margin-left: 80px;
+        width: calc(100% - 80px);
+      }
+
+      .sidebar .logo_name {
+        display: none;
+      }
+
+      .sidebar ul li a .links_name {
+        display: none;
+      }
+
+      .sidebar ul li a i {
+        margin-right: 0;
+      }
+
+      .top-navbar .logo img {
+        height: 35px;
+      }
+
+      .home-section nav.top-navbar .logo img {
+        height: 35px;
+      }
+    }
+
+    /* Top Navbar Styling */
+    .top-navbar {
+      background-color: var(--secondary-color);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .logo-text {
+      font-size: 24px;
+      color: white;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .top-navbar .logo a {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+    }
+
+    .top-navbar .logo img {
+      height: 50px;
+      margin-right: 10px;
+    }
+
+    .top-navbar ul.nav-icons {
+      list-style: none;
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .top-navbar ul.nav-icons li a {
+      text-decoration: none;
+      color: var(--white);
+      font-size: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: color 0.3s;
+      position: relative;
+    }
+
+    .top-navbar ul.nav-icons li a:hover {
+      color: var(--accent-color);
+    }
+
+    .top-navbar ul.nav-icons li a .icon-name {
+      font-size: 12px;
+      margin-top: 5px;
+      font-weight: 500;
+    }
+
+    /* Optional: Adjust the icon size and color if needed */
+    .top-navbar ul.nav-icons li.user-profile a i {
+      font-size: 24px;
+      color: var(--white);
+    }
+
+    /* Style the username */
+    .top-navbar ul.nav-icons li.user-profile a .icon-name {
+      font-size: 14px;
+      color: var(--white);
+    }
+
+    /* Update the bid-history-container styles */
+    .bid-history-container {
+        width: 100%;
+        padding: 20px;
+        background-color: var(--white);
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .bid-history-container h1 {
+        color: var(--text-color);
+        margin-bottom: 20px;
+        font-size: 24px;
+    }
+
+    /* Tabs styling */
+    .tabs {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid var(--light-bg);
+        padding-bottom: 10px;
+    }
+
+    .tab {
+        padding: 10px 20px;
+        background-color: var(--light-bg);
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .tab.active {
+        background-color: var(--accent-color);
+        color: var(--white);
+    }
+
+    /* Bid cards grid */
+    .bid-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .bid-card {
+        background: var(--white);
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .bid-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .bid-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    .bid-info h3 {
+        color: var(--text-color);
+        margin-bottom: 10px;
+        font-size: 18px;
+    }
+
+    .bid-details {
+        display: grid;
+        gap: 8px;
+    }
+
+    .bid-details p {
+        margin: 0;
+        color: var(--text-color);
+        font-size: 14px;
+    }
+
+    .current-bid {
+        color: var(--accent-color);
+        font-size: 16px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .no-bids {
+        text-align: center;
+        padding: 40px;
+        background: var(--white);
+        border-radius: 10px;
+        grid-column: 1 / -1;
+        color: var(--text-color);
+    }
+
+    .no-bids i {
+        color: var(--accent-color);
+        margin-bottom: 10px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1200px) {
+        .bid-cards {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        .bid-history-container {
+            padding: 15px;
+        }
+
+        .bid-cards {
+            grid-template-columns: 1fr;
+        }
+
+        .tabs {
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tab {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        .bid-card {
+            padding: 15px;
+        }
+
+        .bid-image {
+            height: 150px;
+        }
+
+        .bid-info h3 {
+            font-size: 16px;
+        }
+
+        .bid-details p {
+            font-size: 13px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .bid-history-container h1 {
+            font-size: 20px;
+        }
+
+        .tab {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .bid-image {
+            height: 120px;
+        }
+
+        .bid-details {
+            gap: 6px;
+        }
+    }
+  </style>
+</head>
+<body>
+
+    <!-- Sidebar Section -->
+  <div class="sidebar">
+    
+    <ul class="nav-links">
+      <li>
+        <a href="{% url 'farmer_dashboard' %}" >
+          <i class='bx bx-grid-alt'></i>
+          <span class="links_name">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'farmer_orders' %}">
+          <i class='bx bx-box'></i>
+          <span class="links_name">Orders</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="{% url 'post_rambutan' %}">
+          <i class='bx bx-leaf'></i>
+          <span class="links_name">Post Rambutan</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'view_posts' %}">
+          <i class='bx bx-list-ul'></i>
+          <span class="links_name">View My Posts</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'farmer_bid_history' %}" class="active">
+          <i class='bx bx-history'></i>
+          <span class="links_name">Bid History</span>
+        </a>
+      </li>
+      <li class="log_out">
+        <a href="{% url 'logout' %}">
+          <i class='bx bx-log-out'></i>
+          <span class="links_name">Log out</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Main Home Section -->
+  <section class="home-section">
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+      <div class="logo">
+        <a href="#">
+          <span class="logo-text">Rambutan Warehouse</span>
+        </a>
+      </div>
+      <ul class="nav-icons">
+        <li>
+          <a href="{% url 'order_notifications' %}">
+            <i class="bx bx-bell"></i>
+            <span class="icon-name">Notifications</span>
+          </a>
+        </li>
+       
+        <!-- User Profile Section -->
+        <li class="user-profile">
+          <a href="#">
+            <i class='bx bx-user'></i>
+            <span class="icon-name">{{ user.name }}</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="{% url 'logout' %}">
+            <i class="bx bx-log-out"></i>
+            <span class="icon-name">Logout</span>
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+
+    <div class="bid-history-container">
+
+        <h1>Your Bid History</h1>
+
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('active')">Active Bids</div>
+            <div class="tab" onclick="showTab('completed')">Completed Bids</div>
+        </div>
+
+        <!-- Active Bids -->
+        <div id="active-bids" class="bid-cards">
+            {% for bid in active_bids %}
+            <div class="bid-card">
+                <img src="{{ bid.rambutan_post.image.url }}" alt="{{ bid.rambutan_post.product }}" class="bid-image">
+                <div class="bid-info">
+                    <h3>{{ bid.rambutan_post.product }}</h3>
+                    <div class="bid-details">
+                        <p><strong>Quantity:</strong> {{ bid.bid_quantity }} {{ bid.rambutan_post.quantity_type }}</p>
+                        <p><strong>Starting Price:</strong> ₹{{ bid.start_price }}</p>
+                        <p class="current-bid">Current Bid: ₹{{ bid.current_price }}</p>
+                        <p><strong>End Date:</strong> {{ bid.end_date|date:"M d, Y H:i" }}</p>
+                        <p><strong>Total Bids:</strong> {{ bid.customer_bids.count }}</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-bids">
+                <i class='bx bx-message-alt-x' style='font-size: 48px;'></i>
+                <p>No active bids at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Completed Bids -->
+        <div id="completed-bids" class="bid-cards" style="display: none;">
+            {% for bid in completed_bids %}
+            <div class="bid-card">
+                <img src="{{ bid.rambutan_post.image.url }}" alt="{{ bid.rambutan_post.product }}" class="bid-image">
+                <div class="bid-info">
+                    <h3>{{ bid.rambutan_post.product }}</h3>
+                    <div class="bid-details">
+                        <p><strong>Quantity:</strong> {{ bid.bid_quantity }} {{ bid.rambutan_post.quantity_type }}</p>
+                        <p><strong>Starting Price:</strong> ₹{{ bid.start_price }}</p>
+                        <p><strong>Final Price:</strong> ₹{{ bid.current_price }}</p>
+                        <p><strong>End Date:</strong> {{ bid.end_date|date:"M d, Y H:i" }}</p>
+                        <p><strong>Total Bids:</strong> {{ bid.customer_bids.count }}</p>
+                        {% with winning_bid=bid.customer_bids.first %}
+                        {% if winning_bid %}
+                        <p><strong>Winner:</strong> {{ winning_bid.customer.name }}</p>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-bids">
+                <i class='bx bx-message-alt-x' style='font-size: 48px;'></i>
+                <p>No completed bids yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Update tab styling
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
+
+            // Show/hide bid sections
+            document.getElementById('active-bids').style.display = tabName === 'active' ? 'grid' : 'none';
+            document.getElementById('completed-bids').style.display = tabName === 'completed' ? 'grid' : 'none';
+        }
+        // Confirm Logout with SweetAlert2
+    document.querySelectorAll('.log_out a, .top-navbar a[href="{% url 'logout' %}"]').forEach(function (element) {
+      element.addEventListener('click', function (event) {
+        event.preventDefault();
+        Swal.fire({
+          title: 'Are you sure you want to logout?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, logout',
+          cancelButtonText: 'Cancel'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = this.href;
+          }
+        });
+      });
+    });
+    </script>
+</body>
+</html> 

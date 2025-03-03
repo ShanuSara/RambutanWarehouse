@@ -4,7 +4,7 @@ from .import views
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from .views import  CustomPasswordResetConfirmView, CustomPasswordResetView, add_to_wishlist, remove_from_wishlist, update_billing_details
-from .views import order_history, classify_rambutan_image
+from .views import order_history, validate_rambutan_image
 from .views import verify_otp, enter_email,register
 from django.views.generic import TemplateView
 
@@ -84,27 +84,26 @@ urlpatterns = [
     path('password-reset/', 
          auth_views.PasswordResetView.as_view(
              template_name='password_reset_form.html',
-             form_class=CustomPasswordResetForm
-         ), 
-         name='password_reset'),
-    path('password-reset/done/', 
-         auth_views.PasswordResetDoneView.as_view(template_name='password_reset_done.html'), 
-         name='password_reset_done'),
-    path('reset/<uidb64>/<token>/', 
-         auth_views.PasswordResetConfirmView.as_view(template_name='password_reset_confirm.html'), 
-         name='password_reset_confirm'),
-    path('reset/done/', 
-         auth_views.PasswordResetCompleteView.as_view(template_name='password_reset_complete.html'), 
-         name='password_reset_complete'),
-    path('approve-delivery-boy/<int:user_id>/', views.approve_delivery_boy, name='approve_delivery_boy'),
-    path('reject-delivery-boy/<int:user_id>/', views.reject_delivery_boy, name='reject_delivery_boy'),
-    path('manage-deliveries/', views.manage_deliveries, name='manage_deliveries'),
-    path('unassign-delivery-boy/<int:order_number>/', views.unassign_delivery_boy, name='unassign_delivery_boy'),
-    path('update-order-status/', views.update_order_status, name='update_order_status'),
-    path('validate-rambutan-image/', views.validate_rambutan_image, name='validate_rambutan_image'),
-    path('generate-qr-code/<str:order_id>/', views.generate_qr_code, name='generate_qr_code'),
-    path('verify-qr/<str:order_id>/', views.verify_qr, name='verify_qr'),
-    path('confirm-delivery/<str:order_id>/', views.confirm_delivery, name='confirm_delivery'),
+             form_class=CustomPasswordResetForm ), name='password_reset'),
+     path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='password_reset_done.html'), name='password_reset_done'),
+     path('reset/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.as_view(template_name='password_reset_confirm.html'),name='password_reset_confirm'),
+     path('reset/done/',auth_views.PasswordResetCompleteView.as_view(template_name='password_reset_complete.html'), name='password_reset_complete'),
+     path('approve-delivery-boy/<int:user_id>/', views.approve_delivery_boy, name='approve_delivery_boy'),
+     path('reject-delivery-boy/<int:user_id>/', views.reject_delivery_boy, name='reject_delivery_boy'),
+     path('manage-deliveries/', views.manage_deliveries, name='manage_deliveries'),
+     path('unassign-delivery-boy/<int:order_number>/', views.unassign_delivery_boy, name='unassign_delivery_boy'),
+     path('update-order-status/', views.update_order_status, name='update_order_status'),
+     path('generate-qr-code/<str:order_id>/', views.generate_qr_code, name='generate_qr_code'),
+     path('verify-qr/<str:order_id>/', views.verify_qr, name='verify_qr'),
+     path('confirm-delivery/<str:order_id>/', views.confirm_delivery, name='confirm_delivery'),
+     path('validate-rambutan-image/', validate_rambutan_image, name='validate_rambutan_image'),
+    path('recipe/', views.recipe_view, name='recipe'),
+    path('get-recipe/', views.get_recipe, name='get_recipe'),
+    path('download-recipe/', views.download_recipe, name='download_recipe'),
+    path('create-bid/', views.create_bid, name='create_bid'),
+    path('bidding/', views.bidding, name='bidding'),
+    path('place-bid/', views.place_bid, name='place_bid'),
+    path('farmer/bid-history/', views.farmer_bid_history, name='farmer_bid_history'),
 ]
 
 

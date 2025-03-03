@@ -321,12 +321,7 @@
           <span class="links_name">Orders</span>
         </a>
       </li>
-      {% comment %} <li>
-        <a href="#">
-          <i class='bx bx-cart'></i>
-          <span class="links_name">New Sales</span>
-        </a>
-      </li> {% endcomment %}
+      
       <li>
         <a href="{% url 'post_rambutan' %}">
           <i class='bx bx-leaf'></i>
@@ -337,6 +332,12 @@
         <a href="{% url 'view_posts' %}">
           <i class='bx bx-list-ul'></i>
           <span class="links_name">View My Posts</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'farmer_bid_history' %}">
+          <i class='bx bx-history'></i>
+          <span class="links_name">Bid History</span>
         </a>
       </li>
       <li class="log_out">

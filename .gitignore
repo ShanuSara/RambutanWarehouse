@@ -104,3 +104,4 @@ yarn.lock
 
 # Ignore JetBrains IDE settings
 .idea/
+ml_models/

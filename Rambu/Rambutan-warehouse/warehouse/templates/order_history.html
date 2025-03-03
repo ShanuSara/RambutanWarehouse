@@ -474,16 +474,32 @@
 .timeline::after {
     content: '';
     position: absolute;
-    width: 100%;
+    width: calc(100% - 50px); /* Adjust width to stop at last stage */
     height: 3px;
-    background: #e0e0e0;
+    background: linear-gradient(to right, 
+        #4CAF50 var(--progress, 0%), 
+        #e0e0e0 var(--progress, 0%)
+    );
     top: 25px;
     left: 0;
     z-index: 1;
+    transition: all 0.3s ease;
 }
 
-.order-completed .timeline::after {
-    background: #4CAF50;
+.timeline[data-status="order_placed"] {
+    --progress: 25%;
+}
+
+.timeline[data-status="processing"] {
+    --progress: 50%;
+}
+
+.timeline[data-status="out_for_delivery"] {
+    --progress: 75%;
+}
+
+.timeline[data-status="delivered"] {
+    --progress: 100%;
 }
 
 .tracking-stage {
@@ -524,32 +540,32 @@
 }
 
 /* Active stage styling */
-.stage-active .stage-icon {
+.tracking-stage.active .stage-icon {
     background: #2196F3;
     color: white;
     box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
 }
 
-.stage-active .stage-name {
+.tracking-stage.active .stage-name {
     color: #2196F3;
     font-weight: 600;
 }
 
 /* Completed stage styling */
-.stage-completed .stage-icon,
-.all-completed .stage-icon {
+.tracking-stage.completed .stage-icon,
+.tracking-stage.active .stage-icon {
     background: #4CAF50;
     color: white;
     box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
 }
 
-.stage-completed .stage-name,
-.all-completed .stage-name {
+.tracking-stage.completed .stage-name,
+.tracking-stage.active .stage-name {
     color: #4CAF50;
 }
 
-.stage-completed .stage-date,
-.all-completed .stage-date {
+.tracking-stage.completed .stage-date,
+.tracking-stage.active .stage-date {
     color: #66BB6A;
 }
 
@@ -565,12 +581,8 @@
     transition: background-color 0.3s ease;
 }
 
-.stage-completed .stage-line,
-.all-completed .stage-line {
-    background: #4CAF50;
-}
-
-.stage-active .stage-line {
+.tracking-stage.completed .stage-line,
+.tracking-stage.active .stage-line {
     background: linear-gradient(to right, #4CAF50 50%, #e0e0e0 50%);
 }
 
@@ -619,6 +631,101 @@
     .stage-line {
         display: none;
     }
+}
+
+/* Add these new styles for delivered orders */
+.order-card[data-status="delivered"] {
+    border-color: #4CAF50;
+    border-width: 2px;
+}
+
+.timeline[data-status="delivered"]::after {
+    background: #4CAF50;
+}
+
+.tracking-stage[data-status="delivered"] .stage-icon {
+    background: #4CAF50;
+    color: white;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+.tracking-stage[data-status="delivered"] .stage-name {
+    color: #4CAF50;
+    font-weight: 600;
+}
+
+.tracking-stage[data-status="delivered"] .stage-date {
+    color: #66BB6A;
+}
+
+/* Status badge for delivered orders */
+.status-badge.delivered {
+    background-color: #4CAF50 !important;
+    color: white !important;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: 500;
+}
+
+/* Timeline connector for delivered status */
+.timeline[data-status="delivered"] .stage-line {
+    background: #4CAF50;
+}
+
+/* Update these styles for delivered orders */
+.timeline[data-status="delivered"] {
+    --progress: 100%;
+}
+
+.timeline[data-status="delivered"] .tracking-stage .stage-icon {
+    background: #4CAF50 !important;
+    color: white !important;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+.timeline[data-status="delivered"] .tracking-stage .stage-name {
+    color: #4CAF50 !important;
+    font-weight: 600;
+}
+
+.timeline[data-status="delivered"] .tracking-stage .stage-date {
+    color: #66BB6A !important;
+}
+
+.timeline[data-status="delivered"]::after {
+    background: #4CAF50 !important;
+    width: 100%;
+}
+
+/* Remove gradient for delivered status */
+.timeline[data-status="delivered"] .stage-line {
+    background: #4CAF50 !important;
+}
+
+/* Ensure all stages show as completed when delivered */
+.timeline[data-status="delivered"] .tracking-stage {
+    position: relative;
+}
+
+.timeline[data-status="delivered"] .tracking-stage::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background: #4CAF50;
+    top: 25px;
+    left: 50%;
+    z-index: 1;
+}
+
+/* Remove the line after the last stage */
+.tracking-stage:last-child .stage-line {
+    display: none;
+}
+
+/* Ensure the delivered stage doesn't show the extra line */
+.timeline[data-status="delivered"] .tracking-stage:last-child::before {
+    display: none;
 }
     </style>
 </head>
@@ -706,9 +813,9 @@
             <div class="order-listing">
                 {% if order_details %}
                     {% for details in order_details %}
-                        <div class="order-card {% if details.order.order_status == 'completed' %}order-completed{% endif %}">
+                        <div class="order-card" data-status="{{ details.order.order_status }}">
                             <h3>Order ID: {{ details.order.order_number }}</h3>
-                            <p>Status: <span class="order-status">{{ details.order.order_status }}</span></p>
+                            <p>Status: <span class="status-badge {{ details.order.order_status }}">{{ details.order.order_status }}</span></p>
                             <p>Order Date: {{ details.order.created_at|date:"F j, Y" }}</p>
                             <p>Total: <span class="price">₹{{ details.total }}</span></p>
 
@@ -740,27 +847,50 @@
                             </ul>
         
                             <div class="tracking-container">
-                                <div class="timeline">
-                                    {% for stage, status in details.stage_status.items %}
-                                        <div class="tracking-stage {% if status == 'active' %}stage-active{% elif status == 'completed' or details.order.order_status == 'delivered' %}stage-completed{% else %}stage-inactive{% endif %}">
-                                            <div class="stage-icon">
-                                                {% if status == 'completed' or details.order.order_status == 'delivered' %}
-                                                    <i class='bx bx-check'></i>
-                                                {% else %}
-                                                    {{ forloop.counter }}
-                                                {% endif %}
-                                            </div>
-                                            <div class="stage-info">
-                                                <div class="stage-name">{{ stage|title }}</div>
-                                                {% if status == 'completed' and details.status_dates|get_item:stage %}
-                                                    <div class="stage-date">{{ details.status_dates|get_item:stage|date:"M d, Y" }}</div>
-                                                {% endif %}
-                                            </div>
-                                            {% if not forloop.last %}
-                                                <div class="stage-line"></div>
-                                            {% endif %}
+                                <div class="timeline" data-status="{{ details.order.order_status|lower }}">
+                                    <!-- Order Placed -->
+                                    <div class="tracking-stage {% if details.order.order_status == 'delivered' %}completed{% elif details.order.order_status != 'order_placed' %}completed{% elif details.order.order_status == 'order_placed' %}active{% endif %}">
+                                        <div class="stage-icon">
+                                            <i class='bx bx-package'></i>
                                         </div>
-                                    {% endfor %}
+                                        <div class="stage-info">
+                                            <div class="stage-name">Order Placed</div>
+                                            <div class="stage-date">{{ details.order.created_at|date:"M d, Y" }}</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Processing -->
+                                    <div class="tracking-stage {% if details.order.order_status == 'delivered' %}completed{% elif details.order.order_status == 'processing' %}active{% elif details.order.order_status in 'out_for_delivery,delivered' %}completed{% endif %}">
+                                        <div class="stage-icon">
+                                            <i class='bx bx-time-five'></i>
+                                        </div>
+                                        <div class="stage-info">
+                                            <div class="stage-name">Processing</div>
+                                            <div class="stage-date">{{ details.order.processing_date|date:"M d, Y"|default:"-" }}</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Out for Delivery -->
+                                    <div class="tracking-stage {% if details.order.order_status == 'delivered' %}completed{% elif details.order.order_status == 'out_for_delivery' %}active{% endif %}">
+                                        <div class="stage-icon">
+                                            <i class='bx bx-car'></i>
+                                        </div>
+                                        <div class="stage-info">
+                                            <div class="stage-name">Out for Delivery</div>
+                                            <div class="stage-date">{{ details.order.out_for_delivery_date|date:"M d, Y"|default:"-" }}</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Delivered -->
+                                    <div class="tracking-stage {% if details.order.order_status == 'delivered' %}completed active{% endif %}">
+                                        <div class="stage-icon">
+                                            <i class='bx bx-check'></i>
+                                        </div>
+                                        <div class="stage-info">
+                                            <div class="stage-name">Delivered</div>
+                                            <div class="stage-date">{{ details.order.delivery_date|date:"M d, Y"|default:"-" }}</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             

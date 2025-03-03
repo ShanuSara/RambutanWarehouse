@@ -325,3 +325,34 @@ class DeliveryBoy(models.Model):
     class Meta:
         verbose_name = 'Delivery Boy'
         verbose_name_plural = 'Delivery Boys' 
+
+class BidPost(models.Model):
+    rambutan_post = models.OneToOneField(RambutanPost, on_delete=models.CASCADE, related_name='bid_post')
+    start_price = models.DecimalField(max_digits=10, decimal_places=2)
+    current_price = models.DecimalField(max_digits=10, decimal_places=2)
+    bid_quantity = models.PositiveIntegerField()
+    end_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Bid for {self.rambutan_post.product} - Current Price: {self.current_price}"
+
+    def save(self, *args, **kwargs):
+        if not self.current_price:
+            self.current_price = self.start_price
+        if self.start_price <= 0:
+            raise ValidationError("Starting price must be greater than 0")
+        super().save(*args, **kwargs) 
+
+class CustomerBid(models.Model):
+    bid_post = models.ForeignKey(BidPost, on_delete=models.CASCADE, related_name='customer_bids')
+    customer = models.ForeignKey(Registeruser, on_delete=models.CASCADE)
+    bid_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-bid_amount']
+
+    def __str__(self):
+        return f"{self.customer.name} bid ₹{self.bid_amount} on {self.bid_post}" 

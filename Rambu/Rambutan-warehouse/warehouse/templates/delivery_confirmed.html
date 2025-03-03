@@ -3,117 +3,51 @@
 <html>
 <head>
     <title>Delivery Confirmation</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
         body {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #f0f2f5;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
         }
-
         .container {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 90%;
             max-width: 600px;
-            text-align: center;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        .success {
-            color: #4CAF50;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-
-        .error {
-            color: #f44336;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-
         .order-details {
             margin: 20px 0;
-            text-align: left;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
         }
-
-        .order-details h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-
         .detail-item {
             margin: 10px 0;
-            color: #34495e;
+            color: #333;
         }
-
-        .confirm-button {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 20px;
-        }
-
-        .confirm-button:hover {
-            background: #388E3C;
-        }
-
-        .confirm-button:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-        }
-
         .items-list {
             list-style: none;
-            margin: 15px 0;
+            padding: 0;
         }
-
         .items-list li {
-            padding: 8px 0;
+            padding: 5px 0;
             border-bottom: 1px solid #eee;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 15px;
-            font-size: 14px;
-            font-weight: 500;
-            background: #e3f2fd;
-            color: #1976d2;
         }
     </style>
 </head>
 <body>
     <div class="container">
         {% if success %}
-            <h1 class="success">✓ Delivery Confirmed!</h1>
             <div class="order-details">
-                <h3>Order Details</h3>
-                <div class="detail-item">Order #{{ order.order_number }}</div>
+                <h2>Order #{{ order.order_number }}</h2>
                 <div class="detail-item">Customer: {{ order.user.name }}</div>
                 <div class="detail-item">Delivery Address: {{ order.billing_detail.street_address }}, {{ order.billing_detail.city }}</div>
                 <div class="detail-item">Phone: {{ order.billing_detail.phone }}</div>
                 <div class="detail-item">Total Amount: ₹{{ order.total_amount }}</div>
-                <div class="detail-item">Status: <span class="status-badge">{{ order.order_status }}</span></div>
                 
                 <h3>Items</h3>
                 <ul class="items-list">
@@ -122,9 +56,93 @@
                     {% endfor %}
                 </ul>
             </div>
+
+            <script>
+                // Show confirmation popup
+                Swal.fire({
+                    title: 'Confirm Delivery',
+                    text: 'Are you sure you want to mark this order as delivered?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, Confirm Delivery',
+                    cancelButtonText: 'No, Cancel',
+                    confirmButtonColor: '#4CAF50',
+                    cancelButtonColor: '#f44336'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Send confirmation to server
+                        fetch('', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}',
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Update the status in the parent window (delivery boy dashboard)
+                                if (window.opener && !window.opener.closed) {
+                                    try {
+                                        // Update status badge
+                                        const statusBadge = window.opener.document.querySelector(`.status-badge[data-order-number="{{ order.order_number }}"]`);
+                                        if (statusBadge) {
+                                            statusBadge.textContent = 'delivered';
+                                            statusBadge.className = 'status-badge delivered';
+                                        }
+
+                                        // Update row status
+                                        const orderRow = window.opener.document.querySelector(`tr[data-order-id="{{ order.order_number }}"]`);
+                                        if (orderRow) {
+                                            orderRow.classList.add('delivered');
+                                        }
+
+                                        // Optional: Update any status buttons or controls
+                                        const statusButton = window.opener.document.querySelector(`button[data-order-id="{{ order.order_number }}"]`);
+                                        if (statusButton) {
+                                            statusButton.disabled = true;
+                                            statusButton.textContent = 'Delivered';
+                                        }
+
+                                    } catch (e) {
+                                        console.log('Could not update parent window:', e);
+                                    }
+                                }
+
+                                // Show success message
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Delivery Confirmed!',
+                                    text: 'The order has been successfully marked as delivered.',
+                                    confirmButtonColor: '#4CAF50'
+                                }).then(() => {
+                                    // Refresh the parent window to ensure all changes are reflected
+                                    if (window.opener && !window.opener.closed) {
+                                        window.opener.location.reload();
+                                    }
+                                    // Close the QR code scanning window
+                                    window.close();
+                                });
+                            }
+                        });
+                    } else {
+                        window.close();
+                    }
+                });
+            </script>
         {% else %}
-            <h1 class="error">✗ Error</h1>
-            <p>{{ message }}</p>
+            <h1 style="color: #f44336; text-align: center;">✗ Error</h1>
+            <p style="text-align: center;">{{ message }}</p>
+            <script>
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: '{{ message }}',
+                    confirmButtonColor: '#f44336'
+                }).then(() => {
+                    window.close();
+                });
+            </script>
         {% endif %}
     </div>
 </body>

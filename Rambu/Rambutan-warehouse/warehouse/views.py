@@ -3,21 +3,21 @@ from django.utils import timezone
 import random
 from urllib import request
 from django.forms import ValidationError
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, FileResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.urls import reverse, reverse_lazy
 from .forms import FarmerDetailsForm,FarmerDetails, FeedbackForm,RambutanPostForm,RegisterUserForm, WishlistForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import  BillingDetail, Cart, CustomerDetails, FarmerDetails, Feedback, Order, OrderItem, OrderNotification, RambutanPost,Registeruser, Wishlist, DeliveryBoy
+from .models import  BillingDetail, Cart, CustomerDetails, FarmerDetails, Feedback, Order, OrderItem, OrderNotification, RambutanPost,Registeruser, Wishlist, DeliveryBoy, BidPost, CustomerBid
 from django.contrib import messages
 from django.shortcuts import render, redirect,HttpResponse
 from django.contrib.auth.hashers import make_password
 from .forms import RegisterUserForm
 from .forms import FarmerDetailsForm, TreeVarietyForm, RambutanPostForm
 from django.contrib import messages
-from django.db.models import F,Q, Count
+from django.db.models import F,Q
 from django.core.mail import send_mail
 from django.conf import settings
 from django.views.decorators.cache import cache_control
@@ -30,24 +30,19 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import get_user_model
 from google.cloud import vision
 from google.oauth2 import service_account
-import json
-import os
-import numpy as np
-import tensorflow as tf
-from django.core.files.storage import default_storage
-from tensorflow import keras
-from tensorflow.keras.preprocessing import image
-from keras.models import load_model
-from io import BytesIO
+import json,os,re
 import qrcode
-
-# Load model without optimizer state
-model = load_model('ml_models/rambutan_cnn_model.keras', compile=False)
-CLASS_LABELS = ["Healthy_Rambutan", "Defective_Rambutan", "Raw_Rambutan"]
-
-# Load the saved model
-load_model = tf.keras.models.load_model('ml_models/rambutan_cnn_model.keras')
-load_model.summary()
+from io import BytesIO
+import requests
+import google.generativeai as genai
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from html import unescape
+from reportlab.lib.units import inch
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.platypus import Paragraph, SimpleDocTemplate
+from reportlab.lib.enums import TA_JUSTIFY
+from decimal import Decimal
 
 
 def index(request):
@@ -141,7 +136,7 @@ def register(request):
 
             subject = "Welcome to Our Website"
             message = f"Dear {user.username},\n\nThank you for registering at our website."
-            recipient_list = [user.username] 
+            recipient_list = [user.username]
             from_email = settings.DEFAULT_FROM_EMAIL
             send_mail(subject, message, from_email, recipient_list)
 
@@ -886,7 +881,6 @@ def razorpay_payment_complete(request):
     if request.method == "POST":
         data = request.POST
         try:
-            # Verify Razorpay payment
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_SECRET_KEY))
             params_dict = {
                 'razorpay_order_id': data['razorpay_order_id'],
@@ -895,43 +889,23 @@ def razorpay_payment_complete(request):
             }
             client.utility.verify_payment_signature(params_dict)
 
-            # Get and update order
             order = Order.objects.get(razorpay_order_id=data['razorpay_order_id'])
             order.razorpay_payment_id = data['razorpay_payment_id']
             order.razorpay_signature = data['razorpay_signature']
             order.payment_status = 'completed'
-            order.order_status = 'processed'
             order.save()
 
-            # Save order items
             cart_items = Cart.objects.filter(user=order.user)
-            for item in cart_items:
-                OrderItem.objects.create(
-                    order=order,
-                    rambutan_post=item.rambutan_post,
-                    quantity=item.quantity,
-                    price=item.rambutan_post.price
-                )
-
-            # Automatically assign a delivery boy
-            assign_delivery_boy_auto()
-
-            # Send confirmation email
+            save_order_items(cart_items, order)
             send_order_confirmation_email(order.user, order, order.total_amount, order.payment_method)
-            
-            # Clear the cart
             cart_items.delete()
 
-            messages.success(request, 'Order placed successfully!')
             return redirect('order_detail', order_number=order.order_number)
 
         except razorpay.errors.SignatureVerificationError:
             return HttpResponseBadRequest("Signature verification failed.")
         except Order.DoesNotExist:
             return HttpResponseBadRequest("Order does not exist.")
-        except Exception as e:
-            print(f"Error processing payment: {str(e)}")
-            return HttpResponseBadRequest(f"Error processing payment: {str(e)}")
 
     return HttpResponseBadRequest("Invalid request.")
 
@@ -976,7 +950,7 @@ def send_order_confirmation_email(user, order, total, payment_method):
         f'Order Number: {order.order_number}\n'
         f'Total Amount: ₹{total}\n'
         f'Payment Method: {payment_method}\n\n'
-        f'We will notify you once your items are ready for delivery.'
+        f'We will notify you once your items are ready for shipping.'
     )
     recipient_list = [user.username]
     send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
@@ -1018,9 +992,10 @@ def order_history(request):
     order_details = []
 
     for order in orders:
+        # Get the current status of the order
         current_status = order.order_status
-        
-        # Initialize stage status
+
+        # Initialize stage status based on the current order status
         stage_status = {
             'ordered': 'inactive',
             'packed': 'inactive',
@@ -1028,48 +1003,62 @@ def order_history(request):
             'out_for_delivery': 'inactive',
             'delivered': 'inactive'
         }
-        
-        # Get status dates safely
-        status_dates = {
-            'ordered': order.created_at,
-            'packed': getattr(order, 'packed_at', None),
-            'shipped': getattr(order, 'shipped_at', None),
-            'out_for_delivery': getattr(order, 'out_for_delivery_at', None),
-            'delivered': getattr(order, 'delivered_at', None)
-        }
 
-        # Update stage status based on current status
+        # Update stage status based on the current order status
         if current_status == 'pending':
             stage_status['ordered'] = 'active'
         elif current_status == 'packed':
-            stage_status['ordered'] = 'completed'
+            stage_status['ordered'] = 'active'
             stage_status['packed'] = 'active'
         elif current_status == 'shipped':
-            stage_status['ordered'] = 'completed'
-            stage_status['packed'] = 'completed'
+            stage_status['ordered'] = 'active'
+            stage_status['packed'] = 'active'
             stage_status['shipped'] = 'active'
         elif current_status == 'out_for_delivery':
-            stage_status['ordered'] = 'completed'
-            stage_status['packed'] = 'completed'
-            stage_status['shipped'] = 'completed'
+            stage_status['ordered'] = 'active'
+            stage_status['packed'] = 'active'
+            stage_status['shipped'] = 'active'
             stage_status['out_for_delivery'] = 'active'
         elif current_status == 'delivered':
-            stage_status['ordered'] = 'completed'
-            stage_status['packed'] = 'completed'
-            stage_status['shipped'] = 'completed'
-            stage_status['out_for_delivery'] = 'completed'
-            stage_status['delivered'] = 'completed'
+            stage_status['ordered'] = 'active'
+            stage_status['packed'] = 'active'
+            stage_status['shipped'] = 'active'
+            stage_status['out_for_delivery'] = 'active'
+            stage_status['delivered'] = 'active'
+        elif current_status == 'cancelled':
+            stage_status['ordered'] = 'inactive'
+            stage_status['packed'] = 'inactive'
+            stage_status['shipped'] = 'inactive'
+            stage_status['out_for_delivery'] = 'inactive'
+            stage_status['delivered'] = 'inactive'
+
+        # Check if the order is completed
+        if current_status == 'delivered' and order.order_status != 'completed':
+            order.order_status = 'completed'
+            order.save()
+
+        order_items = OrderItem.objects.filter(order=order)
+        subtotal = sum(item.price * item.quantity for item in order_items)
+        delivery_fee = 0  
+        platform_fee = 0  
+        total = subtotal + delivery_fee + platform_fee
+
+        delete_allowed = order.created_at >= timezone.now() - timedelta(hours=48)
 
         order_details.append({
             'order': order,
-            'order_items': order.items.all(),
-            'total': sum(item.price for item in order.items.all()),
+            'order_items': order_items,
+            'subtotal': subtotal,
+            'delivery_fee': delivery_fee,
+            'platform_fee': platform_fee,
+            'total': total,
+            'delete_allowed': delete_allowed,
             'stage_status': stage_status,
-            'status_dates': status_dates,
-            'delete_allowed': order.order_status in ['pending', 'packed']
         })
 
-    return render(request, 'order_history.html', {'order_details': order_details})
+    return render(request, 'order_history.html', {
+        'order_details': order_details,
+    })
 
 
 @login_required
@@ -1639,96 +1628,60 @@ def chatbot_page(request):
 
 @user_passes_test(is_admin)
 def manage_deliveries(request):
-    # Auto-assign any unassigned orders
-    assign_delivery_boy_auto()
+    # Get all orders that need delivery assignment
+    pending_orders = Order.objects.filter(
+        Q(order_status='pending') | Q(order_status='processed'),
+        delivery_boy__isnull=True
+    ).order_by('-created_at')
     
+    # Get all approved delivery boys
+    delivery_boys = DeliveryBoy.objects.filter(
+        approval_status='approved',
+        is_available=True
+    )
+
     # Get all orders with assigned delivery boys
     assigned_orders = Order.objects.filter(
         delivery_boy__isnull=False
-    ).select_related(
-        'user', 
-        'delivery_boy', 
-        'billing_detail'
     ).order_by('-created_at')
 
     context = {
+        'pending_orders': pending_orders,
+        'delivery_boys': delivery_boys,
         'assigned_orders': assigned_orders,
     }
     
     return render(request, 'manage_deliveries.html', context)
 
-def assign_delivery_boy_auto():
-    """Automatically assigns unassigned orders to available delivery boys."""
-    # Get unassigned orders that are ready for delivery
-    unassigned_orders = Order.objects.filter(
-        Q(order_status='pending') | Q(order_status='processed'),
-        delivery_boy__isnull=True
-    ).order_by('created_at')  # Process older orders first
-    
-    # Get available delivery boys
-    available_boys = DeliveryBoy.objects.filter(
-        approval_status='approved',
-        is_available=True
-    )
-    
-    for order in unassigned_orders:
-        # Find the least busy delivery boy
-        least_busy_boy = available_boys.annotate(
-            order_count=Count('assigned_orders', 
-                filter=Q(assigned_orders__order_status__in=['pending', 'packed', 'shipped', 'out_for_delivery']))
-        ).order_by('order_count').first()
+@user_passes_test(is_admin)
+def assign_delivery_boy(request, order_number):
+    if request.method == 'POST':
+        order = get_object_or_404(Order, order_number=order_number)
+        delivery_boy_id = request.POST.get('delivery_boy')
         
-        if least_busy_boy:
-            try:
-                # Assign the order to the delivery boy
-                order.delivery_boy = least_busy_boy
-                order.order_status = 'pending'
-                order.save()
-
-                # Prepare detailed order information for email
-                order_items = OrderItem.objects.filter(order=order)
-                items_details = []
-                total_amount = 0
-                
-                for item in order_items:
-                    item_total = item.quantity * item.price
-                    total_amount += item_total
-                    items_details.append(
-                        f"{item.rambutan_post.product} - Quantity: {item.quantity}, "
-                        f"Price: ₹{item.price:.2f}, Total: ₹{item_total:.2f}"
-                    )
-
-                items_summary = "\n".join(items_details)
-                delivery_details = f"""
-                Order #{order.order_number}
-                
-                Customer Details:
-                Name: {order.user.name}
-                Phone: {order.billing_detail.phone}
-                
-                Delivery Address:
-                {order.billing_detail.street_address}
-                {order.billing_detail.city}, {order.billing_detail.postcode}
-                
-                Order Items:
-                {items_summary}
-                
-                Total Amount: ₹{total_amount:.2f}
-                """
-                
-                # Send notification email to delivery boy
-                subject = 'New Delivery Assignment'
-                message = f"Hello {least_busy_boy.full_name},\n\nYou have been assigned a new delivery:\n\n{delivery_details}"
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [least_busy_boy.user.username]
-                )
-                
-                print(f"Assigned Order #{order.order_number} to {least_busy_boy.full_name}")
-            except Exception as e:
-                print(f"Error assigning order #{order.order_number}: {str(e)}")
+        try:
+            delivery_boy = DeliveryBoy.objects.get(id=delivery_boy_id)
+            
+            # Set order status to 'pending' when assigning a delivery boy
+            order.order_status = 'pending'  # Ensure the status is set to 'pending'
+            order.delivery_boy = delivery_boy
+            order.save()  # Save the order to update the status
+            
+            # Send notification to delivery boy
+            subject = 'New Delivery Assigned'
+            message = f'You have been assigned to deliver Order #{order.order_number}.'
+            from_email = settings.DEFAULT_FROM_EMAIL
+            recipient_list = [delivery_boy.user.username]
+            
+            send_mail(subject, message, from_email, recipient_list)
+            
+            messages.success(request, f'Order #{order_number} has been successfully assigned to {delivery_boy.full_name}')
+        except DeliveryBoy.DoesNotExist:
+            messages.error(request, 'Selected delivery boy not found')
+        except Exception as e:
+            messages.error(request, f'Error assigning delivery boy: {str(e)}')
+        
+    return redirect('manage_deliveries')
 
 @user_passes_test(is_admin)
 def unassign_delivery_boy(request, order_number):
@@ -1742,9 +1695,6 @@ def unassign_delivery_boy(request, order_number):
             order.order_status = 'processed'
             order.delivery_boy = None
             order.save()
-            
-            # Try to reassign the order automatically
-            assign_delivery_boy_auto()
             
             messages.success(request, f'Order #{order_number} has been unassigned from {delivery_boy_name}')
         except Exception as e:
@@ -1765,7 +1715,7 @@ def get_order_items(request, order_number):
         for item in items:
             try:
                 items_data.append({
-                    'product_name': item.rambutan_post.product,
+                    'product_name': item.rambutan_post.product,  # Changed from title to product
                     'quantity': item.quantity,
                     'price': float(item.price),
                     'total': float(item.price * item.quantity)
@@ -1784,12 +1734,12 @@ def get_order_items(request, order_number):
             'message': 'Order not found'
         }, status=404)
     except Exception as e:
-        print(f"Error in get_order_items: {str(e)}")
+        print(f"Error in get_order_items: {str(e)}")  # Add this for debugging
         return JsonResponse({
             'status': 'error',
             'message': str(e)
         }, status=500)
-
+    
 @login_required
 def update_order_status(request):
     if request.method == 'POST':
@@ -1820,193 +1770,6 @@ def update_order_status(request):
         'success': False,
         'error': 'Invalid request method'
     }, status=400)
-
-def validate_rambutan_image(request):
-    if request.method == 'POST' and request.FILES.get('image'):
-        try:
-            # Get the image and category
-            image_file = request.FILES['image']
-            category = request.POST.get('category', 'rambutan')
-
-            # Only proceed with ML classification for fresh rambutan category
-            if category == 'fresh_fruit' or category == 'rambutan':
-                # First do ML model classification
-                try:
-                    # Save image temporarily
-                    temp_path = default_storage.save("temp/" + image_file.name, image_file)
-                    full_temp_path = default_storage.path(temp_path)
-
-                    # Load and preprocess image for ML model
-                    img = image.load_img(full_temp_path, target_size=(150, 150))
-                    img_array = image.img_to_array(img)
-                    img_array = np.expand_dims(img_array, axis=0) / 255.0
-
-                    # Get prediction
-                    prediction = model.predict(img_array)
-                    predicted_class = CLASS_LABELS[np.argmax(prediction)]
-
-                    # Clean up temp file
-                    default_storage.delete(temp_path)
-
-                    # If rambutan is defective or raw, return early
-                    if predicted_class in ["Defective_Rambutan", "Raw_Rambutan"]:
-                        return JsonResponse({
-                            'is_valid': False,
-                            'message': f'Invalid rambutan detected: {predicted_class}. Please upload a healthy rambutan.',
-                            'ml_result': predicted_class
-                        })
-
-                except Exception as e:
-                    print(f"ML Model Error: {str(e)}")
-                    # Continue with Vision API even if ML fails
-                    pass
-
-            # Proceed with Vision API validation
-            credentials_path = 'C:\\xampp\\htdocs\\RambutanWarehouse\\Rambu\\Rambutan-warehouse\\warehouse\\rambutan-vision-key.json'
-            os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
-
-            client = vision.ImageAnnotatorClient()
-            
-            # Reset file pointer if needed
-            image_file.seek(0)
-            content = image_file.read()
-            image = vision.Image(content=content)
-
-            # Perform both label and object detection
-            label_response = client.label_detection(image=image)
-            object_response = client.object_localization(image=image)
-            
-            # Get color detection
-            image_properties = client.image_properties(image=image).image_properties_annotation
-
-            labels = label_response.label_annotations
-            objects = object_response.localized_object_annotations
-
-            # Define valid keywords for different categories
-            valid_keywords = {
-                'rambutan': {
-                    'positive': ['rambutan', 'fruit', 'tropical fruit', 'fresh fruit', 'produce', 'food'],
-                    'negative': ['mold', 'rot', 'decay', 'bruise', 'damage', 'brown spots']
-                },
-                'wine': ['wine', 'bottle', 'alcohol', 'beverage', 'drink'],
-                'juice': ['juice', 'drink', 'bottle', 'beverage'],
-                'pickle': ['pickle', 'jar', 'preserved', 'container']
-            }
-
-            # Category-specific validation
-            if category == 'wine':
-                wine_valid = any(
-                    any(keyword in label.description.lower() for keyword in valid_keywords['wine'])
-                    and label.score > 0.5 for label in labels
-                )
-                if not wine_valid:
-                    return JsonResponse({
-                        'is_valid': False,
-                        'message': 'Could not detect a valid wine bottle.',
-                        'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
-                    })
-
-            elif category == 'juice':
-                juice_valid = any(
-                    any(keyword in label.description.lower() for keyword in valid_keywords['juice'])
-                    and label.score > 0.5 for label in labels
-                )
-                if not juice_valid:
-                    return JsonResponse({
-                        'is_valid': False,
-                        'message': 'Could not detect a valid juice container.',
-                        'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
-                    })
-
-            elif category == 'pickle':
-                pickle_valid = any(
-                    any(keyword in label.description.lower() for keyword in valid_keywords['pickle'])
-                    and label.score > 0.5 for label in labels
-                )
-                if not pickle_valid:
-                    return JsonResponse({
-                        'is_valid': False,
-                        'message': 'Could not detect a valid pickle jar.',
-                        'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
-                    })
-
-            # If we get here, both ML and Vision API validations passed
-            return JsonResponse({
-                'is_valid': True,
-                'message': f'Valid {category} image detected',
-                'ml_result': 'Healthy_Rambutan' if category == 'rambutan' else None,
-                'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
-            })
-
-        except Exception as e:
-            print(f"Error in image validation: {str(e)}")
-            return JsonResponse({
-                'is_valid': False,
-                'message': f'Error processing image: {str(e)}'
-            }, status=500)
-
-    return JsonResponse({
-        'is_valid': False,
-        'message': 'Invalid request'
-    }, status=400)
-
-
-def classify_rambutan_image(request):
-    if request.method == "POST" and request.FILES.get("image"):
-        uploaded_image = request.FILES["image"]
-
-        # ✅ First, validate image using Google Vision API
-        validate_response = validate_rambutan_image(request)  # Call function properly
-        validate_data = validate_response.content.decode("utf-8")
-
-        if '"is_valid": false' in validate_data:
-            return JsonResponse({
-                "status": "error",
-                "message": "❌ Invalid Rambutan Image! Upload a proper image."
-            })
-
-        # ✅ Save the image temporarily
-        image_path = default_storage.save("temp/" + uploaded_image.name, uploaded_image)
-        full_image_path = default_storage.path(image_path)
-
-        try:
-            # ✅ Load and preprocess the image for CNN model
-            img = image.load_img(full_image_path, target_size=(150, 150))
-            img_array = image.img_to_array(img)
-            img_array = np.expand_dims(img_array, axis=0) / 255.0  # Normalize
-
-            # ✅ Predict Using CNN Model
-            prediction = model.predict(img_array)
-            predicted_class = CLASS_LABELS[np.argmax(prediction)]  # Get class name
-
-            # Clean up temporary file
-            default_storage.delete(image_path)
-
-            # ✅ Return response based on classification result
-            if predicted_class in ["Defective", "Raw"]:
-                return JsonResponse({
-                    "status": "error",
-                    "message": f"❌ {predicted_class} Rambutan is not allowed to post!"
-                })
-
-            return JsonResponse({
-                "status": "success",
-                "message": "✅ Healthy Rambutan uploaded successfully!"
-            })
-
-        except Exception as e:
-            # Clean up temporary file in case of error
-            default_storage.delete(image_path)
-            return JsonResponse({
-                "status": "error",
-                "message": f"Error processing image: {str(e)}"
-            })
-
-    return JsonResponse({
-        "status": "error",
-        "message": "No image provided!"
-    })
-
 
 
 def generate_qr_code(request, order_id):
@@ -2047,9 +1810,6 @@ def generate_qr_code(request, order_id):
         print(f"Error generating QR code: {str(e)}")
         return HttpResponse("Error generating QR code", status=500)
 
-
-
-
 def verify_qr(request, order_id):
     """Verify QR Code and mark order as delivered"""
     try:
@@ -2079,17 +1839,21 @@ def verify_qr(request, order_id):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+@login_required
 def confirm_delivery(request, order_id):
     """Handle delivery confirmation when QR code is scanned"""
     try:
         order = get_object_or_404(Order, order_number=order_id)
         
+        # Check if order is out for delivery
         if order.order_status == "out_for_delivery":
-            if request.method == "POST":
+            if request.method == 'POST':
+                # Confirm delivery
                 order.order_status = "delivered"
+                order.delivery_date = timezone.now()
                 order.save()
                 
-                # Send confirmation email
+                # Send confirmation email to customer
                 try:
                     subject = 'Order Delivery Confirmation'
                     message = f'Your order #{order.order_number} has been successfully delivered.'
@@ -2103,27 +1867,466 @@ def confirm_delivery(request, order_id):
                 except Exception as e:
                     print(f"Email sending failed: {str(e)}")
                 
-                return render(request, 'delivery_confirmed.html', {
-                    'order': order,
+                return JsonResponse({
                     'success': True,
                     'message': 'Delivery confirmed successfully!'
                 })
-            else:
-                # Show confirmation page with order details
-                return render(request, 'delivery_confirmed.html', {
-                    'order': order,
-                    'success': False,
-                    'show_confirm': True,
-                    'message': 'Please confirm delivery'
-                })
-        else:
+            
+            # Show order details for confirmation
             return render(request, 'delivery_confirmed.html', {
                 'order': order,
-                'success': False,
-                'message': 'Invalid order status or already delivered'
+                'success': True
             })
+        else:
+            return render(request, 'delivery_confirmed.html', {
+                'success': False,
+                'message': 'Order is not out for delivery'
+            })
+            
     except Order.DoesNotExist:
         return render(request, 'delivery_confirmed.html', {
             'success': False,
             'message': 'Order not found'
         })
+
+def validate_rambutan_image(request):
+    if request.method == 'POST' and request.FILES.get('image'):
+        try:
+            # Load credentials from JSON file
+            with open(os.path.join(settings.BASE_DIR, 'warehouse', 'rambutan-vision-key.json')) as f:
+                credentials_dict = json.load(f)
+
+            credentials = service_account.Credentials.from_service_account_info(credentials_dict)
+            client = vision.ImageAnnotatorClient(credentials=credentials)
+
+            # Read the image file
+            image_file = request.FILES['image'].read()
+            image = vision.Image(content=image_file)
+
+            # Get category from request
+            category = request.POST.get('category', 'fresh_fruit')
+            print(f"Validating image for category: {category}")  # Debug print
+
+            # Perform label detection
+            label_response = client.label_detection(image=image)
+            labels = label_response.label_annotations
+
+            # Print detected labels for debugging
+            print("Detected labels:", [f"{label.description}: {label.score}" for label in labels])
+
+            # Define valid keywords for different categories
+            valid_keywords = {
+                'fresh_fruit': [
+                    'rambutan', 'fruit', 'tropical fruit', 'fresh', 'produce', 'food',
+                    'natural foods', 'superfood', 'local food', 'plant', 'red', 'hair',
+                    'hairy', 'exotic fruit', 'sweet', 'fresh produce', 'organic', 'edible'
+                ],
+                'wine': [
+                    'wine', 'bottle', 'alcohol', 'beverage', 'drink',
+                    'glass bottle', 'alcoholic beverage', 'wine bottle',
+                    'red wine', 'fruit wine'
+                ],
+                'juice': [
+                    'juice', 'drink', 'bottle', 'liquid',
+                    'fruit juice', 'container', 'smoothie', 'fruit drink'
+                ],
+                'pickle': [
+                    'pickle', 'jar', 'food', 'preserved food', 'container',
+                    'preserved', 'fermented', 'pickled', 'preserved fruit'
+                ]
+            }
+
+            # Get the keywords for the selected category
+            category_keywords = valid_keywords.get(category, [])
+            
+            # Check for matches with lower confidence threshold
+            is_valid = False
+            matched_labels = []
+            
+            # List of invalid fruits
+            invalid_fruits = [
+                'strawberry', 'tomato', 'sphere', 'apple', 
+                'lychee', 'longan', 'pulasan', 'mangosteen', 
+                'chico', 'ackee', 'sugar apple', 'okra', 
+                'hairy gourd', 'bitter melon'
+            ]
+
+            # Check for invalid fruits in detected labels
+            for label in labels:
+                label_text = label.description.lower()
+                for keyword in category_keywords:
+                    if keyword.lower() in label_text and label.score > 0.3:  # Lowered threshold from 0.5 to 0.3
+                        is_valid = True
+                        matched_labels.append(f"{label_text} ({label.score:.2f})")
+                        break
+
+            # If no matches found but it's fresh_fruit category, try classification
+            if not is_valid and category == 'fresh_fruit':
+                # Perform classification
+                classification_result = classify_rambutan_image(request.FILES['image'])
+                if classification_result:
+                    is_valid = True
+                    matched_labels.append('rambutan detected by classifier')
+
+            if is_valid:
+                return JsonResponse({
+                    'is_valid': True,
+                    'message': f'Valid image detected for {category}',
+                    'matched_labels': matched_labels
+                })
+            else:
+                category_name = category.replace('_', ' ').title()
+                return JsonResponse({
+                    'is_valid': False,
+                    'message': f'Could not detect valid {category_name} image. Please ensure the image clearly shows the appropriate content.',
+                    'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
+                })
+
+        except Exception as e:
+            print(f"Error in image validation: {str(e)}")
+            return JsonResponse({
+                'is_valid': False,
+                'message': f'Error processing image: {str(e)}'
+            }, status=500)
+
+    return JsonResponse({
+        'is_valid': False,
+        'message': 'Invalid request'
+    }, status=400)
+
+def recipe_view(request):
+    return render(request, 'recipe.html')
+
+def get_recipe(request):
+    recipe_name = request.GET.get('recipe', '')
+    
+    try:
+        # Check if recipe is rambutan-related
+        rambutan_keywords = ['rambutan', 'nephelium lappaceum']
+        is_rambutan_recipe = any(keyword in recipe_name.lower() for keyword in rambutan_keywords)
+        
+        # For predefined recipes, always proceed
+        predefined_recipes = [
+            'Rambutan Smoothie', 'Rambutan Salad', 
+            'Spicy Rambutan Chutney', 'Rambutan Coconut Dessert'
+        ]
+        
+        if recipe_name in predefined_recipes or is_rambutan_recipe:
+            genai.configure(api_key='AIzaSyBLSAPqtZQ4KhCTNP9zkM2Dke9giqwhENc')
+            model = genai.GenerativeModel('gemini-1.5-pro')
+            
+            prompt = f"""
+            Create a recipe for {recipe_name} with the following sections:
+            1. Brief introduction
+            2. Ingredients list
+            3. Step by step instructions
+            4. Cooking time
+            
+
+            Format the response as follows:
+            - Use <h3> for section headings
+            - Use <ul> for ingredients and serving suggestions
+            - Use <ol> for instructions
+            - Use <div class="cooking-time"> for cooking time
+            - Use <p> for introduction and other text
+            Make it specific to rambutan fruit preparation.
+            """
+            
+            response = model.generate_content(prompt)
+            recipe_content = response.text.replace('```html', '').replace('```', '')
+            
+            formatted_recipe = f"""
+                <div class="recipe-details">
+                    <h2 class="recipe-title">{recipe_name}</h2>
+                    <div class="recipe-content">
+                        {recipe_content}
+                    </div>
+                </div>
+            """
+            
+            return JsonResponse({
+                'success': True,
+                'recipe': formatted_recipe
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'Sorry, we only provide recipes that include rambutan as an ingredient. Please specify and try a rambutan-based recipe.'
+            })
+            
+    except Exception as e:
+        print(f"Error in recipe generation: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': 'Error generating recipe. Please try again later.'
+        })
+
+def download_recipe(request):
+    if request.method == 'POST':
+        try:
+            recipe_content = request.POST.get('recipe_content', '')
+            recipe_name = request.POST.get('recipe_name', 'Recipe')
+            
+            # Create PDF
+            buffer = BytesIO()
+            doc = SimpleDocTemplate(
+                buffer,
+                pagesize=A4,
+                rightMargin=72,
+                leftMargin=72,
+                topMargin=72,
+                bottomMargin=72
+            )
+            
+            # Clean HTML content
+            clean_content = re.sub('<[^<]+?>', '\n', unescape(recipe_content))
+            
+            # Create paragraph style with justified text
+            styles = getSampleStyleSheet()
+            justified_style = ParagraphStyle(
+                'justified',
+                parent=styles['Normal'],
+                alignment=TA_JUSTIFY,
+                fontSize=12,
+                leading=16,
+                spaceBefore=12,
+                spaceAfter=12
+            )
+            
+            # Format content into paragraphs
+            story = []
+            
+            # Add title
+            title_style = ParagraphStyle(
+                'title',
+                parent=styles['Title'],
+                fontSize=24,
+                spaceAfter=30
+            )
+            story.append(Paragraph(recipe_name, title_style))
+            
+            # Add content paragraphs
+            for line in clean_content.split('\n'):
+                if line.strip():
+                    story.append(Paragraph(line, justified_style))
+            
+            # Build PDF
+            doc.build(story)
+            
+            # Return the PDF
+            buffer.seek(0)
+            return FileResponse(
+                buffer,
+                as_attachment=True,
+                filename=f"{recipe_name.lower().replace(' ', '_')}_recipe.pdf"
+            )
+            
+        except Exception as e:
+            print(f"Error generating PDF: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': 'Failed to generate PDF'
+            }, status=500)
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    }, status=400)
+
+@login_required
+def create_bid(request):
+    if request.method == 'POST':
+        try:
+            post_id = request.POST.get('post_id')
+            start_price = Decimal(request.POST.get('start_price'))  # Convert to Decimal
+            bid_quantity = int(request.POST.get('bid_quantity'))    # Convert to int
+            end_date = request.POST.get('end_date')
+
+            rambutan_post = get_object_or_404(RambutanPost, id=post_id)
+            
+            # Validate the farmer owns this post
+            if rambutan_post.farmer.user != request.user:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'You do not have permission to create a bid for this post'
+                })
+
+            # Validate quantity
+            if bid_quantity > rambutan_post.quantity:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Bid quantity cannot exceed available quantity'
+                })
+
+            # Validate start price
+            if start_price <= 0:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Starting price must be greater than 0'
+                })
+
+            # Create or update bid
+            bid_post, created = BidPost.objects.update_or_create(
+                rambutan_post=rambutan_post,
+                defaults={
+                    'start_price': start_price,
+                    'current_price': start_price,
+                    'bid_quantity': bid_quantity,
+                    'end_date': end_date,
+                    'is_active': True
+                }
+            )
+
+            # Send email notifications to customers
+            customers = Registeruser.objects.filter(role='customer')
+            for customer in customers:
+                html_content = f"""
+                <html>
+                <body style="font-family: Arial, sans-serif;">
+                    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <h2 style="color: #16a085;">New Rambutan Bidding Available!</h2>
+                        <p>Hello {customer.name},</p>
+                        <p>A new bidding has been created for:</p>
+                        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px;">
+                            <h3 style="margin: 0;">{rambutan_post.product}</h3>
+                            <p><strong>Starting Price:</strong> ₹{start_price}</p>
+                            <p><strong>Quantity Available:</strong> {bid_quantity} {rambutan_post.quantity_type}</p>
+                            <p><strong>Bidding Ends:</strong> {end_date}</p>
+                        </div>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <a href="{request.build_absolute_uri(reverse('bidding'))}" 
+                               style="background-color: #16a085; color: white; padding: 10px 20px; 
+                                      text-decoration: none; border-radius: 5px; display: inline-block;">
+                                Participate in Bidding
+                            </a>
+                        </div>
+                        <p style="margin-top: 20px; font-size: 0.9em; color: #666;">
+                            Don't miss this opportunity to get quality Rambutan at competitive prices!
+                        </p>
+                    </div>
+                </body>
+                </html>
+                """
+
+                send_mail(
+                    subject='New Rambutan Bidding Available!',
+                    message='',  # Plain text version (optional)
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[customer.email],
+                    html_message=html_content,
+                    fail_silently=False,
+                )
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Bid created successfully and notifications sent to customers'
+            })
+
+        except ValueError as e:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid input: Please check your numbers and try again'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    })
+
+@login_required
+def bidding(request):
+    # Get all active bids
+    active_bids = BidPost.objects.filter(
+        is_active=True,
+        end_date__gt=timezone.now()
+    ).select_related('rambutan_post')  # First get rambutan_post
+
+    # Get my bids
+    my_bids = CustomerBid.objects.filter(
+        customer=request.user,
+        bid_post__is_active=True
+    ).select_related('bid_post', 'bid_post__rambutan_post')
+
+    # Get won bids (highest bid for each completed auction)
+    won_bids = CustomerBid.objects.filter(
+        customer=request.user,
+        bid_post__end_date__lt=timezone.now(),
+        bid_amount=F('bid_post__current_price')
+    ).select_related('bid_post', 'bid_post__rambutan_post')
+
+    context = {
+        'active_bids': active_bids,
+        'my_bids': my_bids,
+        'won_bids': won_bids
+    }
+    return render(request, 'bidding.html', context)
+
+@login_required
+def place_bid(request):
+    if request.method == 'POST':
+        try:
+            bid_id = request.POST.get('bid_id')
+            bid_amount = Decimal(request.POST.get('bid_amount'))
+            
+            bid_post = get_object_or_404(BidPost, id=bid_id)
+            
+            # Validate bid amount
+            if bid_amount <= bid_post.current_price:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Bid amount must be higher than current bid'
+                })
+            
+            # Create customer bid
+            CustomerBid.objects.create(
+                bid_post=bid_post,
+                customer=request.user,
+                bid_amount=bid_amount
+            )
+            
+            # Update current price
+            bid_post.current_price = bid_amount
+            bid_post.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Bid placed successfully!'
+            })
+            
+        except ValueError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid bid amount. Please enter a valid number.'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    })
+
+@login_required
+def farmer_bid_history(request):
+    # Get all bids related to the farmer's posts
+    bids = BidPost.objects.filter(
+        rambutan_post__farmer__user=request.user
+    ).select_related('rambutan_post').order_by('-created_at')
+    
+    # Separate active and completed bids
+    active_bids = bids.filter(is_active=True, end_date__gt=timezone.now())
+    completed_bids = bids.filter(Q(is_active=False) | Q(end_date__lte=timezone.now()))
+    
+    context = {
+        'active_bids': active_bids,
+        'completed_bids': completed_bids
+    }
+    return render(request, 'farmer_bid_history.html', context)

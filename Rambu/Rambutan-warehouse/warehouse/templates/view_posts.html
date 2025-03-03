@@ -19,6 +19,10 @@
   <!-- SweetAlert2 JS -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+  <!-- Flatpickr CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
   <style>
     /* Global Styles */
     body {
@@ -320,6 +324,194 @@
       text-decoration: underline;
     }
     
+    /* Bid Button Styling */
+    .make-bid-btn {
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 25px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .make-bid-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+    }
+
+    /* Bid Modal Styling */
+    .bid-modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .bid-modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 30px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 500px;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      animation: slideIn 0.3s ease;
+    }
+
+    .close-bid {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+      transition: color 0.3s ease;
+      z-index: 1001; /* Ensure it's above other modal content */
+      padding: 5px;
+      line-height: 1;
+    }
+
+    .close-bid:hover {
+      color: #333;
+    }
+
+    .bid-form-group {
+      margin-bottom: 20px;
+    }
+
+    .bid-form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .bid-form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+
+    .bid-form-group input:focus {
+      border-color: #4CAF50;
+      outline: none;
+    }
+
+    .submit-bid-btn {
+      width: 100%;
+      padding: 12px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .submit-bid-btn:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Style the flatpickr calendar */
+    .flatpickr-calendar {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .flatpickr-day.selected {
+      background: #4CAF50 !important;
+      border-color: #4CAF50 !important;
+    }
+
+    .flatpickr-day.today {
+      border-color: #4CAF50;
+    }
+
+    .flatpickr-day:hover {
+      background: #e8f5e9;
+    }
+
+    .flatpickr-time input:hover,
+    .flatpickr-time input:focus {
+      background: #e8f5e9;
+    }
+
+    /* Add these to your existing styles */
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .delete-btn,
+    .update-btn {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .delete-btn {
+      background-color: #ff5252;
+    }
+
+    .update-btn {
+      background-color: #2196F3;
+    }
+
+    .delete-btn a,
+    .update-btn a {
+      color: white;
+      text-decoration: none;
+    }
+
+    .make-bid-btn {
+      padding: 8px 15px;
+      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.3s ease;
+    }
+
+    .make-bid-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 
@@ -341,12 +533,6 @@
           <span class="links_name">Orders</span>
         </a>
       </li>
-      {% comment %} <li>
-        <a href="#">
-          <i class='bx bx-cart'></i>
-          <span class="links_name">New Sales</span>
-        </a>
-      </li> {% endcomment %}
       <li>
         <a href="{% url 'post_rambutan' %}">
           <i class='bx bx-leaf'></i>
@@ -359,6 +545,12 @@
           <span class="links_name">View My Posts</span>
         </a>
       </li>
+      <li>
+        <a href="{% url 'farmer_bid_history' %}">
+          <i class='bx bx-history'></i>
+          <span class="links_name">Bid History</span>
+        </a>
+      </li>
       <li class="log_out">
         <a href="{% url 'logout' %}">
           <i class='bx bx-log-out'></i>
@@ -369,6 +561,35 @@
   </div>
 
   <section class="home-section">
+    <!-- Add the modal HTML here -->
+    <div id="bidModal" class="bid-modal">
+      <div class="bid-modal-content">
+        <span class="close-bid">&times;</span>
+        <h2 style="margin-bottom: 20px; color: #333;">Create Bid</h2>
+        <form id="bidForm">
+          {% csrf_token %}
+          <input type="hidden" id="postId" name="post_id">
+          
+          <div class="bid-form-group">
+            <label for="startPrice">Starting Price (₹)</label>
+            <input type="number" id="startPrice" name="start_price" min="1" step="0.01" required>
+          </div>
+
+          <div class="bid-form-group">
+            <label for="bidQuantity">Quantity (kg)</label>
+            <input type="number" id="bidQuantity" name="bid_quantity" min="1" required>
+          </div>
+
+          <div class="bid-form-group">
+            <label for="endDateTime">End Date and Time</label>
+            <input type="text" id="endDateTime" name="end_date" required>
+          </div>
+
+          <button type="submit" class="submit-bid-btn">Create Bid</button>
+        </form>
+      </div>
+    </div>
+
     <nav class="top-navbar">
       <div class="logo">
         <span class="logo-text">Rambutan Warehouse</span>
@@ -412,9 +633,15 @@
             <strong>Price:</strong> {{ post.price }}<br>
             <strong>Description:</strong> {{ post.description }}<br>
             <strong>Quantity Left:</strong>{{ post.quantity_left }}<br>
-            <!-- Add Update and Delete Links Here -->
-            <button><a href="{% url 'delete_post' post.id %}">Delete</a></button>
-            <button><a href="{% url 'update_post' post.id %}">Update</a></button>
+            <!-- Update these buttons -->
+            <div class="button-group">
+              <button class="delete-btn"><a href="{% url 'delete_post' post.id %}">Delete</a></button>
+              <button class="update-btn"><a href="{% url 'update_post' post.id %}">Update</a></button>
+              <button type="button" class="make-bid-btn" onclick="openBidModal({{ post.id }}, {{ post.quantity_left }})">
+                <i class='bx bx-purchase-tag-alt'></i>
+                Make Bid
+              </button>
+            </div>
           </li>
           {% empty %}
           <li>No available posts found. Add your first rambutan post.</li>
@@ -498,6 +725,140 @@
           if (result.isConfirmed) {
             window.location.href = this.href;
           }
+        });
+      });
+    });
+
+    // CSRF token helper function
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    // Modal functionality
+    function openBidModal(postId, maxQuantity) {
+      console.log('Opening modal for post:', postId, 'max quantity:', maxQuantity); // Debug log
+      const modal = document.getElementById('bidModal');
+      if (!modal) {
+        console.error('Modal element not found!');
+        return;
+      }
+
+      // Set the values
+      document.getElementById('postId').value = postId;
+      document.getElementById('bidQuantity').max = maxQuantity;
+      
+      // Reset form
+      document.getElementById('bidForm').reset();
+      
+      // Initialize flatpickr if not already initialized
+      if (!document.getElementById('endDateTime')._flatpickr) {
+        flatpickr("#endDateTime", {
+          enableTime: true,
+          minDate: "today",
+          minTime: new Date().getHours() + ":" + new Date().getMinutes(),
+          dateFormat: "Y-m-d H:i",
+          enableSeconds: false,
+          time_24hr: true,
+          defaultHour: new Date().getHours(),
+          defaultMinute: new Date().getMinutes(),
+        });
+      }
+      
+      // Set current date/time
+      const now = new Date();
+      document.getElementById('endDateTime')._flatpickr.setDate(now);
+      
+      // Show the modal
+      modal.style.display = "block";
+    }
+
+    // Close button functionality
+    document.querySelector('.close-bid').addEventListener('click', function() {
+      document.getElementById('bidModal').style.display = "none";
+    });
+
+    // Close on outside click
+    window.addEventListener('click', function(event) {
+      const modal = document.getElementById('bidModal');
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+
+    // Form submission
+    document.getElementById('bidForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const startPrice = parseFloat(document.getElementById('startPrice').value);
+      const bidQuantity = parseInt(document.getElementById('bidQuantity').value);
+      const maxQuantity = parseInt(document.getElementById('bidQuantity').max);
+
+      // Validate start price
+      if (startPrice <= 0) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Price',
+          text: 'Starting price must be greater than 0'
+        });
+        return;
+      }
+
+      // Validate quantity
+      if (bidQuantity > maxQuantity) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Invalid Quantity',
+          text: `Bid quantity cannot exceed available quantity (${maxQuantity})`
+        });
+        return;
+      }
+
+      const formData = new FormData(this);
+      
+      fetch('/create-bid/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken')
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Bid Created Successfully!',
+            text: data.message,
+            showConfirmButton: false,
+            timer: 2000
+          }).then(() => {
+            location.reload();
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error Creating Bid',
+            text: data.error
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Something went wrong. Please try again.'
         });
       });
     });
