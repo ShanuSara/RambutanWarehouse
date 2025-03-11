@@ -81,8 +81,14 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                // Update the status in the parent window (delivery boy dashboard)
+                                // After successful delivery confirmation
                                 if (window.opener && !window.opener.closed) {
+                                    window.opener.postMessage({
+                                        type: 'delivery_confirmed',
+                                        orderNumber: '{{ order.order_number }}'
+                                    }, '*');
+                                    
+                                    // Update parent window elements
                                     try {
                                         // Update status badge
                                         const statusBadge = window.opener.document.querySelector(`.status-badge[data-order-number="{{ order.order_number }}"]`);
@@ -91,18 +97,17 @@
                                             statusBadge.className = 'status-badge delivered';
                                         }
 
-                                        // Update row status
-                                        const orderRow = window.opener.document.querySelector(`tr[data-order-id="{{ order.order_number }}"]`);
-                                        if (orderRow) {
-                                            orderRow.classList.add('delivered');
+                                        // Update timeline
+                                        const timeline = window.opener.document.querySelector(`.timeline[data-order-id="{{ order.order_number }}"]`);
+                                        if (timeline) {
+                                            timeline.setAttribute('data-status', 'delivered');
                                         }
 
-                                        // Optional: Update any status buttons or controls
-                                        const statusButton = window.opener.document.querySelector(`button[data-order-id="{{ order.order_number }}"]`);
-                                        if (statusButton) {
-                                            statusButton.disabled = true;
-                                            statusButton.textContent = 'Delivered';
-                                        }
+                                        // Update all stages
+                                        const stages = timeline.querySelectorAll('.tracking-stage');
+                                        stages.forEach(stage => {
+                                            stage.classList.add('completed');
+                                        });
 
                                     } catch (e) {
                                         console.log('Could not update parent window:', e);

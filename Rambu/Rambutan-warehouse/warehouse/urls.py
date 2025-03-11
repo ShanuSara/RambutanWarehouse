@@ -96,7 +96,7 @@ urlpatterns = [
      path('generate-qr-code/<str:order_id>/', views.generate_qr_code, name='generate_qr_code'),
      path('verify-qr/<str:order_id>/', views.verify_qr, name='verify_qr'),
      path('confirm-delivery/<str:order_id>/', views.confirm_delivery, name='confirm_delivery'),
-     path('validate-rambutan-image/', validate_rambutan_image, name='validate_rambutan_image'),
+    path('validate-rambutan-image/', views.validate_rambutan_image, name='validate_rambutan_image'),
     path('recipe/', views.recipe_view, name='recipe'),
     path('get-recipe/', views.get_recipe, name='get_recipe'),
     path('download-recipe/', views.download_recipe, name='download_recipe'),
@@ -104,6 +104,9 @@ urlpatterns = [
     path('bidding/', views.bidding, name='bidding'),
     path('place-bid/', views.place_bid, name='place_bid'),
     path('farmer/bid-history/', views.farmer_bid_history, name='farmer_bid_history'),
+    path('schedule-meetings/', views.schedule_meetings, name='schedule_meetings'),
+    path('confirm-meeting/', views.confirm_meeting, name='confirm_meeting'),
+    path('suggest-meeting-time/', views.suggest_meeting_time, name='suggest_meeting_time'),
 ]
 
 

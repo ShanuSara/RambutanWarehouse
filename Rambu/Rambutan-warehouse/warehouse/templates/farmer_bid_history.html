@@ -410,6 +410,55 @@
             gap: 6px;
         }
     }
+
+    /* Add these styles inside your existing style tag */
+    
+    .customer-bids {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+    }
+
+    .customer-bids h4 {
+        color: var(--text-color);
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+
+    .customer-bid-item {
+        padding: 8px;
+        margin-bottom: 5px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        transition: background-color 0.3s;
+    }
+
+    .customer-bid-item:hover {
+        background-color: #f0f0f0;
+    }
+
+    .customer-bid-item p {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 0;
+    }
+
+    .bid-amount {
+        color: var(--accent-color);
+        font-weight: 500;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .customer-bid-item {
+            padding: 6px;
+        }
+
+        .customer-bids h4 {
+            font-size: 14px;
+        }
+    }
   </style>
 </head>
 <body>
@@ -441,6 +490,12 @@
         <a href="{% url 'view_posts' %}">
           <i class='bx bx-list-ul'></i>
           <span class="links_name">View My Posts</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'schedule_meetings' %}">
+          <i class='bx bx-calendar'></i>
+          <span class="links_name">Schedule Meeting</span>
         </a>
       </li>
       <li>
@@ -515,6 +570,19 @@
                         <p class="current-bid">Current Bid: ₹{{ bid.current_price }}</p>
                         <p><strong>End Date:</strong> {{ bid.end_date|date:"M d, Y H:i" }}</p>
                         <p><strong>Total Bids:</strong> {{ bid.customer_bids.count }}</p>
+                        
+                        <!-- Add customer bids section -->
+                        <div class="customer-bids">
+                            <h4>Bidding History:</h4>
+                            {% for customer_bid in bid.customer_bids.all %}
+                            <div class="customer-bid-item">
+                                <p>
+                                    <strong>{{ customer_bid.customer.name }}</strong>
+                                    <span class="bid-amount">₹{{ customer_bid.bid_amount }}</span>
+                                </p>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -539,11 +607,19 @@
                         <p><strong>Final Price:</strong> ₹{{ bid.current_price }}</p>
                         <p><strong>End Date:</strong> {{ bid.end_date|date:"M d, Y H:i" }}</p>
                         <p><strong>Total Bids:</strong> {{ bid.customer_bids.count }}</p>
-                        {% with winning_bid=bid.customer_bids.first %}
-                        {% if winning_bid %}
-                        <p><strong>Winner:</strong> {{ winning_bid.customer.name }}</p>
-                        {% endif %}
-                        {% endwith %}
+                        
+                        <!-- Add customer bids section -->
+                        <div class="customer-bids">
+                            <h4>Bidding History:</h4>
+                            {% for customer_bid in bid.customer_bids.all %}
+                            <div class="customer-bid-item">
+                                <p>
+                                    <strong>{{ customer_bid.customer.name }}</strong>
+                                    <span class="bid-amount">₹{{ customer_bid.bid_amount }}</span>
+                                </p>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
             </div>

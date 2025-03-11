@@ -3,18 +3,255 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Rambutan Recipes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rambutan Recipe Suggestions</title>
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Boxicons CDN Link -->
+    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
+
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Poppins:200,300,400,500,600,700,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lora:400,400i,700,700i&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Amatic+SC:400,700&display=swap" rel="stylesheet">
+
+    <!-- Additional CSS Files (Optional) -->
+    <link rel="stylesheet" href="{% static 'css/open-iconic-bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animate.css' %}">
+    <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/owl.theme.default.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/magnific-popup.css' %}">
+    <link rel="stylesheet" href="{% static 'css/aos.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ionicons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-datepicker.css' %}">
+    <link rel="stylesheet" href="{% static 'css/jquery.timepicker.css' %}">
+    <link rel="stylesheet" href="{% static 'css/flaticon.css' %}">
+    <link rel="stylesheet" href="{% static 'css/icomoon.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Add after the existing meta tags and before other scripts in the head section -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'en',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+                },
+                'google_translate_element'
+            );
+        }
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <!-- Add this CSS in your existing style section -->
     <style>
+        /* Root Variables for Consistent Styling */
+        :root {
+            --primary-color: #2c3e50; /* Sidebar and Navbar color */
+            --secondary-color: #ecf0f1; /* Text and Icon color */
+            --accent-color: #16a085; /* Active link color */
+            --hover-color: #34495e; /* Hover background color */
+            --white: #ffffff;
+            --font-family: 'Poppins', sans-serif;
+        }
+
+        /* Global Styles */
+        body {
+            font-family: var(--font-family);
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 250px;
+            background-color: var(--primary-color);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            transition: width 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar .logo-details {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            color: var(--white);
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .sidebar ul.nav-links {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar ul.nav-links li {
+            margin: 20px 0;
+        }
+
+        .sidebar ul.nav-links li a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            transition: background-color 0.3s, color 0.3s;
+            border-radius: 4px;
+        }
+
+        .sidebar ul.nav-links li a:hover,
+        .sidebar ul.nav-links li a.active {
+            background-color: var(--accent-color);
+            color: var(--white);
+        }
+
+        .sidebar ul.nav-links li a i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .logo-details {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            color: var(--white);
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            margin-top: 20px;
+        }
+
+        .nav-links li {
+            list-style: none;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-size: 18px;
+            transition: background-color 0.3s, color 0.3s;
+            border-radius: 4px;
+        }
+
+        .nav-links a.active,
+        .nav-links a:hover {
+            background-color: var(--accent-color);
+            color: var(--white);
+        }
+
+        .nav-links a i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        /* Top Navbar Styling */
+        .top-navbar {
+            background-color: var(--primary-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            position: fixed;
+            top: 0;
+            left: 250px;
+            right: 0;
+            z-index: 1001; /* Ensure navbar is above the sidebar */
+        }
+
+        .logo-text {
+            font-size: 24px;
+            color: var(--white);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .top-navbar .logo a {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .top-navbar .logo img {
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .nav-icons {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-icons li a {
+            text-decoration: none;
+            color: var(--secondary-color);
+            font-size: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: color 0.3s;
+        }
+
+        .nav-icons li a:hover {
+            color: var(--accent-color);
+        }
+
+        .nav-icons li.user-profile a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 5px;
+        }
+
+        .nav-icons li.user-profile a i {
+            font-size: 24px; /* Increase icon size */
+            color: var(--secondary-color);
+        }
+
+        .nav-icons li.user-profile a .icon-name {
+            font-size: 14px; 
+            color: var(--secondary-color); 
+        }
         .recipe-container {
             max-width: 800px;
-            margin: 20px auto;
+            margin: 100px auto 40px; /* Increased top margin to account for navbar */
             padding: 20px;
-            background: #fff;
+            background: var(--white);
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            position: relative;
+            left: 0; /* Remove the left offset */
         }
 
         .recipe-select {
@@ -39,6 +276,7 @@
             padding: 20px;
             background: #f9f9f9;
             border-radius: 4px;
+            width: 100%;
         }
 
         .recipe-details {
@@ -102,15 +340,16 @@
         .back-button {
             display: inline-block;
             padding: 10px 20px;
-            background-color: #2c3e50;
-            color: white;
+            background-color: var(--primary-color);
+            color: var(--white);
             text-decoration: none;
             border-radius: 4px;
             margin-bottom: 20px;
+            transition: background-color 0.3s;
         }
 
         .back-button:hover {
-            background-color: #34495e;
+            background-color: var(--accent-color);
         }
 
         .download-button {
@@ -129,27 +368,213 @@
         .download-button:hover {
             background-color: #d35400;
         }
+
+        /* Update the home-section style */
+        .home-section {
+            width: calc(100% - 250px);
+            margin-left: 250px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Add these styles to your existing CSS */
+        .translate-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1002;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Style the Google Translate widget */
+        .goog-te-gadget {
+            font-family: var(--font-family) !important;
+        }
+
+        .goog-te-gadget-simple {
+            border: 1px solid #ddd !important;
+            padding: 8px !important;
+            border-radius: 4px !important;
+            background-color: white !important;
+        }
+
+        .goog-te-gadget-simple span {
+            color: #333 !important;
+        }
+
+        .recipe-form {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .recipe-form select {
+            flex: 1;
+        }
+
+        .language-select {
+            width: 200px;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-family: var(--font-family);
+            font-size: 14px;
+        }
+
+        .language-select option {
+            padding: 5px;
+        }
+
+        .submit-button {
+            padding: 10px 20px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .submit-button:hover {
+            background-color: #14876f;
+        }
+
+        .other-recipe-input {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
-    <div class="recipe-container">
-        <a href="{% url 'customer_dashboard' %}" class="back-button">
-            <i class='bx bx-arrow-back'></i> Back to Dashboard
-        </a>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul class="nav-links">
+            <li>
+                <a href="{% url 'customer_dashboard' %}">
+                    <i class='bx bx-grid-alt'></i>
+                    <span class="links_name">Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'profile_view' %}">
+                    <i class='bx bx-user'></i>
+                    <span class="links_name">View Profile</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'products_browse' %}">
+                    <i class='bx bx-cart'></i>
+                    <span class="links_name">Browse Products</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'wishlist' %}">
+                    <i class='bx bx-heart'></i>
+                    <span class="links_name">Wishlisted Items</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'cart' %}">
+                    <i class='bx bx-shopping-bag'></i>
+                    <span class="links_name">Cart</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'order_history' %}">
+                  <i class='bx bx-cart'></i>
+                  <span class="links_name">order history</span>
+                </a></li>
+            <li>
+                    <a href="{% url 'recipe' %}" class="active">
+                        <i class='bx bx-book-content'></i>
+                        <span class="links_name">Recipes</span>
+                    </a>
+            </li>
+           <li>
+                <a href="{% url 'bidding' %}">
+                    <i class='bx bx-gavel'></i>
+                    <span class="links_name">Bidding</span>
+                </a>
+            </li> 
+            
+            <li class="log_out">
+                <a href="{% url 'logout' %}" class="logout-button">
+                    <i class='bx bx-log-out'></i>
+                    <span class="links_name">Log out</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Home Section -->
+    <section class="home-section">
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <div class="logo">
+                <span class="logo-text">Rambutan Warehouse</span>
+            </div>
+            <ul class="nav-icons">
+                <!-- User Profile Section -->
+                <li class="user-profile">
+                    <a href="{% url 'profile_view' %}">
+                        <i class='bx bx-user'></i>
+                        <span class="icon-name">{{ user.name }}</span>
+                    </a>
+                </li>
+                <!-- Logout Icon -->
+                <li>
+                    <a href="{% url 'logout' %}" class="logout-button">
+                        <i class='bx bx-log-out'></i>
+                        <span class="icon-name">Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
         
+        <!-- Add this div right after the top-navbar section -->
+        <div class="translate-container">
+            <div id="google_translate_element"></div>
+        </div>
+        
+    <div class="recipe-container">
         <h2>Rambutan Recipe Suggestions</h2>
         
-        <select id="recipeSelect" class="recipe-select" onchange="handleRecipeSelection()">
-            <option value="">Select a Recipe</option>
-            <option value="Rambutan Smoothie">Rambutan Smoothie</option>
-            <option value="Rambutan Salad">Rambutan Salad</option>
-            <option value="Spicy Rambutan Chutney">Spicy Rambutan Chutney</option>
-            <option value="Rambutan Coconut Dessert">Rambutan Coconut Dessert</option>
-            <option value="other">Other</option>
-        </select>
+        <div class="recipe-form">
+            <select id="recipeSelect" class="recipe-select" onchange="handleRecipeSelection()">
+                <option value="">Select a Recipe</option>
+                <option value="Rambutan Smoothie">Rambutan Smoothie</option>
+                <option value="Rambutan Salad">Rambutan Salad</option>
+                <option value="Spicy Rambutan Chutney">Spicy Rambutan Chutney</option>
+                <option value="Rambutan Coconut Dessert">Rambutan Coconut Dessert</option>
+                <option value="other">Other</option>
+            </select>
 
-        <input type="text" id="otherRecipe" class="other-recipe-input" 
-               placeholder="Enter recipe name" style="display: none;">
+            <input type="text" id="otherRecipe" class="other-recipe-input" 
+                   placeholder="Enter recipe name" style="display: none;">
+
+            <select id="languageSelect" class="language-select">
+                <option value="en">English</option>
+                <option value="hi">हिंदी (Hindi)</option>
+                <option value="bn">বাংলা (Bengali)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+                <option value="ta">தமிழ் (Tamil)</option>
+                <option value="mr">मराठी (Marathi)</option>
+                <option value="gu">ગુજરાતી (Gujarati)</option>
+                <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                <option value="ml">മലയാളം (Malayalam)</option>
+                <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                <option value="ur">اردو (Urdu)</option>
+            </select>
+
+            <button onclick="generateRecipe()" class="submit-button" id='submit'>
+                Generate Recipe
+            </button>
+        </div>
 
         <div id="recipeResult" class="recipe-result"></div>
     </div>
@@ -164,14 +589,35 @@
                 otherInput.focus();
             } else {
                 otherInput.style.display = 'none';
-                if (select.value) {
-                    fetchRecipe(select.value);
-                }
             }
         }
 
+        function generateRecipe() {
+            const select = document.getElementById('recipeSelect');
+            const otherInput = document.getElementById('otherRecipe');
+            const recipeName = select.value === 'other' ? otherInput.value : select.value;
+            
+            if (!recipeName) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Please Select',
+                    text: 'Please select or enter a recipe name.'
+                });
+                return;
+            }
+
+            fetchRecipe(recipeName);
+        }
+
+        document.getElementById('otherRecipe').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateRecipe();
+            }
+        });
+
         async function fetchRecipe(recipeName) {
             const resultDiv = document.getElementById('recipeResult');
+            const selectedLanguage = document.getElementById('languageSelect').value;
             
             // Show loading state
             Swal.fire({
@@ -184,7 +630,7 @@
             });
 
             try {
-                const response = await fetch(`/get-recipe/?recipe=${encodeURIComponent(recipeName)}`);
+                const response = await fetch(`/get-recipe/?recipe=${encodeURIComponent(recipeName)}&language=${selectedLanguage}`);
                 const data = await response.json();
 
                 // Close loading indicator
@@ -214,20 +660,16 @@
             }
         }
 
-        document.getElementById('otherRecipe').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                fetchRecipe(this.value);
-            }
-        });
-
         function downloadRecipe() {
             const recipeContent = document.querySelector('.recipe-details').innerHTML;
             const recipeName = document.querySelector('.recipe-title').textContent;
+            const language = document.querySelector('.recipe-details').dataset.language;
             
             // Create form data
             const formData = new FormData();
             formData.append('recipe_content', recipeContent);
             formData.append('recipe_name', recipeName);
+            formData.append('language', language);
 
             // Send request to download endpoint
             fetch('/download-recipe/', {
@@ -239,7 +681,6 @@
             })
             .then(response => response.blob())
             .then(blob => {
-                // Create download link
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;

@@ -457,12 +457,12 @@
                   <i class='bx bx-cart'></i>
                   <span class="links_name">order history</span>
                 </a></li>
-            <li>
-                    <a href="{% url 'recipe' %}">
+                <li>
+                    <a href="{% url 'recipe' %}" id="recipes">
                         <i class='bx bx-book-content'></i>
                         <span class="links_name">Recipes</span>
                     </a>
-            </li>
+                </li>                
            <li>
                 <a href="{% url 'bidding' %}">
                     <i class='bx bx-gavel'></i>
@@ -511,13 +511,6 @@
                 <p>Welcome to your dashboard, {{ user.name }}! Here you can view and manage your profile, browse products, and keep track of your wishlisted and carted items.</p>
             </div>
         </div>
-        {% comment %} <a href="{% url 'chatbot_page' %}">
-            <i class='bx bx-cart'></i>
-            <span class="links_name">chatbot</span>
-          </a></li> {% endcomment %}
-
-
-        
     </section>
 
 

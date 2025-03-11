@@ -149,8 +149,9 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'en-us'
 
 
-TIME_ZONE = 'Asia/Kolkata' 
-USE_TZ = True
+# Timezone settings
+TIME_ZONE = 'Asia/Kolkata'  # This is already correct for Indian time
+USE_TZ = True  # This ensures Django uses timezone-aware datetimes
 
 
 # Static files (CSS, JavaScript, Images)
@@ -206,3 +207,4 @@ RAZORPAY_SECRET_KEY = RAZORPAY_SECRET_KEY
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = r"C:\Users\shanu\Downloads\rambutanbot-owlq-b5dc53cc5d4d.json"
 GOOGLE_APPLICATION_CREDENTIALS = os.path.join(BASE_DIR, 'rambutan-vision-key.json')
+

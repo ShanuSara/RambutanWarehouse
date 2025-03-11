@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -174,6 +175,94 @@
             font-size: 24px;
             font-weight: 600;
             color: #2a5298;
+        }
+
+        .search-form {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 25px 0;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .search-form input {
+            width: 100%;
+            padding: 12px 45px 12px 20px;
+            font-size: 15px;
+            color: #333;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-form input:focus {
+            border-color: #2a5298;
+            box-shadow: 0 3px 8px rgba(42, 82, 152, 0.15);
+            outline: none;
+        }
+
+        .search-form input::placeholder {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .search-form button {
+            position: absolute;
+            right: 3px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #2a5298;
+            color: white;
+            border: none;
+            height: 38px;
+            width: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .search-form button:hover {
+            background: #1e3c72;
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .search-form button:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        /* Add hover effect to the input */
+        .search-form:hover input {
+            border-color: #bbb;
+        }
+
+        /* Add focus-within effect to the form */
+        .search-form:focus-within {
+            transform: translateY(-1px);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .search-form {
+                margin: 15px 0;
+            }
+
+            .search-form input {
+                padding: 10px 40px 10px 15px;
+                font-size: 14px;
+            }
+
+            .search-form button {
+                height: 34px;
+                width: 34px;
+                font-size: 14px;
+            }
         }
 
         .orders-section {
@@ -796,6 +885,29 @@
             color: #999; /* Gray text */
             cursor: not-allowed; /* Not allowed cursor */
         }
+
+        .clear-search {
+            position: absolute;
+            right: 45px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .clear-search:hover {
+            color: #2a5298;
+        }
+
+        /* Adjust the search input padding when clear button is visible */
+        .search-form input {
+            padding-right: 85px;
+        }
     </style>
 </head>
 <body>
@@ -877,16 +989,26 @@
                     <div class="stat-value">{{ pending_orders }}</div>
             </div>
             </div>
-            {% comment %} <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-box-check"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>Completed Orders</h3>
-                    <div class="stat-value">{{ completed_orders }}</div>
-                </div>
-            </div> {% endcomment %}
         </div>
+
+        <form method="GET" action="{% url 'deliveryboy_dashboard' %}" class="search-form" id="searchForm">
+            <input 
+                type="text" 
+                name="q" 
+                placeholder="Search by Order ID, Customer Name, or Contact..." 
+                value="{{ query }}"
+                autocomplete="off"
+                id="searchInput"
+            >
+            <button type="submit">
+                <i class="fas fa-search"></i>
+            </button>
+            {% if query %}
+                <button type="button" class="clear-search" onclick="clearSearch()">
+                    <i class="fas fa-times"></i>
+                </button>
+            {% endif %}
+        </form>        
 
         <!-- Orders Section -->
         <div class="orders-section">
@@ -1411,6 +1533,18 @@
         document.querySelectorAll('.order-status').forEach(element => {
             const orderNumber = element.closest('.order-card').dataset.orderNumber;
             element.setAttribute('data-order-number', orderNumber);
+        });
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            window.location.href = "{% url 'deliveryboy_dashboard' %}";
+        }
+
+        // Also clear and reload when input becomes empty
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            if (this.value.trim() === '') {
+                window.location.href = "{% url 'deliveryboy_dashboard' %}";
+            }
         });
     </script>
 </body>

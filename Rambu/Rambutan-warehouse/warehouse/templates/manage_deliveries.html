@@ -217,6 +217,80 @@
             background-color: #f5c6cb;
             color: #721c24;
         }
+
+        .search-form {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 25px 0;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .search-form input {
+            width: 100%;
+            padding: 12px 45px 12px 20px;
+            font-size: 15px;
+            color: #333;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-form input:focus {
+            border-color: #2a5298;
+            box-shadow: 0 3px 8px rgba(42, 82, 152, 0.15);
+            outline: none;
+        }
+
+        .search-form input::placeholder {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .search-form button {
+            position: absolute;
+            right: 3px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #2a5298;
+            color: white;
+            border: none;
+            height: 38px;
+            width: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .clear-search {
+            position: absolute;
+            right: 45px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .clear-search:hover {
+            color: #2a5298;
+        }
+
+        /* Adjust the search input padding when clear button is visible */
+        .search-form input {
+            padding-right: 85px;
+        }
     </style>
 </head>
 <body>
@@ -246,6 +320,26 @@
         <!-- Main Content -->
         <div class="main">
             <h2>Manage Deliveries</h2>
+
+            <!-- Add this after the header section, before the tables -->
+            <form method="GET" action="{% url 'manage_deliveries' %}" class="search-form" id="searchForm">
+                <input 
+                    type="text" 
+                    name="q" 
+                    placeholder="Search by Order ID, Customer Name, or Delivery Boy..." 
+                    value="{{ query }}"
+                    autocomplete="off"
+                    id="searchInput"
+                >
+                <button type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
+                {% if query %}
+                    <button type="button" class="clear-search" onclick="clearSearch()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                {% endif %}
+            </form>
 
             <!-- Assigned Orders Section -->
             <div class="table-container">
@@ -349,6 +443,18 @@
             });
         {% endfor %}
         {% endif %}
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            window.location.href = "{% url 'manage_deliveries' %}";
+        }
+
+        // Also clear and reload when input becomes empty
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            if (this.value.trim() === '') {
+                window.location.href = "{% url 'manage_deliveries' %}";
+            }
+        });
     </script>
 </body>
 </html> 

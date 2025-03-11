@@ -553,6 +553,482 @@
                 opacity: 0;
             }
         }
+
+        .meeting-confirmation {
+            background-color: #fff8e1;
+            border: 1px solid #ffe082;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .meeting-details {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 1px solid #e0e0e0;
+        }
+
+        .meeting-details p {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .accept-btn, .reschedule-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .accept-btn {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .reschedule-btn {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .accept-btn:hover, .reschedule-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .reschedule-form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .submit-btn {
+            background-color: #2196f3;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 auto;
+        }
+
+        .submit-btn:hover {
+            background-color: #1976d2;
+        }
+
+        .meeting-completed {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .meeting-completed h4 {
+            color: #155724;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meeting-details {
+            margin-top: 10px;
+        }
+
+        .meeting-details p {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meeting-confirmed {
+            background-color: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .join-meeting-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #2196f3;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+
+        .join-meeting-btn:hover {
+            background-color: #1976d2;
+            color: white;
+        }
+
+        .completed-meeting-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            border-left: 4px solid #28a745;
+        }
+
+        .meeting-details-container {
+            margin-top: 10px;
+        }
+
+        .meeting-info {
+            display: grid;
+            gap: 8px;
+        }
+
+        .meeting-info p {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+        }
+
+        .meeting-info i {
+            color: #28a745;
+            font-size: 1.1em;
+        }
+
+        .meeting-ended-time {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #dee2e6;
+            color: #dc3545 !important;
+        }
+
+        .meeting-completed {
+            opacity: 0.8;
+        }
+
+        .meeting-completed .bx-check-circle {
+            font-size: 1.5em;
+        }
+
+        /* Add these styles to your existing CSS */
+        .won-bids-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+            width: 100%;
+        }
+
+        .won-bid-card {
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .won-bid-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .won-bid-card .bid-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .won-bid-card .bid-info {
+            padding: 15px;
+        }
+
+        .won-bid-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .won-bid-card .bid-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .won-bid-card .bid-details p {
+            margin: 0;
+            color: var(--text-color);
+            font-size: 0.9em;
+        }
+
+        .won-bid-card .bid-details p strong {
+            color: var(--primary-color);
+            margin-right: 5px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .won-bids-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .won-bids-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Meeting details styling */
+        .meeting-details {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .meeting-details h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .meeting-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .meeting-info p {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .meeting-info i {
+            color: var(--primary-color);
+        }
+
+        /* New styles for meeting details */
+        .meeting-details.meeting-completed .confirmed-meeting-info {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .meeting-details.meeting-completed .confirmed-meeting-info h4 {
+            color: #155724;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meeting-details.meeting-completed .confirmed-meeting-info .meeting-info {
+            margin-top: 10px;
+        }
+
+        .meeting-details.meeting-completed .confirmed-meeting-info .meeting-info p {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meeting-details.meeting-completed .confirmed-meeting-info .meeting-info i {
+            color: #28a745;
+            font-size: 1.1em;
+        }
+
+        .meeting-details.meeting-completed .confirmed-meeting-info .meeting-countdown {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .meeting-details.meeting-completed .confirmed-meeting-info .countdown-text {
+            font-weight: bold;
+        }
+
+        .meeting-details.meeting-completed .confirmed-meeting-info .countdown-timer {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .meeting-details.meeting-completed .confirmed-meeting-info .countdown-timer .days,
+        .meeting-details.meeting-completed .confirmed-meeting-info .countdown-timer .hours,
+        .meeting-details.meeting-completed .confirmed-meeting-info .countdown-timer .minutes,
+        .meeting-details.meeting-completed .confirmed-meeting-info .countdown-timer .seconds {
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .meeting-details.meeting-completed .confirmed-meeting-info .join-meeting-button {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .meeting-details.meeting-completed .confirmed-meeting-info .join-meeting-button .join-btn {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .meeting-details.meeting-completed .confirmed-meeting-info .join-meeting-button .join-btn {
+            background-color: #2196f3;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .meeting-details.meeting-completed .confirmed-meeting-info .join-meeting-button .join-btn:hover {
+            background-color: #1976d2;
+        }
+
+        /* Add to your existing styles */
+        .meeting-countdown {
+            background: rgba(76, 175, 80, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .countdown-timer {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 10px 0;
+            color: var(--primary-color);
+        }
+
+        .countdown-timer span {
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 0 2px;
+        }
+
+        .join-meeting-button {
+            margin-top: 15px;
+        }
+
+        .join-btn {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .join-btn:hover {
+            background-color: #218838;
+            color: white;
+        }
+
+        .join-btn i {
+            margin-right: 5px;
+        }
+
+        /* Add to your existing styles */
+        .meeting-details.meeting-completed {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #28a745;
+        }
+
+        .completed-meeting-info h4 {
+            color: #28a745;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1em;
+        }
+
+        .completed-meeting-info .meeting-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .completed-meeting-info .meeting-info p {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+        }
+
+        .completed-meeting-info .meeting-info i {
+            color: #28a745;
+            font-size: 1.1em;
+        }
+
+        .meeting-ended-time {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #dee2e6;
+            color: #666 !important;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -647,75 +1123,140 @@
                 <div class="tab" onclick="showTab('won')">Won Bids</div>
             </div>
 
+            <!-- Active Bids Section -->
             <div id="active-bids" class="bid-cards">
-                {% for bid in active_bids %}
-                <div class="bid-card">
-                    <img src="{{ bid.rambutan_post.image.url }}" alt="{{ bid.rambutan_post.product }}" class="bid-image">
-                    <div class="bid-info">
-                        <h3>{{ bid.rambutan_post.product }}</h3>
-                        <div class="bid-details">
-                            <p><strong>Farmer:</strong> {{ bid.rambutan_post.farmer }}</p>
-                            <p><strong>Quantity:</strong> {{ bid.bid_quantity }} {{ bid.rambutan_post.quantity_type }}</p>
-                            <p><strong>Starting Price:</strong> ₹{{ bid.start_price }}</p>
-                            <p class="current-bid">Current Bid: ₹{{ bid.current_price }}</p>
-                            <p class="time-remaining" data-end="{{ bid.end_date|date:'c' }}">
-                                Time Remaining: <span class="countdown"></span>
-                            </p>
+                {% if active_bids %}
+                    {% for bid in active_bids %}
+                    <div class="bid-card">
+                        <img src="{{ bid.rambutan_post.image.url }}" alt="{{ bid.rambutan_post.product }}" class="bid-image">
+                        <div class="bid-info">
+                            <h3>{{ bid.rambutan_post.product }}</h3>
+                            <div class="bid-details">
+                                <p><strong>Farmer:</strong> {{ bid.rambutan_post.farmer }}</p>
+                                <p><strong>Quantity:</strong> {{ bid.bid_quantity }} {{ bid.rambutan_post.quantity_type }}</p>
+                                <p><strong>Starting Price:</strong> ₹{{ bid.start_price }}</p>
+                                <p class="current-bid">Current Bid: ₹{{ bid.current_price }}</p>
+                                <p class="time-remaining" data-end="{{ bid.end_date|date:'c' }}">
+                                    Time Remaining: <span class="countdown"></span>
+                                </p>
+                            </div>
+                            <button class="place-bid-btn" onclick="openBidModal('{{ bid.id }}', '{{ bid.current_price }}')">
+                                Place Bid
+                            </button>
                         </div>
-                        <button class="place-bid-btn" onclick="openBidModal('{{ bid.id }}', '{{ bid.current_price }}')">
-                            Place Bid
-                        </button>
                     </div>
-                </div>
-                {% empty %}
-                <div class="no-bids">
-                    <i class='bx bx-message-alt-x' style='font-size: 48px;'></i>
-                    <p>No active bids available at the moment.</p>
-                </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <div class="no-bids">
+                        <i class='bx bx-message-alt-x' style='font-size: 48px;'></i>
+                        <p>No active bids available at the moment.</p>
+                    </div>
+                {% endif %}
             </div>
 
             <!-- My Bids Section -->
             <div id="my-bids" class="bid-cards" style="display: none;">
-                {% for bid in my_bids %}
-                <div class="bid-card">
-                    <img src="{{ bid.bid_post.rambutan_post.image.url }}" alt="{{ bid.bid_post.rambutan_post.product }}" class="bid-image">
-                    <div class="bid-info">
-                        <h3>{{ bid.bid_post.rambutan_post.product }}</h3>
-                        <div class="bid-details">
-                            <p><strong>Your Bid:</strong> ₹{{ bid.bid_amount }}</p>
-                            <p><strong>Current Highest:</strong> ₹{{ bid.bid_post.current_price }}</p>
-                            <p class="time-remaining" data-end="{{ bid.bid_post.end_date|date:'c' }}">
-                                Time Remaining: <span class="countdown"></span>
-                            </p>
+                {% if my_bids %}
+                    {% for bid in my_bids %}
+                    <div class="bid-card">
+                        <img src="{{ bid.bid_post.rambutan_post.image.url }}" alt="{{ bid.bid_post.rambutan_post.product }}" class="bid-image">
+                        <div class="bid-info">
+                            <h3>{{ bid.bid_post.rambutan_post.product }}</h3>
+                            <div class="bid-details">
+                                <p><strong>Your Bid:</strong> ₹{{ bid.bid_amount }}</p>
+                                <p><strong>Current Highest:</strong> ₹{{ bid.bid_post.current_price }}</p>
+                                <p class="time-remaining" data-end="{{ bid.bid_post.end_date|date:'c' }}">
+                                    Time Remaining: <span class="countdown"></span>
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                {% empty %}
-                <div class="no-bids">
-                    <p>You haven't placed any bids yet.</p>
-                </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <div class="no-bids">
+                        <p>You haven't placed any bids yet.</p>
+                    </div>
+                {% endif %}
             </div>
 
             <!-- Won Bids Section -->
-            <div id="won-bids" class="bid-cards" style="display: none;">
-                {% for bid in won_bids %}
-                <div class="bid-card">
-                    <img src="{{ bid.bid_post.rambutan_post.image.url }}" alt="{{ bid.bid_post.rambutan_post.product }}" class="bid-image">
-                    <div class="bid-info">
-                        <h3>{{ bid.bid_post.rambutan_post.product }}</h3>
-                        <div class="bid-details">
-                            <p><strong>Winning Bid:</strong> ₹{{ bid.bid_amount }}</p>
-                            <p><strong>Quantity:</strong> {{ bid.bid_post.bid_quantity }} {{ bid.bid_post.rambutan_post.quantity_type }}</p>
+            <div id="won-bids" class="bids-grid" style="display: none;">
+                {% if won_bids %}
+                    <div class="won-bids-container">
+                        {% for bid in won_bids %}
+                        <div class="won-bid-card">
+                            <img src="{{ bid.bid_post.rambutan_post.image.url }}" alt="{{ bid.bid_post.rambutan_post.product }}" class="bid-image">
+                            <div class="bid-info">
+                                <h3>{{ bid.bid_post.rambutan_post.product }}</h3>
+                                <div class="bid-details">
+                                    <p><strong>Farmer:</strong> {{ bid.bid_post.rambutan_post.farmer.user.name }}</p>
+                                    <p><strong>Winning Bid:</strong> ₹{{ bid.bid_amount }}</p>
+                                    <p><strong>Quantity:</strong> {{ bid.bid_post.bid_quantity }} {{ bid.bid_post.rambutan_post.quantity_type }}</p>
+                                </div>
+                                
+                                {% if bid.bid_post.meeting_set.exists %}
+                                    {% with meeting=bid.bid_post.meeting_set.first %}
+                                        {% if meeting %}
+                                            <div class="meeting-details {% if meeting.is_completed %}meeting-completed{% endif %}">
+                                                {% if meeting.is_completed %}
+                                                    <div class="completed-meeting-info">
+                                                        <h4><i class='bx bx-check-circle' style='color: #28a745'></i> Meeting Completed</h4>
+                                                        <div class="meeting-info">
+                                                            <p><i class='bx bx-calendar'></i> Date: {{ meeting.meeting_date|date:"M d, Y" }}</p>
+                                                            <p><i class='bx bx-time'></i> Time: {{ meeting.meeting_time|time:"H:i" }}</p>
+                                                            <p><i class='bx bx-timer'></i> Duration: {{ meeting.duration }} minutes</p>
+                                                            <p class="meeting-ended-time">
+                                                                <i class='bx bx-time-five'></i> Meeting ended on: 
+                                                                {{ meeting.meeting_date|date:"M d, Y" }} at 
+                                                                {{ meeting.meeting_time|time:"H:i" }}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                {% elif meeting.is_confirmed %}
+                                                    <div class="confirmed-meeting-info">
+                                                        <h4><i class='bx bx-calendar-check' style='color: #28a745'></i> Meeting Confirmed</h4>
+                                                        <div class="meeting-info">
+                                                            <p><i class='bx bx-calendar'></i> Date: {{ meeting.meeting_date|date:"M d, Y" }}</p>
+                                                            <p><i class='bx bx-time'></i> Time: {{ meeting.meeting_time|time:"H:i" }}</p>
+                                                            <p><i class='bx bx-timer'></i> Duration: {{ meeting.duration }} minutes</p>
+                                                            
+                                                            <!-- Add countdown timer -->
+                                                            <div class="meeting-countdown" id="countdown-{{ meeting.id }}"
+                                                                 data-meeting-date="{{ meeting.meeting_date|date:'Y-m-d' }}"
+                                                                 data-meeting-time="{{ meeting.meeting_time|time:'H:i' }}"
+                                                                 data-duration="{{ meeting.duration }}">
+                                                                <p class="countdown-text">Time until meeting:</p>
+                                                                <div class="countdown-timer">
+                                                                    <span class="days">00</span>d
+                                                                    <span class="hours">00</span>h
+                                                                    <span class="minutes">00</span>m
+                                                                    <span class="seconds">00</span>s
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <!-- Join meeting button (initially hidden) -->
+                                                            <div id="join-meeting-{{ meeting.id }}" class="join-meeting-button" style="display: none;">
+                                                                <a href="{{ meeting.meeting_url }}" target="_blank" class="join-btn">
+                                                                    <i class='bx bx-video'></i> Join Meeting Now
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endif %}
+                            </div>
                         </div>
+                        {% endfor %}
                     </div>
-                </div>
-                {% empty %}
-                <div class="no-bids">
-                    <p>You haven't won any bids yet.</p>
-                </div>
-                {% endfor %}
+                {% else %}
+                    <div class="no-bids">
+                        <i class='bx bx-message-alt-x' style='font-size: 48px;'></i>
+                        <p>No won bids available.</p>
+                    </div>
+                {% endif %}
             </div>
 
             <!-- Bid Modal -->
@@ -847,6 +1388,180 @@
             }
             return cookieValue;
         }
+
+        function confirmMeeting(meetingId) {
+            fetch('/confirm-meeting/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    meeting_id: meetingId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Meeting Confirmed!',
+                        text: 'The meeting has been confirmed.'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: data.error || 'Failed to confirm meeting'
+                    });
+                }
+            });
+        }
+
+        function showRescheduleForm(meetingId) {
+            const form = document.getElementById(`rescheduleForm-${meetingId}`);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Add event listeners for all reschedule forms
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('[id^="rescheduleForm-"][id$="-form"]');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    const meetingId = this.id.split('-')[1];
+                    const newDate = document.getElementById(`newDate-${meetingId}`).value;
+                    const newTime = document.getElementById(`newTime-${meetingId}`).value;
+
+                    fetch('/suggest-meeting-time/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            meeting_id: meetingId,
+                            suggested_date: newDate,
+                            suggested_time: newTime
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Time Suggested!',
+                                text: 'Your preferred time has been sent to the farmer.'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: data.error || 'Failed to suggest time'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Something went wrong!'
+                        });
+                    });
+                });
+            });
+        });
+
+        // Add to your existing JavaScript
+        function updateMeetingStatus(countdownElement) {
+            const meetingDate = countdownElement.dataset.meetingDate;
+            const meetingTime = countdownElement.dataset.meetingTime;
+            const duration = parseInt(countdownElement.dataset.duration);
+            
+            const meetingDateTime = new Date(`${meetingDate}T${meetingTime}`);
+            const meetingEndTime = new Date(meetingDateTime.getTime() + duration * 60000);
+            const now = new Date();
+            
+            const meetingId = countdownElement.id.split('-')[1];
+            const joinButton = document.getElementById(`join-meeting-${meetingId}`);
+            const countdownTimer = countdownElement.querySelector('.countdown-timer');
+            const countdownText = countdownElement.querySelector('.countdown-text');
+            
+            // Check if meeting has ended
+            if (now > meetingEndTime) {
+                // Convert the meeting details section to completed status
+                const meetingDetails = countdownElement.closest('.meeting-details');
+                if (meetingDetails) {
+                    meetingDetails.classList.add('meeting-completed');
+                    meetingDetails.innerHTML = `
+                        <div class="completed-meeting-info">
+                            <h4><i class='bx bx-check-circle' style='color: #28a745'></i> Meeting Completed</h4>
+                            <div class="meeting-info">
+                                <p><i class='bx bx-calendar'></i> Date: ${meetingDate}</p>
+                                <p><i class='bx bx-time'></i> Time: ${meetingTime}</p>
+                                <p><i class='bx bx-timer'></i> Duration: ${duration} minutes</p>
+                                <p class="meeting-ended-time">
+                                    <i class='bx bx-time-five'></i> Meeting ended on: 
+                                    ${meetingEndTime.toLocaleDateString()} at 
+                                    ${meetingEndTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            
+            // Calculate time difference
+            let diff;
+            
+            // Check meeting status
+            if (now >= meetingDateTime && now <= meetingEndTime) {
+                // Meeting is ongoing
+                diff = meetingEndTime - now;
+                countdownText.textContent = 'Meeting ends in:';
+                joinButton.style.display = 'block';
+            } else if (now > meetingEndTime) {
+                // Meeting has ended
+                countdownText.textContent = 'Meeting ended';
+                countdownTimer.textContent = 'Completed';
+                joinButton.style.display = 'none';
+                return;
+            } else {
+                // Meeting hasn't started
+                diff = meetingDateTime - now;
+                countdownText.textContent = 'Time until meeting:';
+                joinButton.style.display = 'none';
+            }
+            
+            // Update countdown
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            // Update the display
+            countdownElement.querySelector('.days').textContent = String(days).padStart(2, '0');
+            countdownElement.querySelector('.hours').textContent = String(hours).padStart(2, '0');
+            countdownElement.querySelector('.minutes').textContent = String(minutes).padStart(2, '0');
+            countdownElement.querySelector('.seconds').textContent = String(seconds).padStart(2, '0');
+        }
+
+        // Initialize countdowns when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const countdowns = document.querySelectorAll('[id^="countdown-"]');
+            
+            countdowns.forEach(countdown => {
+                updateMeetingStatus(countdown);
+                // Update every second
+                setInterval(() => updateMeetingStatus(countdown), 1000);
+            });
+        });
     </script>
 </body>
 </html> 

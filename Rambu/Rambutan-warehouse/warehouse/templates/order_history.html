@@ -474,23 +474,27 @@
 .timeline::after {
     content: '';
     position: absolute;
-    width: calc(100% - 50px); /* Adjust width to stop at last stage */
+    width: calc(100% - 50px);
     height: 3px;
     background: linear-gradient(to right, 
         #4CAF50 var(--progress, 0%), 
         #e0e0e0 var(--progress, 0%)
     );
     top: 25px;
-    left: 0;
+    left: 25px;
     z-index: 1;
     transition: all 0.3s ease;
 }
 
-.timeline[data-status="order_placed"] {
+.timeline[data-status="pending"] {
+    --progress: 0%;
+}
+
+.timeline[data-status="packed"] {
     --progress: 25%;
 }
 
-.timeline[data-status="processing"] {
+.timeline[data-status="shipped"] {
     --progress: 50%;
 }
 
@@ -500,6 +504,30 @@
 
 .timeline[data-status="delivered"] {
     --progress: 100%;
+}
+
+.timeline[data-status="completed"]::after {
+    background: #4CAF50;
+    width: 100%;
+}
+
+.timeline[data-status="completed"] .tracking-stage .stage-icon {
+    background: #4CAF50;
+    color: white;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+.timeline[data-status="delivered"] .tracking-stage .stage-name {
+    color: #4CAF50;
+    font-weight: 600;
+}
+
+.timeline[data-status="delivered"] .tracking-stage .stage-date {
+    color: #66BB6A;
+}
+
+.timeline[data-status="delivered"] .stage-line {
+    background: #4CAF50;
 }
 
 .tracking-stage {
@@ -727,6 +755,25 @@
 .timeline[data-status="delivered"] .tracking-stage:last-child::before {
     display: none;
 }
+
+.delivery-boy-info {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 5px;
+}
+
+.stage-date {
+    font-weight: 500;
+    color: #333;
+}
+
+.tracking-stage.active .stage-date {
+    color: #4CAF50;
+}
+
+.tracking-stage.completed .stage-date {
+    color: #2196F3;
+}
     </style>
 </head>
 
@@ -772,6 +819,18 @@
                   <span class="links_name">Order history</span>
                 </a>
             </li>
+            <li>
+                <a href="{% url 'recipe' %}">
+                    <i class='bx bx-book-content'></i>
+                    <span class="links_name">Recipes</span>
+                </a>
+        </li>
+       <li>
+            <a href="{% url 'bidding' %}">
+                <i class='bx bx-gavel'></i>
+                <span class="links_name">Bidding</span>
+            </a>
+        </li>
             <li class="log_out">
                 <a href="{% url 'logout' %}">
                     <i class='bx bx-log-out'></i>
@@ -847,26 +906,57 @@
                             </ul>
         
                             <div class="tracking-container">
-                                <div class="timeline" data-status="{{ details.order.order_status|lower }}">
+                                <div class="timeline" data-status="{{ details.order.order_status|lower }}" data-order-id="{{ details.order.order_number }}">
                                     <!-- Order Placed -->
-                                    <div class="tracking-stage {% if details.order.order_status == 'delivered' %}completed{% elif details.order.order_status != 'order_placed' %}completed{% elif details.order.order_status == 'order_placed' %}active{% endif %}">
+                                    <div class="tracking-stage {% if details.order.order_status != 'pending' %}completed{% elif details.order.order_status == 'pending' %}active{% endif %}">
                                         <div class="stage-icon">
                                             <i class='bx bx-package'></i>
                                         </div>
                                         <div class="stage-info">
                                             <div class="stage-name">Order Placed</div>
-                                            <div class="stage-date">{{ details.order.created_at|date:"M d, Y" }}</div>
+                                            <div class="stage-date">
+                                                {{ details.order.created_at|date:"M d, Y h:i A" }}
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- Processing -->
-                                    <div class="tracking-stage {% if details.order.order_status == 'delivered' %}completed{% elif details.order.order_status == 'processing' %}active{% elif details.order.order_status in 'out_for_delivery,delivered' %}completed{% endif %}">
+                                    <!-- Packed -->
+                                    <div class="tracking-stage {% if details.order.order_status == 'delivered' or details.order.order_status == 'shipped' or details.order.order_status == 'out_for_delivery' %}completed{% elif details.order.order_status == 'packed' %}active{% endif %}">
                                         <div class="stage-icon">
-                                            <i class='bx bx-time-five'></i>
+                                            <i class='bx bx-box'></i>
                                         </div>
                                         <div class="stage-info">
-                                            <div class="stage-name">Processing</div>
-                                            <div class="stage-date">{{ details.order.processing_date|date:"M d, Y"|default:"-" }}</div>
+                                            <div class="stage-name">Packed</div>
+                                            <div class="stage-date">
+                                                {% with packed_update=details.order.status_updates.all|dictsortreversed:"updated_at"|first %}
+                                                    {% if packed_update.status == 'packed' %}
+                                                        {{ packed_update.updated_at|date:"M d, Y h:i A" }}
+                                                        <div class="delivery-boy-info">
+                                                            Updated by: {{ packed_update.delivery_boy.full_name }}
+                                                        </div>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Shipped -->
+                                    <div class="tracking-stage {% if details.order.order_status == 'delivered' or details.order.order_status == 'out_for_delivery' %}completed{% elif details.order.order_status == 'shipped' %}active{% endif %}">
+                                        <div class="stage-icon">
+                                            <i class='bx bx-transfer'></i>
+                                        </div>
+                                        <div class="stage-info">
+                                            <div class="stage-name">Shipped</div>
+                                            <div class="stage-date">
+                                                {% with shipped_update=details.order.status_updates.all|dictsortreversed:"updated_at"|first %}
+                                                    {% if shipped_update.status == 'shipped' %}
+                                                        {{ shipped_update.updated_at|date:"M d, Y h:i A" }}
+                                                        <div class="delivery-boy-info">
+                                                            Updated by: {{ shipped_update.delivery_boy.full_name }}
+                                                        </div>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -877,7 +967,16 @@
                                         </div>
                                         <div class="stage-info">
                                             <div class="stage-name">Out for Delivery</div>
-                                            <div class="stage-date">{{ details.order.out_for_delivery_date|date:"M d, Y"|default:"-" }}</div>
+                                            <div class="stage-date">
+                                                {% with out_update=details.order.status_updates.all|dictsortreversed:"updated_at"|first %}
+                                                    {% if out_update.status == 'out_for_delivery' %}
+                                                        {{ out_update.updated_at|date:"M d, Y h:i A" }}
+                                                        <div class="delivery-boy-info">
+                                                            Updated by: {{ out_update.delivery_boy.full_name }}
+                                                        </div>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -888,7 +987,16 @@
                                         </div>
                                         <div class="stage-info">
                                             <div class="stage-name">Delivered</div>
-                                            <div class="stage-date">{{ details.order.delivery_date|date:"M d, Y"|default:"-" }}</div>
+                                            <div class="stage-date">
+                                                {% with delivered_update=details.order.status_updates.all|dictsortreversed:"updated_at"|first %}
+                                                    {% if delivered_update.status == 'delivered' %}
+                                                        {{ delivered_update.updated_at|date:"M d, Y h:i A" }}
+                                                        <div class="delivery-boy-info">
+                                                            Delivered by: {{ delivered_update.delivery_boy.full_name }}
+                                                        </div>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1011,6 +1119,35 @@
                 });
             });
         });
+
+    // Add this function to update the order status after successful delivery confirmation
+    function updateOrderStatus(orderNumber, newStatus) {
+        // Update timeline status
+        const timeline = document.querySelector(`.timeline[data-order-id="${orderNumber}"]`);
+        if (timeline) {
+            timeline.setAttribute('data-status', newStatus);
+        }
+
+        // Update all stages to completed
+        const stages = timeline.querySelectorAll('.tracking-stage');
+        stages.forEach(stage => {
+            stage.classList.add('completed');
+        });
+
+        // Update the status badge
+        const statusBadge = document.querySelector(`.status-badge[data-order-id="${orderNumber}"]`);
+        if (statusBadge) {
+            statusBadge.textContent = newStatus;
+            statusBadge.className = `status-badge ${newStatus}`;
+        }
+    }
+
+    // Add event listener for QR code scanning success
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'delivery_confirmed') {
+            updateOrderStatus(event.data.orderNumber, 'delivered');
+        }
+    });
     </script>
 
 </body>

@@ -10,14 +10,14 @@ from django.urls import reverse, reverse_lazy
 from .forms import FarmerDetailsForm,FarmerDetails, FeedbackForm,RambutanPostForm,RegisterUserForm, WishlistForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import  BillingDetail, Cart, CustomerDetails, FarmerDetails, Feedback, Order, OrderItem, OrderNotification, RambutanPost,Registeruser, Wishlist, DeliveryBoy, BidPost, CustomerBid
+from .models import  BillingDetail, Cart, CustomerDetails, FarmerDetails, Feedback, Order, OrderItem, OrderNotification, RambutanPost,Registeruser, Wishlist, DeliveryBoy, BidPost, CustomerBid, Meeting
 from django.contrib import messages
 from django.shortcuts import render, redirect,HttpResponse
 from django.contrib.auth.hashers import make_password
 from .forms import RegisterUserForm
 from .forms import FarmerDetailsForm, TreeVarietyForm, RambutanPostForm
 from django.contrib import messages
-from django.db.models import F,Q
+from django.db.models import F, Q, Subquery, OuterRef
 from django.core.mail import send_mail
 from django.conf import settings
 from django.views.decorators.cache import cache_control
@@ -43,6 +43,8 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate
 from reportlab.lib.enums import TA_JUSTIFY
 from decimal import Decimal
+import time
+from datetime import datetime
 
 
 def index(request):
@@ -1517,6 +1519,17 @@ def deliveryboy_dashboard(request):
             'billing_detail'
         ).order_by('-created_at')
 
+        # Get the search query from the request
+        query = request.GET.get('q', '').strip()
+        if query:
+            assigned_orders = assigned_orders.filter(
+                order_number__icontains=query  # Search by Order ID
+            ) | assigned_orders.filter(
+                user__name__icontains=query  # Search by Customer Name
+            ) | assigned_orders.filter(
+                billing_detail__phone__icontains=query  # Search by Contact Number
+            )
+
         # Count statistics
         total_orders = assigned_orders.count()
         pending_orders = assigned_orders.filter(
@@ -1532,12 +1545,14 @@ def deliveryboy_dashboard(request):
             'total_orders': total_orders,
             'pending_orders': pending_orders,
             'completed_orders': completed_orders,
+            'query': query,  # Pass query to template
         }
         
         return render(request, 'deliveryboy_dashboard.html', context)
     except DeliveryBoy.DoesNotExist:
         messages.error(request, 'You are not authorized as a delivery boy')
         return redirect('login')
+
     
 @login_required
 def approve_delivery_boy(request, user_id):
@@ -1918,7 +1933,7 @@ def validate_rambutan_image(request):
             valid_keywords = {
                 'fresh_fruit': [
                     'rambutan', 'fruit', 'tropical fruit', 'fresh', 'produce', 'food',
-                    'natural foods', 'superfood', 'local food', 'plant', 'red', 'hair',
+                    'natural foods', 'superfood', 'local food', 'plant', 'red','yellow', 'hair',
                     'hairy', 'exotic fruit', 'sweet', 'fresh produce', 'organic', 'edible'
                 ],
                 'wine': [
@@ -1943,7 +1958,7 @@ def validate_rambutan_image(request):
             is_valid = False
             matched_labels = []
             
-            # List of invalid fruits
+            # Check for invalid fruits first
             invalid_fruits = [
                 'strawberry', 'tomato', 'sphere', 'apple', 
                 'lychee', 'longan', 'pulasan', 'mangosteen', 
@@ -1951,7 +1966,17 @@ def validate_rambutan_image(request):
                 'hairy gourd', 'bitter melon'
             ]
 
-            # Check for invalid fruits in detected labels
+            # Check for invalid fruits before checking valid keywords
+            for label in labels:
+                label_text = label.description.lower()
+                for invalid_fruit in invalid_fruits:
+                    if invalid_fruit in label_text and label.score > 0.5:
+                        return JsonResponse({
+                            'is_valid': False,
+                            'message': f'Invalid fruit detected: {label_text}. Please upload a rambutan image.',
+                            'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
+                        })
+
             for label in labels:
                 label_text = label.description.lower()
                 for keyword in category_keywords:
@@ -1960,18 +1985,10 @@ def validate_rambutan_image(request):
                         matched_labels.append(f"{label_text} ({label.score:.2f})")
                         break
 
-            # If no matches found but it's fresh_fruit category, try classification
-            if not is_valid and category == 'fresh_fruit':
-                # Perform classification
-                classification_result = classify_rambutan_image(request.FILES['image'])
-                if classification_result:
-                    is_valid = True
-                    matched_labels.append('rambutan detected by classifier')
-
             if is_valid:
                 return JsonResponse({
                     'is_valid': True,
-                    'message': f'Valid image detected for {category}',
+                    'message': f'Valid image classified for {category}',
                     'matched_labels': matched_labels
                 })
             else:
@@ -2330,3 +2347,185 @@ def farmer_bid_history(request):
         'completed_bids': completed_bids
     }
     return render(request, 'farmer_bid_history.html', context)
+
+@login_required
+def schedule_meetings(request):
+    if request.method == 'POST':
+        try:
+            data = request.POST if request.POST else json.loads(request.body)
+            meeting_id = data.get('meeting_id')
+            action = data.get('action')
+            
+            if meeting_id and action == 'accept_suggested_time':
+                meeting = get_object_or_404(Meeting, id=meeting_id)
+                
+                # Verify that the current user is the farmer
+                if meeting.farmer != request.user:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Unauthorized access'
+                    })
+                
+                # Update meeting with suggested time
+                if meeting.suggested_date and meeting.suggested_time:
+                    meeting.meeting_date = meeting.suggested_date
+                    meeting.meeting_time = meeting.suggested_time
+                    meeting.suggested_date = None
+                    meeting.suggested_time = None
+                    meeting.is_confirmed = True
+                    meeting.save()
+                    
+                    return JsonResponse({'success': True})
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'No suggested time found'
+                    })
+            
+            # Handle regular meeting scheduling
+            bid_id = data.get('bid_id')
+            meeting_date = data.get('meeting_date')
+            meeting_time = data.get('meeting_time')
+            duration = data.get('duration')
+            customer_email = data.get('customer_email')
+
+            if all([bid_id, meeting_date, meeting_time, duration, customer_email]):
+                bid = get_object_or_404(BidPost, id=bid_id, rambutan_post__farmer__user=request.user)
+                customer = get_object_or_404(Registeruser, email=customer_email)
+
+                meeting = Meeting.objects.filter(bid=bid).first()
+                if meeting:
+                    meeting.suggested_date = meeting_date
+                    meeting.suggested_time = meeting_time
+                    meeting.duration = duration
+                    meeting.is_confirmed = False
+                    meeting.save()
+                else:
+                    meeting_url = f"https://meet.jit.si/rambutan-{bid_id}-{int(time.time())}"
+                    Meeting.objects.create(
+                        bid=bid,
+                        farmer=request.user,
+                        customer=customer,
+                        meeting_date=meeting_date,
+                        meeting_time=meeting_time,
+                        duration=duration,
+                        meeting_url=meeting_url,
+                        is_confirmed=False
+                    )
+
+                return JsonResponse({'success': True})
+            
+        except Exception as e:
+            print(f"Error handling meeting request: {str(e)}")
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    # GET request handling
+    try:
+        now = timezone.now()
+        completed_bids = BidPost.objects.filter(
+            rambutan_post__farmer__user=request.user,
+            end_date__lt=now
+        ).select_related('rambutan_post')
+
+        processed_bids = []
+        for bid in completed_bids:
+            winning_bid = bid.customer_bids.order_by('-bid_amount').first()
+            if winning_bid:
+                bid.winning_bid = {
+                    'customer__name': winning_bid.customer.name,
+                    'customer__email': winning_bid.customer.email,
+                    'bid_amount': winning_bid.bid_amount,
+                }
+                
+                # Get product type from rambutan_post
+                product_type = bid.rambutan_post.category.lower()
+                bid.product_info = {
+                    'type': product_type,
+                    'max_days': 28 if product_type in ['wine', 'pickle'] else 14
+                }
+                
+                meeting = Meeting.objects.filter(bid=bid).first()
+                if meeting:
+                    meeting_datetime = timezone.make_aware(
+                        datetime.combine(meeting.meeting_date, meeting.meeting_time)
+                    )
+                    meeting_end_time = meeting_datetime + timedelta(minutes=meeting.duration)
+                    is_completed = meeting_end_time < now
+                    
+                    bid.scheduled_meeting = {
+                        'id': meeting.id,
+                        'date': meeting.meeting_date,
+                        'time': meeting.meeting_time,
+                        'duration': meeting.duration,
+                        'url': meeting.meeting_url,
+                        'is_completed': is_completed,
+                        'is_confirmed': meeting.is_confirmed,
+                        'suggested_date': meeting.suggested_date,
+                        'suggested_time': meeting.suggested_time,
+                        'end_time': meeting_end_time
+                    }
+                
+                processed_bids.append(bid)
+
+        return render(request, 'schedule_meetings.html', {
+            'completed_bids': processed_bids,
+            'farmer': request.user,
+            'today': timezone.now().date()
+        })
+        
+    except Exception as e:
+        print(f"Error in GET request: {str(e)}")
+        messages.error(request, "An error occurred while loading the meetings.")
+        return render(request, 'schedule_meetings.html', {
+            'completed_bids': [],
+            'farmer': request.user,
+            'today': timezone.now().date()
+        })
+
+@login_required
+def confirm_meeting(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        meeting_id = data.get('meeting_id')
+        accepted = data.get('accepted')
+        
+        meeting = get_object_or_404(Meeting, id=meeting_id)
+        
+        if meeting.customer != request.user:
+            return JsonResponse({
+                'success': False,
+                'error': 'Unauthorized'
+            })
+        
+        meeting.is_confirmed = accepted
+        meeting.save()
+        
+        return JsonResponse({
+            'success': True
+        })
+
+@login_required
+def suggest_meeting_time(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        meeting_id = data.get('meeting_id')
+        suggested_date = data.get('suggested_date')
+        suggested_time = data.get('suggested_time')
+        
+        meeting = get_object_or_404(Meeting, id=meeting_id)
+        
+        if meeting.customer != request.user:
+            return JsonResponse({
+                'success': False,
+                'error': 'Unauthorized'
+            })
+        
+        # Store the suggested time
+        meeting.suggested_date = suggested_date
+        meeting.suggested_time = suggested_time
+        meeting.is_confirmed = False
+        meeting.save()
+        
+        return JsonResponse({
+            'success': True
+        })

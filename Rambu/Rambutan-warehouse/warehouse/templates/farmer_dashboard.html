@@ -424,12 +424,6 @@
           <span class="links_name">Orders</span>
         </a>
       </li>
-      {% comment %} <li>
-        <a href="#">
-          <i class='bx bx-cart'></i>
-          <span class="links_name">New Sales</span>
-        </a>
-      </li> {% endcomment %}
       <li>
         <a href="{% url 'post_rambutan' %}">
           <i class='bx bx-leaf'></i>
@@ -440,6 +434,12 @@
         <a href="{% url 'view_posts' %}">
           <i class='bx bx-list-ul'></i>
           <span class="links_name">View My Posts</span>
+        </a>
+      </li>
+      <li>
+        <a href="{% url 'schedule_meetings' %}">
+          <i class='bx bx-calendar'></i>
+          <span class="links_name">Schedule Meetings</span>
         </a>
       </li>
       <li>
@@ -532,14 +532,6 @@
           <p>View sales orders</p>
       </a>
   </div>
-
-  {% comment %} <div class="card">
-      <a href="#">
-          <i class="bx bx-cart"></i>
-          <h3>New Sale</h3>
-          <p>Register a new sale of goods</p>
-      </a>
-  </div> {% endcomment %}
 </div>
 
 <!-- Footer -->

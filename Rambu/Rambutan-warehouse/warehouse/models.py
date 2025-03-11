@@ -206,7 +206,6 @@ class BillingDetail(models.Model):
 class Order(models.Model):
     ORDER_STATUS_CHOICES = [
         ('pending', 'Pending'),
-        ('processed', 'Processed'),
         ('packed', 'Packed'),
         ('shipped', 'Shipped'),
         ('out_for_delivery', 'Out for Delivery'),
@@ -237,8 +236,8 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     packed_at = models.DateTimeField(null=True, blank=True)
     shipped_at = models.DateTimeField(null=True, blank=True)
-    out_for_delivery_at = models.DateTimeField(null=True, blank=True)
-    delivered_at = models.DateTimeField(null=True, blank=True)
+    out_for_delivery_date = models.DateTimeField(null=True, blank=True)
+    delivery_date = models.DateTimeField(null=True, blank=True)
     
     # Delivery boy assignment
     delivery_boy = models.ForeignKey(
@@ -255,6 +254,87 @@ class Order(models.Model):
     def __str__(self):
         return f'Order {self.order_number} - {self.user.username} - Total: {self.total_amount}'
     
+    def update_status(self, new_status, delivery_boy):
+        now = timezone.now()
+        if new_status == 'packed':
+            self.packed_at = now
+        elif new_status == 'shipped':
+            self.shipped_at = now
+        elif new_status == 'out_for_delivery':
+            self.out_for_delivery_date = now
+        elif new_status == 'delivered':
+            self.delivery_date = now
+        
+        self.order_status = new_status
+        self.save()
+        
+        # Create status update record
+        OrderStatusUpdate.objects.create(
+            order=self,
+            delivery_boy=delivery_boy,
+            status=new_status
+        )
+        
+        # Create or update timestamp record
+        OrderStatusTimestamp.objects.update_or_create(
+            order=self,
+            status=new_status,
+            defaults={'timestamp': now, 'updated_by': delivery_boy}
+        )
+
+    def assign_delivery_boy(self):
+        # Find available delivery boy who has the least number of active orders
+        available_delivery_boy = DeliveryBoy.objects.filter(
+            approval_status='approved',
+            is_available=True
+        ).annotate(
+            active_orders=models.Count(
+                'assigned_orders',
+                filter=models.Q(
+                    assigned_orders__order_status__in=[
+                        'pending', 'processing', 'packed', 'out_for_delivery'
+                    ]
+                )
+            )
+        ).order_by('active_orders').first()
+
+        if available_delivery_boy:
+            self.delivery_boy = available_delivery_boy
+            self.save()
+            return True
+        return False
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None  # Check if this is a new order
+        super().save(*args, **kwargs)
+        
+        # If this is a new order and no delivery boy is assigned, try to assign one
+        if is_new and not self.delivery_boy:
+            self.assign_delivery_boy()
+            
+            # Send notification to the assigned delivery boy if one was found
+            if self.delivery_boy:
+                # Import here to avoid circular import
+                from django.core.mail import send_mail
+                from django.conf import settings
+
+                subject = 'New Delivery Assignment'
+                message = f'''
+                You have been assigned a new delivery:
+                Order #{self.order_number}
+                Delivery Address: {self.billing_detail.street_address}, {self.billing_detail.city}
+                Customer: {self.user.name}
+                Phone: {self.billing_detail.phone}
+                '''
+                
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [self.delivery_boy.user.username],  # Email is stored in username field
+                    fail_silently=True,
+                )
+
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     #cart_item = models.ForeignKey(Cart, on_delete=models.CASCADE)  
@@ -326,6 +406,19 @@ class DeliveryBoy(models.Model):
         verbose_name = 'Delivery Boy'
         verbose_name_plural = 'Delivery Boys' 
 
+    def get_active_orders_count(self):
+        return self.assigned_orders.filter(
+            order_status__in=['pending', 'processing', 'packed', 'out_for_delivery']
+        ).count()
+
+    def is_available_for_orders(self):
+        # You can add additional conditions here
+        return (
+            self.is_available 
+            and self.approval_status == 'approved'
+            and self.get_active_orders_count() < 10  # Maximum 10 active orders per delivery boy
+        )
+
 class BidPost(models.Model):
     rambutan_post = models.OneToOneField(RambutanPost, on_delete=models.CASCADE, related_name='bid_post')
     start_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -356,3 +449,46 @@ class CustomerBid(models.Model):
 
     def __str__(self):
         return f"{self.customer.name} bid ₹{self.bid_amount} on {self.bid_post}" 
+
+class OrderStatusUpdate(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='status_updates')
+    delivery_boy = models.ForeignKey(DeliveryBoy, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=Order.ORDER_STATUS_CHOICES)
+    updated_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Order #{self.order.order_number} - {self.status} by {self.delivery_boy.full_name}" 
+
+class OrderStatusTimestamp(models.Model):
+    """Model to store timestamps for each order status change"""
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='status_timestamps')
+    status = models.CharField(max_length=20, choices=Order.ORDER_STATUS_CHOICES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    updated_by = models.ForeignKey(DeliveryBoy, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        unique_together = ['order', 'status']  # Only one timestamp per status per order
+    
+    def __str__(self):
+        return f"Order #{self.order.order_number} - {self.status} at {self.timestamp}"
+
+class Meeting(models.Model):
+    bid = models.ForeignKey(BidPost, on_delete=models.CASCADE)
+    farmer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='farmer_meetings')
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='customer_meetings')
+    meeting_date = models.DateField()
+    meeting_time = models.TimeField()
+    duration = models.IntegerField()  # in minutes
+    meeting_url = models.URLField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_confirmed = models.BooleanField(default=False)
+    suggested_date = models.DateField(null=True, blank=True)
+    suggested_time = models.TimeField(null=True, blank=True)
+    is_completed = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['meeting_date', 'meeting_time']
+        
+    def __str__(self):
+        return f"Meeting between {self.farmer.username} and {self.customer.username} on {self.meeting_date}"
