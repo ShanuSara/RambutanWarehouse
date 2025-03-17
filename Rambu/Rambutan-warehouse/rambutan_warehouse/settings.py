@@ -42,9 +42,10 @@ SECRET_KEY = 'django-insecure-8t!q+oas1u2!)4&1$v$522dub!*gyn-*ejtlz)2!+q1t@g%-cd
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = ['rambutanwarehouse.onrender.com', 'localhost', '127.0.0.1']
+# ALLOWED_HOSTS = ['rambutanwarehouse.onrender.com', 'localhost', '127.0.0.1:8000']
 ALLOWED_HOSTS = ['*']
 BASE_URLS = 'https://rambutanwarehouse.onrender.com'
+PORT = os.environ.get('PORT', '8000')  # Default to 8000 if not set
 
 
 INSTALLED_APPS = [
