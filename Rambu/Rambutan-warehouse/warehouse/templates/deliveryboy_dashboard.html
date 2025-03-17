@@ -908,6 +908,68 @@
         .search-form input {
             padding-right: 85px;
         }
+
+        /* Add these styles in the existing <style> section */
+        .filter-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 10px 0;
+        }
+
+        .filter-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            background: white;
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-tab:hover {
+            background: #f0f4f9;
+            transform: translateY(-2px);
+        }
+
+        .filter-tab.active {
+            background: #2a5298;
+            color: white;
+        }
+
+        .filter-tab i {
+            font-size: 16px;
+        }
+
+        /* Responsive styles for filter tabs */
+        @media (max-width: 768px) {
+            .filter-tabs {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .filter-tab {
+                padding: 8px 15px;
+                font-size: 13px;
+                flex: 1;
+                justify-content: center;
+            }
+        }
+
+        /* Add this to your existing table styles */
+        .order-row {
+            transition: all 0.3s ease;
+        }
+
+        .order-row.completed-order {
+            background-color: #f8f9fa;
+        }
     </style>
 </head>
 <body>
@@ -991,6 +1053,19 @@
             </div>
         </div>
 
+        <!-- Add this right after the search form and before the orders-section div -->
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">
+                <i class="fas fa-list"></i> All Orders ({{ total_orders }})
+            </button>
+            <button class="filter-tab" data-filter="active">
+                <i class="fas fa-clock"></i> Active Orders ({{ pending_orders }})
+            </button>
+            <button class="filter-tab" data-filter="completed">
+                <i class="fas fa-check-circle"></i> Completed Orders ({{ completed_orders }})
+            </button>
+        </div>
+
         <form method="GET" action="{% url 'deliveryboy_dashboard' %}" class="search-form" id="searchForm">
             <input 
                 type="text" 
@@ -1032,7 +1107,7 @@
                     </thead>
                     <tbody>
                         {% for order in assigned_orders %}
-                        <tr data-order-id="{{ order.order_number }}">
+                        <tr class="order-row" data-order-status="{{ order.order_status|stringformat:'s'|lower }}">
                             <td>{{ order.order_number }}</td>
                             <td>{{ order.user.name }}</td>
                             <td>{{ order.billing_detail.phone }}</td>
@@ -1048,11 +1123,9 @@
                             </td>
                             <td>₹{{ order.total_amount }}</td>
                             <td>
-                                <div class="order-status">
-                                    <span class="status-badge {{ order.order_status|lower }}" data-order-number="{{ order.order_number }}">
-                                        {{ order.order_status }}
-                                    </span>
-                                </div>
+                                <span class="status-badge {{ order.order_status|lower }}" data-order-number="{{ order.order_number }}">
+                                    {{ order.order_status }}
+                                </span>
                             </td>
                             <td>
                                 {% if order.order_status.lower != 'delivered' and order.order_status != 'Delivered' %}
@@ -1067,10 +1140,10 @@
                             </td>
                         </tr>
                 {% empty %}
-                        <tr>
-                            <td colspan="8" class="no-orders-message">
+                        <tr class="no-orders-message">
+                            <td colspan="8">
                                 <i class="fas fa-inbox"></i>
-                                <p>No orders assigned yet</p>
+                                <p>No orders found</p>
                             </td>
                         </tr>
                 {% endfor %}
@@ -1334,41 +1407,36 @@
         });
 
         function openStatusModal(orderId) {
-            // Get the order status from the table row
-            const orderRow = document.querySelector(`tr[data-order-id="${orderId}"]`);
-            const currentStatus = orderRow.querySelector('.status-badge').textContent.trim().toLowerCase();
-            
-            if (currentStatus === 'delivered') {
-                return; // Don't open modal if order is delivered
-            }
+            const statusBadge = document.querySelector(`[data-order-number="${orderId}"]`);
+            const orderRow = statusBadge?.closest('tr');
+            const currentStatus = statusBadge?.textContent.trim().toLowerCase();
             
             document.getElementById('orderId').value = orderId;
             document.getElementById('statusModal').style.display = 'block';
+            
+            // Reset selected status
             statusOptions.forEach(opt => opt.classList.remove('selected'));
+            selectedStatus = null;
             
             // Define the status order
             const statusOrder = ['packed', 'shipped', 'out_for_delivery', 'delivered'];
             const currentStatusIndex = statusOrder.indexOf(currentStatus);
             
-            // Disable previous status options and enable next options
+            // Enable/disable status options based on current status
             statusOptions.forEach(option => {
                 const optionStatus = option.dataset.status.toLowerCase();
                 const optionIndex = statusOrder.indexOf(optionStatus);
                 
                 if (optionIndex <= currentStatusIndex) {
-                    // Disable previous and current status options
                     option.classList.add('disabled');
                     option.style.pointerEvents = 'none';
                     option.style.opacity = '0.5';
                 } else {
-                    // Enable next status options
                     option.classList.remove('disabled');
                     option.style.pointerEvents = 'auto';
                     option.style.opacity = '1';
                 }
             });
-            
-            selectedStatus = null;
         }
 
         function closeStatusModal() {
@@ -1394,12 +1462,19 @@
 
             fetch('/update-order-status/', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    location.reload();
+                    updateOrderStatus(orderId, selectedStatus);
+                    closeConfirmationModal();
+                    closeStatusModal();
+                    // Show success message
+                    alert('Status updated successfully!');
                 } else {
                     alert(data.error || 'Error updating status');
                 }
@@ -1408,8 +1483,36 @@
                 console.error('Error:', error);
                 alert('Error updating status');
             });
+        }
 
-            closeConfirmationModal(); // Close the confirmation modal after confirming
+        function updateOrderStatus(orderNumber, newStatus) {
+            const statusBadge = document.querySelector(`[data-order-number="${orderNumber}"]`);
+            const orderRow = statusBadge?.closest('tr');
+            
+            if (statusBadge && orderRow) {
+                // Update status badge
+                statusBadge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+                statusBadge.className = `status-badge ${newStatus.toLowerCase()}`;
+                
+                // Update the row's data-order-status attribute
+                orderRow.setAttribute('data-order-status', newStatus.toLowerCase());
+                
+                // If delivered, update row styling and disable buttons
+                if (newStatus.toLowerCase() === 'delivered') {
+                    orderRow.classList.add('completed-order');
+                    const actionBtn = orderRow.querySelector('.update-status');
+                    if (actionBtn) {
+                        actionBtn.disabled = true;
+                        actionBtn.style.opacity = '0.5';
+                        actionBtn.style.cursor = 'not-allowed';
+                        actionBtn.innerHTML = '<i class="fas fa-check-circle"></i> Delivered';
+                    }
+                }
+                
+                // Reapply current filter
+                const activeFilter = document.querySelector('.filter-tab.active').dataset.filter;
+                filterOrders(activeFilter);
+            }
         }
 
         window.onclick = function(event) {
@@ -1510,22 +1613,27 @@
             
             if (statusBadge && orderRow) {
                 // Update status badge
-                statusBadge.textContent = newStatus;
+                statusBadge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
                 statusBadge.className = `status-badge ${newStatus.toLowerCase()}`;
                 
-                // If delivered, update row styling
+                // Update the row's data-order-status attribute
+                orderRow.setAttribute('data-order-status', newStatus.toLowerCase());
+                
+                // If delivered, update row styling and disable buttons
                 if (newStatus.toLowerCase() === 'delivered') {
-                    orderRow.classList.add('delivered');
-                    
-                    // Disable any action buttons in the row
-                    const actionButtons = orderRow.querySelectorAll('button');
-                    actionButtons.forEach(button => {
-                        button.disabled = true;
-                        if (button.classList.contains('update-status')) {
-                            button.textContent = 'Delivered';
-                        }
-                    });
+                    orderRow.classList.add('completed-order');
+                    const actionBtn = orderRow.querySelector('.update-status');
+                    if (actionBtn) {
+                        actionBtn.disabled = true;
+                        actionBtn.style.opacity = '0.5';
+                        actionBtn.style.cursor = 'not-allowed';
+                        actionBtn.innerHTML = '<i class="fas fa-check-circle"></i> Delivered';
+                    }
                 }
+                
+                // Reapply current filter
+                const activeFilter = document.querySelector('.filter-tab.active').dataset.filter;
+                filterOrders(activeFilter);
             }
         }
 
@@ -1545,6 +1653,71 @@
             if (this.value.trim() === '') {
                 window.location.href = "{% url 'deliveryboy_dashboard' %}";
             }
+        });
+
+        function filterOrders(filterType) {
+            console.log('Filtering by:', filterType); // Debug log
+            
+            // Get all order rows and filter tabs
+            const orderRows = document.querySelectorAll('tr.order-row');
+            const filterTabs = document.querySelectorAll('.filter-tab');
+            
+            // Update active tab
+            filterTabs.forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.filter === filterType) {
+                    tab.classList.add('active');
+                }
+            });
+
+            let visibleCount = 0;
+
+            // Filter orders
+            orderRows.forEach(row => {
+                const status = row.getAttribute('data-order-status');
+                console.log('Row status:', status); // Debug log
+                
+                let shouldShow = false;
+                
+                switch(filterType) {
+                    case 'all':
+                        shouldShow = true;
+                        break;
+                    case 'completed':
+                        shouldShow = status === 'delivered' || status === 'Delivered';
+                        break;
+                    case 'active':
+                        shouldShow = !['delivered', 'Delivered'].includes(status);
+                        break;
+                }
+                
+                row.style.display = shouldShow ? 'table-row' : 'none';
+                if (shouldShow) visibleCount++;
+            });
+
+            // Show/hide no orders message
+            const noOrdersMessage = document.querySelector('.no-orders-message');
+            if (noOrdersMessage) {
+                if (visibleCount === 0) {
+                    noOrdersMessage.style.display = 'table-row';
+                    noOrdersMessage.querySelector('td').textContent = `No ${filterType} orders found`;
+                } else {
+                    noOrdersMessage.style.display = 'none';
+                }
+            }
+        }
+
+        // Make sure this event listener is present
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click listeners to filter tabs
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    filterOrders(this.dataset.filter);
+                });
+            });
+
+            // Initialize with "all" filter
+            filterOrders('all');
         });
     </script>
 </body>

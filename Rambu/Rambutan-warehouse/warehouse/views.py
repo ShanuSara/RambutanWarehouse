@@ -45,6 +45,10 @@ from reportlab.lib.enums import TA_JUSTIFY
 from decimal import Decimal
 import time
 from datetime import datetime
+import tensorflow as tf
+import numpy as np
+from PIL import Image
+import io
 
 
 def index(request):
@@ -1961,7 +1965,7 @@ def validate_rambutan_image(request):
             # Check for invalid fruits first
             invalid_fruits = [
                 'strawberry', 'tomato', 'sphere', 'apple', 
-                'lychee', 'longan', 'pulasan', 'mangosteen', 
+                 'longan', 'mangosteen', 
                 'chico', 'ackee', 'sugar apple', 'okra', 
                 'hairy gourd', 'bitter melon'
             ]
@@ -1988,8 +1992,8 @@ def validate_rambutan_image(request):
             if is_valid:
                 return JsonResponse({
                     'is_valid': True,
-                    'message': f'Valid image classified for {category}',
-                    'matched_labels': matched_labels
+                    'message': f' {''}',
+                    'matched_labels': ''
                 })
             else:
                 category_name = category.replace('_', ' ').title()
@@ -2003,7 +2007,7 @@ def validate_rambutan_image(request):
             print(f"Error in image validation: {str(e)}")
             return JsonResponse({
                 'is_valid': False,
-                'message': f'Error processing image: {str(e)}'
+                'message': f"🌍🍒 Oops! Looks like the connection took a little break! Give your network a quick refresh and get back to exploring our delicious Rambutan delights! 🍇✨"
             }, status=500)
 
     return JsonResponse({
@@ -2529,3 +2533,76 @@ def suggest_meeting_time(request):
         return JsonResponse({
             'success': True
         })
+
+def load_and_preprocess_image(image_bytes, target_size=(224, 224)):
+    # Convert bytes to PIL Image
+    img = Image.open(io.BytesIO(image_bytes))
+    img = img.convert('RGB')
+    img = img.resize(target_size)
+    
+    # Convert to numpy array and preprocess
+    img_array = tf.keras.preprocessing.image.img_to_array(img)
+    img_array = tf.expand_dims(img_array, 0)
+    img_array = tf.keras.applications.mobilenet_v2.preprocess_input(img_array)
+    
+    return img_array
+
+# Update the model path to use .keras extension
+model_path = 'warehouse/ml_models/rambutan_classifier.keras'
+rambutan_model = tf.keras.models.load_model(model_path)
+categories = ['defective', 'fresh', 'raw']  # Order must match the alphabetical order of your folders
+# Load categories from file
+categories_file = os.path.join(os.path.dirname(model_path), 'categories.txt')
+with open(categories_file, 'r') as f:
+    categories = f.read().splitlines()
+
+@login_required
+def categorize_rambutan(request):
+    if request.method == 'POST' and request.FILES.get('image'):
+        try:
+            image_file = request.FILES['image']
+            image_bytes = image_file.read()
+            
+            # Preprocess the image
+            processed_image = load_and_preprocess_image(image_bytes)
+            
+            # Make prediction
+            predictions = rambutan_model.predict(processed_image)
+            predicted_class_index = int(np.argmax(predictions[0]))
+            confidence = float(predictions[0][predicted_class_index])
+            predicted_category = categories[predicted_class_index]
+            
+            # Print debug information
+            print(f"Predictions array: {predictions[0]}")
+            print(f"Predicted class index: {predicted_class_index}")
+            print(f"Predicted category: {predicted_category}")
+            print(f"Confidence: {confidence}")
+            print(f"Available categories: {categories}")
+            
+            # Only allow fresh rambutans
+            is_allowed = predicted_category == 'fresh'
+            
+            return JsonResponse({
+                'success': True,
+                'category': predicted_category,
+                'confidence': float(confidence * 100),
+                'is_allowed': is_allowed,
+                'message': 'Only fresh rambutans are allowed for posting.' if not is_allowed else 'Image categorized successfully.',
+                'debug_info': {
+                    'predictions': [float(x) for x in predictions[0]],
+                    'class_index': predicted_class_index,
+                    'categories': categories
+                }
+            })
+            
+        except Exception as e:
+            print(f"Error in categorization: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
+            
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request'
+    }, status=400)

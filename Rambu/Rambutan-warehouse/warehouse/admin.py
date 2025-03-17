@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import BillingDetail, Cart, CustomerDetails, Feedback, Order, OrderItem, RambutanPost, Registeruser,FarmerDetails, TreeVariety , Wishlist, DeliveryBoy
+from .models import BillingDetail, Cart, CustomerDetails, Feedback, Order, OrderItem, RambutanPost, Registeruser,FarmerDetails, TreeVariety , Wishlist, DeliveryBoy, BidPost, CustomerBid
 from django.contrib import messages
 
 class RegisteruserAdmin(admin.ModelAdmin):
@@ -111,5 +111,36 @@ class DeliveryBoyAdmin(admin.ModelAdmin):
         updated = queryset.update(approval_status='rejected')
         self.message_user(request, f'{updated} delivery boy(s) were rejected.')
     reject_delivery_boys.short_description = "Reject selected delivery boys"
+
+class CustomerBidInline(admin.TabularInline):
+    model = CustomerBid
+    extra = 1
+    readonly_fields = ('created_at',)
+    ordering = ('-bid_amount',)
+
+@admin.register(BidPost)
+class BidPostAdmin(admin.ModelAdmin):
+    list_display = ('rambutan_post', 'start_price', 'current_price', 'bid_quantity', 
+                   'end_date', 'is_active', 'created_at', 'total_bids')
+    list_filter = ('is_active', 'created_at', 'end_date')
+    search_fields = ('rambutan_post__product', 'rambutan_post__farmer__user__name')
+    readonly_fields = ('created_at',)
+    inlines = [CustomerBidInline]
+    
+    def total_bids(self, obj):
+        return obj.customer_bids.count()
+    total_bids.short_description = 'Total Bids'
+
+@admin.register(CustomerBid)
+class CustomerBidAdmin(admin.ModelAdmin):
+    list_display = ('customer', 'bid_post', 'bid_amount', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('customer__name', 'bid_post__rambutan_post__product')
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)
+
+    def get_bid_post_details(self, obj):
+        return f"{obj.bid_post.rambutan_post.product} - ₹{obj.bid_post.current_price}"
+    get_bid_post_details.short_description = 'Bid Post Details'
 
 

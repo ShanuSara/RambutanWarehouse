@@ -420,13 +420,17 @@ class DeliveryBoy(models.Model):
         )
 
 class BidPost(models.Model):
-    rambutan_post = models.OneToOneField(RambutanPost, on_delete=models.CASCADE, related_name='bid_post')
+    rambutan_post = models.ForeignKey(RambutanPost, on_delete=models.CASCADE, related_name='bid_posts')
     start_price = models.DecimalField(max_digits=10, decimal_places=2)
     current_price = models.DecimalField(max_digits=10, decimal_places=2)
     bid_quantity = models.PositiveIntegerField()
+    start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"Bid for {self.rambutan_post.product} - Current Price: {self.current_price}"
@@ -436,7 +440,16 @@ class BidPost(models.Model):
             self.current_price = self.start_price
         if self.start_price <= 0:
             raise ValidationError("Starting price must be greater than 0")
-        super().save(*args, **kwargs) 
+        if self.start_date >= self.end_date:
+            raise ValidationError("End date must be after start date")
+        
+        now = timezone.now()
+        if now >= self.start_date and now <= self.end_date:
+            self.is_active = True
+        else:
+            self.is_active = False
+            
+        super().save(*args, **kwargs)
 
 class CustomerBid(models.Model):
     bid_post = models.ForeignKey(BidPost, on_delete=models.CASCADE, related_name='customer_bids')

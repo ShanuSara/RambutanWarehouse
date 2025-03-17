@@ -605,6 +605,7 @@
                         <p><strong>Quantity:</strong> {{ bid.bid_quantity }} {{ bid.rambutan_post.quantity_type }}</p>
                         <p><strong>Starting Price:</strong> ₹{{ bid.start_price }}</p>
                         <p><strong>Final Price:</strong> ₹{{ bid.current_price }}</p>
+                        <p><strong>Start Date:</strong> {{ bid.start_date|date:"M d, Y H:i" }}</p>
                         <p><strong>End Date:</strong> {{ bid.end_date|date:"M d, Y H:i" }}</p>
                         <p><strong>Total Bids:</strong> {{ bid.customer_bids.count }}</p>
                         

@@ -356,88 +356,75 @@
       width: 100%;
       height: 100%;
       background-color: rgba(0,0,0,0.5);
-      animation: fadeIn 0.3s ease;
     }
 
     .bid-modal-content {
-      background-color: white;
-      margin: 5% auto;
-      padding: 30px;
-      border-radius: 15px;
-      width: 90%;
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
       max-width: 500px;
-      position: relative;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-      animation: slideIn 0.3s ease;
+      border-radius: 8px;
     }
 
     .close-bid {
-      position: absolute;
-      right: 20px;
-      top: 15px;
-      font-size: 24px;
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
       cursor: pointer;
-      color: #666;
-      transition: color 0.3s ease;
-      z-index: 1001; /* Ensure it's above other modal content */
-      padding: 5px;
-      line-height: 1;
     }
 
-    .close-bid:hover {
-      color: #333;
+    .close-bid:hover,
+    .close-bid:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
     }
 
     .bid-form-group {
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
 
     .bid-form-group label {
       display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: #333;
+      margin-bottom: 5px;
     }
 
     .bid-form-group input {
       width: 100%;
-      padding: 12px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: border-color 0.3s ease;
-    }
-
-    .bid-form-group input:focus {
-      border-color: #4CAF50;
-      outline: none;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
     }
 
     .submit-bid-btn {
-      width: 100%;
-      padding: 12px;
-      background: #4CAF50;
+      background-color: #4CAF50;
       color: white;
+      padding: 10px 20px;
       border: none;
-      border-radius: 8px;
-      font-weight: 600;
+      border-radius: 4px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      width: 100%;
     }
 
     .submit-bid-btn:hover {
-      background: #45a049;
-      transform: translateY(-2px);
+      background-color: #45a049;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    .create-bid-btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
     }
 
-    @keyframes slideIn {
-      from { transform: translateY(-20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    .create-bid-btn:hover {
+      background-color: #45a049;
     }
 
     /* Style the flatpickr calendar */
@@ -512,6 +499,28 @@
       transform: translateY(-2px);
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
+
+    .bid-status {
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .bid-status.pending {
+      background-color: #ffd700;
+      color: #333;
+    }
+
+    .bid-status.active {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .bid-status.ended {
+      background-color: #f44336;
+      color: white;
+    }
   </style>
 </head>
 
@@ -582,8 +591,13 @@
           </div>
 
           <div class="bid-form-group">
-            <label for="bidQuantity">Quantity (kg)</label>
+            <label for="bidQuantity">Quantity (Kg/L)</label>
             <input type="number" id="bidQuantity" name="bid_quantity" min="1" required>
+          </div>
+
+          <div class="bid-form-group">
+            <label for="startDateTime">Start Date and Time</label>
+            <input type="text" id="startDateTime" name="start_date" required>
           </div>
 
           <div class="bid-form-group">
@@ -751,123 +765,171 @@
       return cookieValue;
     }
 
-    // Modal functionality
-    function openBidModal(postId, maxQuantity) {
-      console.log('Opening modal for post:', postId, 'max quantity:', maxQuantity); // Debug log
-      const modal = document.getElementById('bidModal');
-      if (!modal) {
-        console.error('Modal element not found!');
-        return;
-      }
+    // Initialize flatpickr for datetime inputs
+    const now = new Date();
+    
+    const startDatePicker = flatpickr("#startDateTime", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        minDate: "today",
+        time_24hr: true,
+        defaultDate: now
+    });
 
-      // Set the values
-      document.getElementById('postId').value = postId;
-      document.getElementById('bidQuantity').max = maxQuantity;
-      
-      // Reset form
-      document.getElementById('bidForm').reset();
-      
-      // Initialize flatpickr if not already initialized
-      if (!document.getElementById('endDateTime')._flatpickr) {
-        flatpickr("#endDateTime", {
-          enableTime: true,
-          minDate: "today",
-          minTime: new Date().getHours() + ":" + new Date().getMinutes(),
-          dateFormat: "Y-m-d H:i",
-          enableSeconds: false,
-          time_24hr: true,
-          defaultHour: new Date().getHours(),
-          defaultMinute: new Date().getMinutes(),
-        });
-      }
-      
-      // Set current date/time
-      const now = new Date();
-      document.getElementById('endDateTime')._flatpickr.setDate(now);
-      
-      // Show the modal
-      modal.style.display = "block";
+    const endDatePicker = flatpickr("#endDateTime", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        minDate: "today",
+        time_24hr: true
+    });
+
+    // Function to open bid modal
+    function openBidModal(postId, maxQuantity) {
+        document.getElementById('postId').value = postId;
+        document.getElementById('bidQuantity').max = maxQuantity;
+        document.getElementById('bidModal').style.display = "block";
     }
 
-    // Close button functionality
-    document.querySelector('.close-bid').addEventListener('click', function() {
-      document.getElementById('bidModal').style.display = "none";
-    });
+    // Close modal when clicking the close button or outside the modal
+    document.querySelector('.close-bid').onclick = function() {
+        document.getElementById('bidModal').style.display = "none";
+    }
 
-    // Close on outside click
-    window.addEventListener('click', function(event) {
-      const modal = document.getElementById('bidModal');
-      if (event.target === modal) {
-        modal.style.display = "none";
-      }
-    });
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('bidModal')) {
+            document.getElementById('bidModal').style.display = "none";
+        }
+    }
 
-    // Form submission
+    // Handle bid form submission
     document.getElementById('bidForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const startPrice = parseFloat(document.getElementById('startPrice').value);
-      const bidQuantity = parseInt(document.getElementById('bidQuantity').value);
-      const maxQuantity = parseInt(document.getElementById('bidQuantity').max);
+        e.preventDefault();
 
-      // Validate start price
-      if (startPrice <= 0) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Invalid Price',
-          text: 'Starting price must be greater than 0'
-        });
-        return;
-      }
+        const formData = new FormData(this);
+        const startPrice = parseFloat(formData.get('start_price'));
+        const bidQuantity = parseInt(formData.get('bid_quantity'));
+        const maxQuantity = parseInt(document.getElementById('bidQuantity').max);
+        const startDateTime = new Date(formData.get('start_date'));
+        const endDateTime = new Date(formData.get('end_date'));
+        const now = new Date();
 
-      // Validate quantity
-      if (bidQuantity > maxQuantity) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Invalid Quantity',
-          text: `Bid quantity cannot exceed available quantity (${maxQuantity})`
-        });
-        return;
-      }
-
-      const formData = new FormData(this);
-      
-      fetch('/create-bid/', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'X-CSRFToken': getCookie('csrftoken')
+        // Validate start price
+        if (startPrice <= 0) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Price',
+                text: 'Starting price must be greater than 0'
+            });
+            return;
         }
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Bid Created Successfully!',
-            text: data.message,
-            showConfirmButton: false,
-            timer: 2000
-          }).then(() => {
-            location.reload();
-          });
-        } else {
-          Swal.fire({
-            icon: 'error',
-            title: 'Error Creating Bid',
-            text: data.error
-          });
+
+        // Validate quantity
+        if (bidQuantity > maxQuantity) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Quantity',
+                text: `Bid quantity cannot exceed available quantity (${maxQuantity})`
+            });
+            return;
         }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Something went wrong. Please try again.'
+
+        // Validate start date/time
+        if (startDateTime < now) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid Start Date',
+                text: 'Start date and time must be in the future'
+            });
+            return;
+        }
+
+        // Validate end date/time
+        if (endDateTime <= startDateTime) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Invalid End Date',
+                text: 'End date and time must be after start date and time'
+            });
+            return;
+        }
+
+        // Submit the form
+        fetch('{% url "create_bid" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: data.message,
+                    showConfirmButton: false,
+                    timer: 2000
+                }).then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.error
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Something went wrong. Please try again.'
+            });
         });
-      });
     });
+
+    // Function to check bid status
+    function updateBidStatus() {
+        const bids = document.querySelectorAll('.bid-card');
+        const now = new Date();
+
+        bids.forEach(bid => {
+            const startDate = new Date(bid.dataset.startDate);
+            const endDate = new Date(bid.dataset.endDate);
+            const statusElement = bid.querySelector('.bid-status');
+
+            if (now < startDate) {
+                statusElement.textContent = `Starting in: ${getTimeRemaining(startDate)}`;
+                statusElement.className = 'bid-status pending';
+            } else if (now >= startDate && now <= endDate) {
+                statusElement.textContent = 'Active';
+                statusElement.className = 'bid-status active';
+            } else {
+                statusElement.textContent = 'Ended';
+                statusElement.className = 'bid-status ended';
+            }
+        });
+    }
+
+    // Update status every minute
+    setInterval(updateBidStatus, 60000);
+    updateBidStatus(); // Initial call
+
+    function getTimeRemaining(startDate) {
+        const now = new Date();
+        const diff = startDate - now;
+        
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        
+        if (days > 0) return `${days}d ${hours}h`;
+        if (hours > 0) return `${hours}h ${minutes}m`;
+        return `${minutes}m`;
+    }
   </script>
 
 </body>
