@@ -1992,7 +1992,7 @@ def validate_rambutan_image(request):
             if is_valid:
                 return JsonResponse({
                     'is_valid': True,
-                    'message': f' {''}',
+                    'message': '',
                     'matched_labels': ''
                 })
             else:
