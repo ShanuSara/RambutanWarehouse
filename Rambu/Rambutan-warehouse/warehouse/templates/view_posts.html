@@ -657,7 +657,7 @@
             <div class="button-group">
               <button class="delete-btn"><a href="{% url 'delete_post' post.id %}">Delete</a></button>
               <button class="update-btn"><a href="{% url 'update_post' post.id %}">Update</a></button>
-              <button type="button" class="make-bid-btn" onclick="openBidModal({{ post.id }}, {{ post.quantity_left }})">
+              <button type="button" id="makeBidBtn_{{ post.id }}" class="make-bid-btn" onclick="openBidModal({{ post.id }}, {{ post.quantity_left }})">
                 <i class='bx bx-purchase-tag-alt'></i>
                 Make Bid
               </button>
@@ -811,7 +811,6 @@
         const maxQuantity = parseInt(document.getElementById('bidQuantity').max);
         const startDateTime = new Date(formData.get('start_date'));
         const endDateTime = new Date(formData.get('end_date'));
-        const now = new Date();
 
         // Validate start price
         if (startPrice <= 0) {
@@ -833,22 +832,12 @@
             return;
         }
 
-        // Validate start date/time
-        if (startDateTime < now) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Invalid Start Date',
-                text: 'Start date and time must be in the future'
-            });
-            return;
-        }
-
-        // Validate end date/time
+        // Only validate that end date is after start date
         if (endDateTime <= startDateTime) {
             Swal.fire({
                 icon: 'error',
                 title: 'Invalid End Date',
-                text: 'End date and time must be after start date and time'
+                text: 'End date must be after start date'
             });
             return;
         }

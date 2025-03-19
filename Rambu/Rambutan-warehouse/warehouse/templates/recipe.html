@@ -536,11 +536,6 @@
             </ul>
         </nav>
         
-        <!-- Add this div right after the top-navbar section -->
-        <div class="translate-container">
-            <div id="google_translate_element"></div>
-        </div>
-        
     <div class="recipe-container">
         <h2>Rambutan Recipe Suggestions</h2>
         
@@ -633,36 +628,36 @@
                 const response = await fetch(`/get-recipe/?recipe=${encodeURIComponent(recipeName)}&language=${selectedLanguage}`);
                 const data = await response.json();
 
-                // Close loading indicator
-                Swal.close();
-
                 if (data.success) {
-                    resultDiv.innerHTML = data.recipe + `
-                        <div style="text-align: center;">
-                            <button onclick="downloadRecipe()" class="download-button">
-                                <i class='bx bx-download'></i> Download Recipe
-                            </button>
-                        </div>`;
-                    resultDiv.scrollIntoView({ behavior: 'smooth' });
+                    resultDiv.innerHTML = data.recipe;
+                    Swal.close();
+
+                   
+                    // Add download button after recipe is generated
+                    //const downloadBtn = document.createElement('button');
+                    //downloadBtn.className = 'download-btn';
+                    //downloadBtn.innerHTML = '<i class="fas fa-download"></i> Download Recipe';
+                    //downloadBtn.onclick = () => downloadRecipe(recipeName, data.recipe);
+                    //resultDiv.appendChild(downloadBtn);
+                    
                 } else {
                     Swal.fire({
                         icon: 'error',
                         title: 'Oops...',
-                        text: data.error
+                        text: data.error || 'Failed to generate recipe'
                     });
                 }
             } catch (error) {
+                console.error('Error:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error',
-                    text: 'Error fetching recipe. Please try again.'
+                    title: 'Oops...',
+                    text: 'Failed to generate recipe. Please try again.'
                 });
             }
         }
 
-        function downloadRecipe() {
-            const recipeContent = document.querySelector('.recipe-details').innerHTML;
-            const recipeName = document.querySelector('.recipe-title').textContent;
+        {% comment %} function downloadRecipe(recipeName, recipeContent) {
             const language = document.querySelector('.recipe-details').dataset.language;
             
             // Create form data
@@ -696,7 +691,7 @@
                     text: 'Failed to download the recipe. Please try again.'
                 });
             });
-        }
+        } {% endcomment %}
 
         // CSRF token helper function
         function getCookie(name) {

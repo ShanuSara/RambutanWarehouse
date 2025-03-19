@@ -45,7 +45,8 @@ DEBUG = True
 # ALLOWED_HOSTS = ['rambutanwarehouse.onrender.com', 'localhost', '127.0.0.1:8000']
 ALLOWED_HOSTS = ['*']
 BASE_URLS = 'https://rambutanwarehouse.onrender.com'
-PORT = os.environ.get('PORT', '8000')  # Default to 8000 if not set
+PORT = os.environ.get('PORT', '8000')
+print(f"Running on PORT: {PORT}")
 
 
 INSTALLED_APPS = [

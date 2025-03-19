@@ -2020,13 +2020,27 @@ def recipe_view(request):
 
 def get_recipe(request):
     recipe_name = request.GET.get('recipe', '')
+    language = request.GET.get('language', 'en')  # Get selected language
+    
+    # Language mapping for prompts
+    language_prompts = {
+        'en': 'English',
+        'hi': 'Hindi',
+        'bn': 'Bengali',
+        'te': 'Telugu',
+        'ta': 'Tamil',
+        'mr': 'Marathi',
+        'gu': 'Gujarati',
+        'kn': 'Kannada',
+        'ml': 'Malayalam',
+        'pa': 'Punjabi',
+        'ur': 'Urdu'
+    }
     
     try:
-        # Check if recipe is rambutan-related
         rambutan_keywords = ['rambutan', 'nephelium lappaceum']
         is_rambutan_recipe = any(keyword in recipe_name.lower() for keyword in rambutan_keywords)
         
-        # For predefined recipes, always proceed
         predefined_recipes = [
             'Rambutan Smoothie', 'Rambutan Salad', 
             'Spicy Rambutan Chutney', 'Rambutan Coconut Dessert'
@@ -2036,14 +2050,15 @@ def get_recipe(request):
             genai.configure(api_key='AIzaSyBLSAPqtZQ4KhCTNP9zkM2Dke9giqwhENc')
             model = genai.GenerativeModel('gemini-1.5-pro')
             
+            selected_language = language_prompts.get(language, 'English')
+            
             prompt = f"""
-            Create a recipe for {recipe_name} with the following sections:
+            Create a recipe for {recipe_name} in {selected_language} with the following sections:
             1. Brief introduction
             2. Ingredients list
             3. Step by step instructions
             4. Cooking time
             
-
             Format the response as follows:
             - Use <h3> for section headings
             - Use <ul> for ingredients and serving suggestions
@@ -2051,6 +2066,7 @@ def get_recipe(request):
             - Use <div class="cooking-time"> for cooking time
             - Use <p> for introduction and other text
             Make it specific to rambutan fruit preparation.
+            Please write the entire recipe in {selected_language}.
             """
             
             response = model.generate_content(prompt)
@@ -2159,9 +2175,12 @@ def create_bid(request):
     if request.method == 'POST':
         try:
             post_id = request.POST.get('post_id')
-            start_price = Decimal(request.POST.get('start_price'))  # Convert to Decimal
-            bid_quantity = int(request.POST.get('bid_quantity'))    # Convert to int
-            end_date = request.POST.get('end_date')
+            start_price = Decimal(request.POST.get('start_price'))
+            bid_quantity = int(request.POST.get('bid_quantity'))
+            
+            # Convert string dates to datetime objects
+            start_date = timezone.make_aware(datetime.strptime(request.POST.get('start_date'), '%Y-%m-%d %H:%M'))
+            end_date = timezone.make_aware(datetime.strptime(request.POST.get('end_date'), '%Y-%m-%d %H:%M'))
 
             rambutan_post = get_object_or_404(RambutanPost, id=post_id)
             
@@ -2186,6 +2205,13 @@ def create_bid(request):
                     'error': 'Starting price must be greater than 0'
                 })
 
+            # Only validate that end date is after start date
+            if end_date <= start_date:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'End date must be after start date'
+                })
+
             # Create or update bid
             bid_post, created = BidPost.objects.update_or_create(
                 rambutan_post=rambutan_post,
@@ -2193,6 +2219,7 @@ def create_bid(request):
                     'start_price': start_price,
                     'current_price': start_price,
                     'bid_quantity': bid_quantity,
+                    'start_date': start_date,
                     'end_date': end_date,
                     'is_active': True
                 }

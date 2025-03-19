@@ -1029,6 +1029,125 @@
             color: #666 !important;
             font-weight: 500;
         }
+
+        /* Add these to your existing styles */
+        .meeting-details {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+
+        .meeting-completed {
+            background-color: #e8f5e9;
+        }
+
+        .completed-meeting-info h4,
+        .pending-meeting-info h4 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meeting-info {
+            margin-top: 10px;
+        }
+
+        .meeting-info p {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .suggested-time-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #fff3cd;
+            border-radius: 6px;
+        }
+
+        .suggested-time-info p {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .no-meeting-info {
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        /* Meeting Status Box Styles */
+        .meeting-status-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .meeting-status-title {
+            color: #2c3e50;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .confirmed-meeting-info,
+        .pending-meeting-info {
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .confirmed-meeting-info {
+            background-color: #e8f5e9;
+        }
+
+        .pending-meeting-info {
+            background-color: #fff3cd;
+        }
+
+        .meeting-status-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .meeting-status-tag.confirmed {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .meeting-status-tag.pending {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .no-meeting-info {
+            color: #6c757d;
+            text-align: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .meeting-countdown {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e3f2fd;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body>
@@ -1127,20 +1246,20 @@
             <div id="active-bids" class="bid-cards">
                 {% if active_bids %}
                     {% for bid in active_bids %}
-                    <div class="bid-card">
+                    <div class="bid-card" data-start-date="{{ bid.start_date|date:'Y-m-d H:i' }}" data-end-date="{{ bid.end_date|date:'Y-m-d H:i' }}">
                         <img src="{{ bid.rambutan_post.image.url }}" alt="{{ bid.rambutan_post.product }}" class="bid-image">
                         <div class="bid-info">
                             <h3>{{ bid.rambutan_post.product }}</h3>
                             <div class="bid-details">
-                                <p><strong>Farmer:</strong> {{ bid.rambutan_post.farmer }}</p>
+                                <p><strong>Farmer:</strong> {{ bid.rambutan_post.farmer.user.name }}</p>
+                                <p><strong>Start Price:</strong> ₹{{ bid.start_price }}</p>
+                                <p><strong>Current Price:</strong> ₹{{ bid.current_price }}</p>
                                 <p><strong>Quantity:</strong> {{ bid.bid_quantity }} {{ bid.rambutan_post.quantity_type }}</p>
-                                <p><strong>Starting Price:</strong> ₹{{ bid.start_price }}</p>
-                                <p class="current-bid">Current Bid: ₹{{ bid.current_price }}</p>
-                                <p class="time-remaining" data-end="{{ bid.end_date|date:'c' }}">
-                                    Time Remaining: <span class="countdown"></span>
-                                </p>
+                                <p><strong>Status:</strong> <span class="bid-status"></span></p>
                             </div>
-                            <button class="place-bid-btn" onclick="openBidModal('{{ bid.id }}', '{{ bid.current_price }}')">
+                            
+                            <!-- Place bid button always visible -->
+                            <button class="place-bid-btn" onclick="placeBid('{{ bid.id }}', '{{ bid.current_price }}')">
                                 Place Bid
                             </button>
                         </div>
@@ -1197,55 +1316,36 @@
                                 {% if bid.bid_post.meeting_set.exists %}
                                     {% with meeting=bid.bid_post.meeting_set.first %}
                                         {% if meeting %}
-                                            <div class="meeting-details {% if meeting.is_completed %}meeting-completed{% endif %}">
-                                                {% if meeting.is_completed %}
-                                                    <div class="completed-meeting-info">
-                                                        <h4><i class='bx bx-check-circle' style='color: #28a745'></i> Meeting Completed</h4>
-                                                        <div class="meeting-info">
-                                                            <p><i class='bx bx-calendar'></i> Date: {{ meeting.meeting_date|date:"M d, Y" }}</p>
-                                                            <p><i class='bx bx-time'></i> Time: {{ meeting.meeting_time|time:"H:i" }}</p>
-                                                            <p><i class='bx bx-timer'></i> Duration: {{ meeting.duration }} minutes</p>
-                                                            <p class="meeting-ended-time">
-                                                                <i class='bx bx-time-five'></i> Meeting ended on: 
-                                                                {{ meeting.meeting_date|date:"M d, Y" }} at 
-                                                                {{ meeting.meeting_time|time:"H:i" }}
-                                                            </p>
+                                            <div class="meeting-status-box">
+                                                <h4 class="meeting-status-title">
+                                                    <i class='bx bx-calendar-check'></i> Meeting Details
+                                                </h4>
+                                                {% if meeting.is_confirmed %}
+                                                    <div class="confirmed-meeting-info">
+                                                        <p><i class='bx bx-calendar'></i> <strong>Date:</strong> {{ meeting.meeting_date|date:"M d, Y" }}</p>
+                                                        <p><i class='bx bx-time'></i> <strong>Time:</strong> {{ meeting.meeting_time|time:"h:i A" }}</p>
+                                                        <p><i class='bx bx-timer'></i> <strong>Duration:</strong> {{ meeting.duration }} minutes</p>
+                                                        <div class="meeting-status-tag confirmed">
+                                                            <i class='bx bx-check-circle'></i> Confirmed
                                                         </div>
                                                     </div>
-                                                {% elif meeting.is_confirmed %}
-                                                    <div class="confirmed-meeting-info">
-                                                        <h4><i class='bx bx-calendar-check' style='color: #28a745'></i> Meeting Confirmed</h4>
-                                                        <div class="meeting-info">
-                                                            <p><i class='bx bx-calendar'></i> Date: {{ meeting.meeting_date|date:"M d, Y" }}</p>
-                                                            <p><i class='bx bx-time'></i> Time: {{ meeting.meeting_time|time:"H:i" }}</p>
-                                                            <p><i class='bx bx-timer'></i> Duration: {{ meeting.duration }} minutes</p>
-                                                            
-                                                            <!-- Add countdown timer -->
-                                                            <div class="meeting-countdown" id="countdown-{{ meeting.id }}"
-                                                                 data-meeting-date="{{ meeting.meeting_date|date:'Y-m-d' }}"
-                                                                 data-meeting-time="{{ meeting.meeting_time|time:'H:i' }}"
-                                                                 data-duration="{{ meeting.duration }}">
-                                                                <p class="countdown-text">Time until meeting:</p>
-                                                                <div class="countdown-timer">
-                                                                    <span class="days">00</span>d
-                                                                    <span class="hours">00</span>h
-                                                                    <span class="minutes">00</span>m
-                                                                    <span class="seconds">00</span>s
-                                                                </div>
-                                                            </div>
-                                                            
-                                                            <!-- Join meeting button (initially hidden) -->
-                                                            <div id="join-meeting-{{ meeting.id }}" class="join-meeting-button" style="display: none;">
-                                                                <a href="{{ meeting.meeting_url }}" target="_blank" class="join-btn">
-                                                                    <i class='bx bx-video'></i> Join Meeting Now
-                                                                </a>
-                                                            </div>
+                                                {% else %}
+                                                    <div class="pending-meeting-info">
+                                                        <p><i class='bx bx-calendar'></i> <strong>Proposed Date:</strong> {{ meeting.meeting_date|date:"M d, Y" }}</p>
+                                                        <p><i class='bx bx-time'></i> <strong>Proposed Time:</strong> {{ meeting.meeting_time|time:"h:i A" }}</p>
+                                                        <p><i class='bx bx-timer'></i> <strong>Duration:</strong> {{ meeting.duration }} minutes</p>
+                                                        <div class="meeting-status-tag pending">
+                                                            <i class='bx bx-time'></i> Awaiting Confirmation
                                                         </div>
                                                     </div>
                                                 {% endif %}
                                             </div>
                                         {% endif %}
                                     {% endwith %}
+                                {% else %}
+                                    <div class="no-meeting-info">
+                                        <p><i class='bx bx-calendar-x'></i> No meeting scheduled yet</p>
+                                    </div>
                                 {% endif %}
                             </div>
                         </div>
