@@ -1148,6 +1148,208 @@
             background-color: #e3f2fd;
             border-radius: 6px;
         }
+
+        /* Add to your existing styles */
+        .meeting-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .confirm-btn, .reschedule-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .confirm-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .reschedule-btn {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .confirm-btn:hover {
+            background-color: #218838;
+        }
+
+        .reschedule-btn:hover {
+            background-color: #e0a800;
+        }
+
+        .reschedule-form {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .reschedule-form .form-group {
+            margin-bottom: 15px;
+        }
+
+        .reschedule-form label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .reschedule-form input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .suggest-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .suggest-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .meeting-status {
+            margin-top: 10px;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .meeting-status.completed {
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+
+        .meeting-status.ongoing {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .meeting-status.upcoming {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .countdown-timer.completed {
+            color: #6c757d;
+        }
+
+        .meeting-details {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-row i {
+            font-size: 20px;
+            color: #4CAF50;
+            margin-right: 12px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .detail-content {
+            flex: 1;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            margin-right: 8px;
+            display: inline-block;
+            width: 120px;
+        }
+
+        .detail-value {
+            color: #212529;
+            font-weight: 500;
+        }
+
+        .pending-meeting-info {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-top: 15px;
+        }
+
+        /* Add these styles for the join button */
+        .join-meeting-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+
+        .join-meeting-btn:hover {
+            background-color: #218838;
+        }
+
+        .join-meeting-container {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .meeting-status {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+
+        .meeting-status.completed {
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+
+        .meeting-status.ongoing {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .meeting-status.upcoming {
+            background-color: #cce5ff;
+            color: #004085;
+        }
     </style>
 </head>
 <body>
@@ -1259,7 +1461,7 @@
                             </div>
                             
                             <!-- Place bid button always visible -->
-                            <button class="place-bid-btn" onclick="placeBid('{{ bid.id }}', '{{ bid.current_price }}')">
+                            <button class="place-bid-btn" onclick="openBidModal('{{ bid.id }}', '{{ bid.current_price }}')">
                                 Place Bid
                             </button>
                         </div>
@@ -1322,20 +1524,157 @@
                                                 </h4>
                                                 {% if meeting.is_confirmed %}
                                                     <div class="confirmed-meeting-info">
-                                                        <p><i class='bx bx-calendar'></i> <strong>Date:</strong> {{ meeting.meeting_date|date:"M d, Y" }}</p>
-                                                        <p><i class='bx bx-time'></i> <strong>Time:</strong> {{ meeting.meeting_time|time:"h:i A" }}</p>
-                                                        <p><i class='bx bx-timer'></i> <strong>Duration:</strong> {{ meeting.duration }} minutes</p>
-                                                        <div class="meeting-status-tag confirmed">
-                                                            <i class='bx bx-check-circle'></i> Confirmed
+                                                        <h4><i class='bx bx-calendar-check'></i> Meeting Details</h4>
+                                                        <div class="detail-row">
+                                                            <i class='bx bx-calendar'></i>
+                                                            <div class="detail-content">
+                                                                <span class="detail-label">Date:</span>
+                                                                <span class="detail-value">{{ meeting.meeting_date|date:"M d, Y" }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="detail-row">
+                                                            <i class='bx bx-time'></i>
+                                                            <div class="detail-content">
+                                                                <span class="detail-label">Time:</span>
+                                                                <span class="detail-value">{{ meeting.meeting_time|time:"h:i A" }}</span>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <!-- Countdown Timer -->
+                                                        <div class="meeting-countdown" id="countdown-{{ meeting.id }}"
+                                                             data-meeting-date="{{ meeting.meeting_date|date:'Y-m-d' }}"
+                                                             data-meeting-time="{{ meeting.meeting_time|time:'H:i' }}"
+                                                             data-duration="{{ meeting.duration }}"
+                                                             data-url="{{ meeting.meeting_url }}">
+                                                            <p class="countdown-text">Time until meeting:</p>
+                                                            <div class="countdown-timer">
+                                                                <span class="days">00</span>d
+                                                                <span class="hours">00</span>h
+                                                                <span class="minutes">00</span>m
+                                                                <span class="seconds">00</span>s
+                                                            </div>
+                                                            <div class="meeting-status"></div>
+                                                        </div>
+
+                                                        <!-- Join Meeting Button -->
+                                                        <div class="join-meeting-container" id="join-meeting-{{ meeting.id }}" style="display: none;">
+                                                            <a href="{{ meeting.meeting_url }}" target="_blank" class="join-meeting-btn">
+                                                                <i class='bx bx-video'></i> Join Meeting
+                                                            </a>
                                                         </div>
                                                     </div>
                                                 {% else %}
                                                     <div class="pending-meeting-info">
-                                                        <p><i class='bx bx-calendar'></i> <strong>Proposed Date:</strong> {{ meeting.meeting_date|date:"M d, Y" }}</p>
-                                                        <p><i class='bx bx-time'></i> <strong>Proposed Time:</strong> {{ meeting.meeting_time|time:"h:i A" }}</p>
-                                                        <p><i class='bx bx-timer'></i> <strong>Duration:</strong> {{ meeting.duration }} minutes</p>
-                                                        <div class="meeting-status-tag pending">
-                                                            <i class='bx bx-time'></i> Awaiting Confirmation
+                                                        <div class="meeting-details">
+                                                            <div class="detail-row">
+                                                                <i class='bx bx-calendar'></i>
+                                                                <div class="detail-content">
+                                                                    <span class="detail-label">Proposed Date:</span>
+                                                                    <span class="detail-value">{{ meeting.meeting_date|date:"F d, Y" }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="detail-row">
+                                                                <i class='bx bx-time'></i>
+                                                                <div class="detail-content">
+                                                                    <span class="detail-label">Proposed Time:</span>
+                                                                    <span class="detail-value">{{ meeting.meeting_time|time:"g:i A" }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="detail-row">
+                                                                <i class='bx bx-timer'></i>
+                                                                <div class="detail-content">
+                                                                    <span class="detail-label">Duration:</span>
+                                                                    <span class="detail-value">{{ meeting.duration }} minutes</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <!-- Add these styles in your existing style section -->
+                                                        <style>
+                                                            .meeting-details {
+                                                                background-color: #f8f9fa;
+                                                                border-radius: 8px;
+                                                                padding: 15px;
+                                                                margin-bottom: 15px;
+                                                            }
+
+                                                            .detail-row {
+                                                                display: flex;
+                                                                align-items: center;
+                                                                margin-bottom: 12px;
+                                                                padding: 8px;
+                                                                background-color: white;
+                                                                border-radius: 6px;
+                                                                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                                                            }
+
+                                                            .detail-row:last-child {
+                                                                margin-bottom: 0;
+                                                            }
+
+                                                            .detail-row i {
+                                                                font-size: 20px;
+                                                                color: #4CAF50;
+                                                                margin-right: 12px;
+                                                                width: 24px;
+                                                                text-align: center;
+                                                            }
+
+                                                            .detail-content {
+                                                                flex: 1;
+                                                            }
+
+                                                            .detail-label {
+                                                                font-weight: 600;
+                                                                color: #495057;
+                                                                margin-right: 8px;
+                                                                display: inline-block;
+                                                                width: 120px;
+                                                            }
+
+                                                            .detail-value {
+                                                                color: #212529;
+                                                                font-weight: 500;
+                                                            }
+
+                                                            .pending-meeting-info {
+                                                                background-color: #fff;
+                                                                border-radius: 10px;
+                                                                padding: 20px;
+                                                                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                                                                margin-top: 15px;
+                                                            }
+                                                        </style>
+                                                        
+                                                        <!-- Add confirm and reschedule buttons -->
+                                                        <div class="meeting-actions">
+                                                            <button class="confirm-btn" onclick="confirmMeeting('{{ meeting.id }}')">
+                                                                <i class='bx bx-check'></i> Confirm Meeting
+                                                            </button>
+                                                            <button class="reschedule-btn" onclick="showRescheduleForm('{{ meeting.id }}')">
+                                                                <i class='bx bx-time'></i> Reschedule
+                                                            </button>
+                                                        </div>
+
+                                                        <!-- Add reschedule form -->
+                                                        <div id="rescheduleForm-{{ meeting.id }}" class="reschedule-form" style="display: none;">
+                                                            <form id="rescheduleForm-{{ meeting.id }}-form">
+                                                                <div class="form-group">
+                                                                    <label for="newDate-{{ meeting.id }}">New Date:</label>
+                                                                    <input type="date" id="newDate-{{ meeting.id }}" name="meeting_date" required min="{{ today|date:'Y-m-d' }}">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label for="newTime-{{ meeting.id }}">New Time:</label>
+                                                                    <input type="time" id="newTime-{{ meeting.id }}" name="meeting_time" required>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label for="duration-{{ meeting.id }}">Duration (minutes):</label>
+                                                                    <input type="number" id="duration-{{ meeting.id }}" name="duration" value="30" min="15" max="120" required>
+                                                                </div>
+                                                                <button type="submit" class="suggest-btn">
+                                                                    <i class='bx bx-check'></i> Suggest New Time
+                                                                </button>
+                                                            </form>
                                                         </div>
                                                     </div>
                                                 {% endif %}
@@ -1490,33 +1829,46 @@
         }
 
         function confirmMeeting(meetingId) {
+            const csrftoken = getCookie('csrftoken');
+            
             fetch('/confirm-meeting/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': csrftoken
                 },
                 body: JSON.stringify({
                     meeting_id: meetingId
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Failed to confirm meeting');
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Meeting Confirmed!',
-                        text: 'The meeting has been confirmed.'
+                        text: 'The meeting has been confirmed successfully.',
+                        showConfirmButton: false,
+                        timer: 1500
                     }).then(() => {
                         location.reload();
                     });
-                } else {
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
                     Swal.fire({
                         icon: 'error',
                         title: 'Oops...',
-                        text: data.error || 'Failed to confirm meeting'
+                    text: error.message || 'Something went wrong!'
                     });
-                }
             });
         }
 
@@ -1577,11 +1929,12 @@
             });
         });
 
-        // Add to your existing JavaScript
+        // Update the meeting section in the won-bids area
         function updateMeetingStatus(countdownElement) {
             const meetingDate = countdownElement.dataset.meetingDate;
             const meetingTime = countdownElement.dataset.meetingTime;
             const duration = parseInt(countdownElement.dataset.duration);
+            const meetingUrl = countdownElement.dataset.url;
             
             const meetingDateTime = new Date(`${meetingDate}T${meetingTime}`);
             const meetingEndTime = new Date(meetingDateTime.getTime() + duration * 60000);
@@ -1590,62 +1943,39 @@
             const meetingId = countdownElement.id.split('-')[1];
             const joinButton = document.getElementById(`join-meeting-${meetingId}`);
             const countdownTimer = countdownElement.querySelector('.countdown-timer');
-            const countdownText = countdownElement.querySelector('.countdown-text');
+            const statusDiv = countdownElement.querySelector('.meeting-status');
             
-            // Check if meeting has ended
-            if (now > meetingEndTime) {
-                // Convert the meeting details section to completed status
-                const meetingDetails = countdownElement.closest('.meeting-details');
-                if (meetingDetails) {
-                    meetingDetails.classList.add('meeting-completed');
-                    meetingDetails.innerHTML = `
-                        <div class="completed-meeting-info">
-                            <h4><i class='bx bx-check-circle' style='color: #28a745'></i> Meeting Completed</h4>
-                            <div class="meeting-info">
-                                <p><i class='bx bx-calendar'></i> Date: ${meetingDate}</p>
-                                <p><i class='bx bx-time'></i> Time: ${meetingTime}</p>
-                                <p><i class='bx bx-timer'></i> Duration: ${duration} minutes</p>
-                                <p class="meeting-ended-time">
-                                    <i class='bx bx-time-five'></i> Meeting ended on: 
-                                    ${meetingEndTime.toLocaleDateString()} at 
-                                    ${meetingEndTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                </p>
-                            </div>
-                        </div>
-                    `;
-                }
+            let diff;
+            
+            if (now >= meetingEndTime) {
+                // Meeting has ended
+                statusDiv.innerHTML = '<div class="meeting-status completed"><i class="bx bx-check-circle"></i> Meeting Completed</div>';
+                joinButton.style.display = 'none';
+                countdownTimer.classList.add('completed');
                 return;
+            }
+            
+            if (now >= meetingDateTime && now < meetingEndTime) {
+                // Meeting is ongoing
+                statusDiv.innerHTML = '<div class="meeting-status ongoing"><i class="bx bx-video"></i> Meeting in Progress</div>';
+                joinButton.style.display = 'block';
+                countdownTimer.classList.remove('completed');
+            } else if (now < meetingDateTime) {
+                // Meeting hasn't started
+                statusDiv.innerHTML = '<div class="meeting-status upcoming"><i class="bx bx-time"></i> Meeting Starting Soon</div>';
+                joinButton.style.display = 'none';
+                countdownTimer.classList.remove('completed');
             }
             
             // Calculate time difference
-            let diff;
+            diff = (now >= meetingDateTime) ? meetingEndTime - now : meetingDateTime - now;
             
-            // Check meeting status
-            if (now >= meetingDateTime && now <= meetingEndTime) {
-                // Meeting is ongoing
-                diff = meetingEndTime - now;
-                countdownText.textContent = 'Meeting ends in:';
-                joinButton.style.display = 'block';
-            } else if (now > meetingEndTime) {
-                // Meeting has ended
-                countdownText.textContent = 'Meeting ended';
-                countdownTimer.textContent = 'Completed';
-                joinButton.style.display = 'none';
-                return;
-            } else {
-                // Meeting hasn't started
-                diff = meetingDateTime - now;
-                countdownText.textContent = 'Time until meeting:';
-                joinButton.style.display = 'none';
-            }
-            
-            // Update countdown
+            // Update countdown display
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diff % (1000 * 60)) / 1000);
             
-            // Update the display
             countdownElement.querySelector('.days').textContent = String(days).padStart(2, '0');
             countdownElement.querySelector('.hours').textContent = String(hours).padStart(2, '0');
             countdownElement.querySelector('.minutes').textContent = String(minutes).padStart(2, '0');

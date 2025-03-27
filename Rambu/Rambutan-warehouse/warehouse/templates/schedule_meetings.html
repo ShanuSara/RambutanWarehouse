@@ -368,19 +368,48 @@
         }
 
         .join-meeting-btn {
-            display: inline-block;
-            background-color: var(--accent-color);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #28a745;
             color: white;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 5px;
             text-decoration: none;
-            margin-top: 10px;
+            font-weight: 500;
+            margin-top: 15px;
             transition: background-color 0.3s;
         }
 
         .join-meeting-btn:hover {
-            background-color: var(--primary-color);
+            background-color: #218838;
             color: white;
+            text-decoration: none;
+        }
+
+        .meeting-status {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        .meeting-status.completed {
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+
+        .meeting-status.ongoing {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .meeting-status.upcoming {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .countdown-timer.completed {
+            opacity: 0.5;
         }
 
         .meeting-completed {
@@ -722,6 +751,74 @@
             background-color: #e3f2fd;
             border-radius: 6px;
         }
+
+        /* Add to your existing styles */
+        .original-time, .suggested-time {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .suggested-time {
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .original-time h5, .suggested-time h5 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .meeting-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .confirm-btn, .suggest-new-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .suggest-new-btn {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .confirm-btn:hover {
+            background-color: #218838;
+        }
+
+        .suggest-new-btn:hover {
+            background-color: #138496;
+        }
+
+        .meeting-status-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .meeting-status-tag.pending {
+            background-color: #ffc107;
+            color: #000;
+        }
     </style>
 </head>
 <body>
@@ -825,28 +922,28 @@
                             <p><strong>Quantity:</strong> {{ bid.bid_quantity }} {{ bid.rambutan_post.quantity_type }}</p>
                         </div>
                         
-                        <!-- Meeting status and actions -->
                         <div class="meeting-status">
-                            {% if bid.scheduled_meeting %}
-                                <div class="scheduled-meeting">
+                            {% if bid.meeting_set.exists %}
+                                {% with meeting=bid.meeting_set.first %}
                                     <div class="meeting-status-box">
                                         <h4 class="meeting-status-title">
                                             <i class='bx bx-calendar-check'></i> Meeting Details
                                         </h4>
-                                        {% if bid.scheduled_meeting.is_confirmed %}
+                                        {% if meeting.is_confirmed %}
                                             <div class="confirmed-meeting-info">
-                                                <p><i class='bx bx-calendar'></i> <strong>Date:</strong> {{ bid.scheduled_meeting.date|date:"M d, Y" }}</p>
-                                                <p><i class='bx bx-time'></i> <strong>Time:</strong> {{ bid.scheduled_meeting.time|time:"h:i A" }}</p>
-                                                <p><i class='bx bx-timer'></i> <strong>Duration:</strong> {{ bid.scheduled_meeting.duration }} minutes</p>
+                                                <p><i class='bx bx-calendar'></i> <strong>Date:</strong> {{ meeting.meeting_date|date:"M d, Y" }}</p>
+                                                <p><i class='bx bx-time'></i> <strong>Time:</strong> {{ meeting.meeting_time|time:"h:i A" }}</p>
+                                                <p><i class='bx bx-timer'></i> <strong>Duration:</strong> {{ meeting.duration }} minutes</p>
                                                 <div class="meeting-status-tag confirmed">
                                                     <i class='bx bx-check-circle'></i> Confirmed
                                                 </div>
                                                 
                                                 <!-- Countdown timer -->
-                                                <div class="meeting-countdown" id="countdown-{{ bid.scheduled_meeting.id }}"
-                                                     data-meeting-date="{{ bid.scheduled_meeting.date|date:'Y-m-d' }}"
-                                                     data-meeting-time="{{ bid.scheduled_meeting.time|time:'H:i' }}"
-                                                     data-duration="{{ bid.scheduled_meeting.duration }}">
+                                                <div class="meeting-countdown" id="countdown-{{ meeting.id }}"
+                                                     data-meeting-date="{{ meeting.meeting_date|date:'Y-m-d' }}"
+                                                     data-meeting-time="{{ meeting.meeting_time|time:'H:i' }}"
+                                                     data-duration="{{ meeting.duration }}"
+                                                     data-url="{{ meeting.meeting_url }}">
                                                     <p class="countdown-text">Time until meeting:</p>
                                                     <div class="countdown-timer">
                                                         <span class="days">00</span>d
@@ -854,27 +951,57 @@
                                                         <span class="minutes">00</span>m
                                                         <span class="seconds">00</span>s
                                                     </div>
+                                                    <div class="meeting-status"></div>
                                                 </div>
                                                 
-                                                <!-- Join meeting button -->
-                                                <div class="join-meeting-button" id="join-meeting-{{ bid.scheduled_meeting.id }}" style="display: none;">
-                                                    <a href="{{ bid.scheduled_meeting.url }}" target="_blank" class="join-btn">
+                                                <!-- Join Meeting Button -->
+                                                <div class="join-meeting-container" id="join-meeting-{{ meeting.id }}" style="display: none;">
+                                                    <a href="{{ meeting.meeting_url }}" target="_blank" class="join-meeting-btn">
                                                         <i class='bx bx-video'></i> Join Meeting
                                                     </a>
                                                 </div>
                                             </div>
                                         {% else %}
-                                            <div class="pending-meeting-info">
-                                                <p><i class='bx bx-calendar'></i> <strong>Proposed Date:</strong> {{ bid.scheduled_meeting.date|date:"M d, Y" }}</p>
-                                                <p><i class='bx bx-time'></i> <strong>Proposed Time:</strong> {{ bid.scheduled_meeting.time|time:"h:i A" }}</p>
-                                                <p><i class='bx bx-timer'></i> <strong>Duration:</strong> {{ bid.scheduled_meeting.duration }} minutes</p>
-                                                <div class="meeting-status-tag pending">
-                                                    <i class='bx bx-time'></i> Awaiting Confirmation
+                                            {% if meeting.suggested_date and meeting.suggested_time %}
+                                                <div class="pending-meeting-info">
+                                                    <div class="original-time">
+                                                        <h5>Original Proposed Time:</h5>
+                                                        <p><i class='bx bx-calendar'></i> <strong>Date:</strong> {{ meeting.meeting_date|date:"M d, Y" }}</p>
+                                                        <p><i class='bx bx-time'></i> <strong>Time:</strong> {{ meeting.meeting_time|time:"h:i A" }}</p>
+                                                        <p><i class='bx bx-timer'></i> <strong>Duration:</strong> {{ meeting.duration }} minutes</p>
+                                                    </div>
+                                                    
+                                                    <div class="suggested-time">
+                                                        <h5>Customer's Suggested Time:</h5>
+                                                        <p><i class='bx bx-calendar'></i> <strong>Date:</strong> {{ meeting.suggested_date|date:"M d, Y" }}</p>
+                                                        <p><i class='bx bx-time'></i> <strong>Time:</strong> {{ meeting.suggested_time|time:"h:i A" }}</p>
+                                                        <div class="meeting-actions">
+                                                            <button class="confirm-btn" onclick="acceptSuggestedTime('{{ meeting.id }}')">
+                                                                <i class='bx bx-check'></i> Accept Suggested Time
+                                                            </button>
+                                                            <button class="suggest-new-btn" onclick="showRescheduleForm('{{ meeting.id }}')">
+                                                                <i class='bx bx-time'></i> Suggest New Time
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="meeting-status-tag pending">
+                                                        <i class='bx bx-time'></i> Awaiting Your Confirmation
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            {% else %}
+                                                <div class="pending-meeting-info">
+                                                    <p><i class='bx bx-calendar'></i> <strong>Proposed Date:</strong> {{ meeting.meeting_date|date:"M d, Y" }}</p>
+                                                    <p><i class='bx bx-time'></i> <strong>Proposed Time:</strong> {{ meeting.meeting_time|time:"h:i A" }}</p>
+                                                    <p><i class='bx bx-timer'></i> <strong>Duration:</strong> {{ meeting.duration }} minutes</p>
+                                                    <div class="meeting-status-tag pending">
+                                                        <i class='bx bx-time'></i> Awaiting Customer Confirmation
+                                                    </div>
+                                                </div>
+                                            {% endif %}
                                         {% endif %}
                                     </div>
-                                </div>
+                                {% endwith %}
                             {% else %}
                                 <button onclick="scheduleMeeting('{{ bid.id }}', '{{ bid.winning_bid.customer__name }}', '{{ bid.winning_bid.customer__email }}', '{{ bid.product_info.type }}')" class="schedule-btn">
                                     <i class='bx bx-calendar-plus'></i> Schedule Meeting
@@ -1089,52 +1216,60 @@
         }
 
         function showRescheduleForm(meetingId) {
-            const form = document.getElementById(`rescheduleForm-${meetingId}`);
-            if (form.style.display === 'none' || !form.style.display) {
-                form.style.display = 'block';
-            } else {
-                form.style.display = 'none';
-            }
+            const modal = document.getElementById('rescheduleModal');
+            document.getElementById('meetingId').value = meetingId;
+            modal.style.display = 'block';
         }
 
         function acceptSuggestedTime(meetingId) {
-            const formData = new FormData();
-            formData.append('meeting_id', meetingId);
-            formData.append('action', 'accept_suggested_time');  // Add action to identify the request type
+            Swal.fire({
+                title: 'Confirm Time',
+                text: 'Are you sure you want to accept this suggested meeting time?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#dc3545',
+                confirmButtonText: 'Yes, accept it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('meeting_id', meetingId);
+                    formData.append('action', 'accept_suggested_time');
 
-            fetch('/schedule-meetings/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    // Remove Content-Type header to let browser set it with boundary for FormData
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Meeting Time Accepted!',
-                        text: 'The meeting has been scheduled.'
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: data.error || 'Failed to accept meeting time'
+                    fetch('/schedule-meetings/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Time Accepted!',
+                                text: 'The meeting has been scheduled for the suggested time.'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: data.error || 'Failed to accept meeting time'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Something went wrong!'
+                        });
                     });
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Something went wrong!'
-                });
             });
         }
 
@@ -1240,10 +1375,11 @@
         }
 
         // Add this to your existing JavaScript
-        function updateCountdown(countdownElement) {
+        function updateMeetingStatus(countdownElement) {
             const meetingDate = countdownElement.dataset.meetingDate;
             const meetingTime = countdownElement.dataset.meetingTime;
             const duration = parseInt(countdownElement.dataset.duration);
+            const meetingUrl = countdownElement.dataset.url;
             
             const meetingDateTime = new Date(`${meetingDate}T${meetingTime}`);
             const meetingEndTime = new Date(meetingDateTime.getTime() + duration * 60000);
@@ -1251,68 +1387,139 @@
             
             const meetingId = countdownElement.id.split('-')[1];
             const joinButton = document.getElementById(`join-meeting-${meetingId}`);
+            const statusDiv = countdownElement.querySelector('.meeting-status');
+            const countdownTimer = countdownElement.querySelector('.countdown-timer');
             
-            // Calculate time difference
-            let diff = meetingDateTime - now;
-            
-            // If meeting is ongoing
-            if (now >= meetingDateTime && now <= meetingEndTime) {
-                countdownElement.querySelector('.countdown-text').textContent = 'Meeting in progress:';
-                diff = meetingEndTime - now;
-                joinButton.style.display = 'block';
-            } else if (now > meetingEndTime) {
-                countdownElement.querySelector('.countdown-text').textContent = 'Meeting ended';
-                countdownElement.querySelector('.countdown-timer').textContent = 'Completed';
+            // Check if meeting is completed
+            if (now >= meetingEndTime) {
+                statusDiv.innerHTML = '<div class="meeting-status completed"><i class="bx bx-check-circle"></i> Meeting Completed</div>';
                 joinButton.style.display = 'none';
+                countdownTimer.classList.add('completed');
                 return;
-            } else {
-                joinButton.style.display = 'none';
             }
             
-            // Calculate days, hours, minutes, seconds
+            // Check if meeting is ongoing
+            if (now >= meetingDateTime && now < meetingEndTime) {
+                statusDiv.innerHTML = '<div class="meeting-status ongoing"><i class="bx bx-video"></i> Meeting in Progress</div>';
+                joinButton.style.display = 'block';
+                countdownTimer.classList.remove('completed');
+            } else if (now < meetingDateTime) {
+                statusDiv.innerHTML = '<div class="meeting-status upcoming"><i class="bx bx-time"></i> Meeting Starting Soon</div>';
+                joinButton.style.display = 'none';
+                countdownTimer.classList.remove('completed');
+            }
+            
+            // Calculate time difference
+            let diff = (now >= meetingDateTime) ? meetingEndTime - now : meetingDateTime - now;
+            
+            // Update countdown display
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((diff % (1000 * 60)) / 1000);
             
-            // Update the countdown display
             countdownElement.querySelector('.days').textContent = String(days).padStart(2, '0');
             countdownElement.querySelector('.hours').textContent = String(hours).padStart(2, '0');
             countdownElement.querySelector('.minutes').textContent = String(minutes).padStart(2, '0');
             countdownElement.querySelector('.seconds').textContent = String(seconds).padStart(2, '0');
         }
 
-        // Initialize all countdowns
+        // Initialize countdowns when page loads
         document.addEventListener('DOMContentLoaded', function() {
             const countdowns = document.querySelectorAll('[id^="countdown-"]');
-            
             countdowns.forEach(countdown => {
-                updateCountdown(countdown);
+                updateMeetingStatus(countdown);
                 // Update every second
-                setInterval(() => updateCountdown(countdown), 1000);
+                setInterval(() => updateMeetingStatus(countdown), 1000);
             });
+        });
+
+        function closeRescheduleModal() {
+            document.getElementById('rescheduleModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('rescheduleModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('rescheduleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('action', 'suggest_new_time');
+
+            fetch('/schedule-meetings/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'New time suggestion sent successfully.',
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: data.error || 'Failed to suggest new time'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Something went wrong!'
+                });
+            });
+
+            closeRescheduleModal();
         });
     </script>
 
     <!-- Add this HTML for the reschedule form -->
-    <div id="rescheduleForm-{{ meeting.id }}" class="reschedule-form" style="display: none;">
-        <form onsubmit="event.preventDefault(); suggestNewTime('{{ meeting.id }}')">
-            <div class="form-group">
-                <label for="meeting_date">New Date:</label>
-                <input type="date" name="meeting_date" required min="{{ today|date:'Y-m-d' }}">
-            </div>
-            <div class="form-group">
-                <label for="meeting_time">New Time:</label>
-                <input type="time" name="meeting_time" required>
-            </div>
-            <div class="form-group">
-                <label for="duration">Duration (minutes):</label>
-                <input type="number" name="duration" value="30" min="15" max="120" required>
-            </div>
-            <button type="submit" class="suggest-btn">
-                <i class='bx bx-check'></i> Suggest Time
-            </button>
-        </form>
+    <div id="rescheduleModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeRescheduleModal()">&times;</span>
+            <h2>Suggest New Meeting Time</h2>
+            <form id="rescheduleForm">
+                {% csrf_token %}
+                <input type="hidden" id="meetingId" name="meeting_id">
+                <div class="form-group">
+                    <label for="newMeetingDate">New Date:</label>
+                    <input type="date" id="newMeetingDate" name="meeting_date" required min="{{ today|date:'Y-m-d' }}">
+                </div>
+                <div class="form-group">
+                    <label for="newMeetingTime">New Time:</label>
+                    <input type="time" id="newMeetingTime" name="meeting_time" required>
+                </div>
+                <div class="form-group">
+                    <label for="newDuration">Duration (minutes):</label>
+                    <select id="newDuration" name="duration">
+                        <option value="15">15 minutes</option>
+                        <option value="30" selected>30 minutes</option>
+                        <option value="45">45 minutes</option>
+                        <option value="60">60 minutes</option>
+                    </select>
+                </div>
+                <button type="submit" class="submit-btn">
+                    <i class='bx bx-check'></i> Suggest Time
+                </button>
+            </form>
+        </div>
     </div>
 </body>
 </html> 

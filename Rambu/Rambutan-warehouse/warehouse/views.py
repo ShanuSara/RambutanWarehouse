@@ -1922,86 +1922,53 @@ def validate_rambutan_image(request):
             image_file = request.FILES['image'].read()
             image = vision.Image(content=image_file)
 
-            # Get category from request
-            category = request.POST.get('category', 'fresh_fruit')
-            print(f"Validating image for category: {category}")  # Debug print
-
             # Perform label detection
             label_response = client.label_detection(image=image)
             labels = label_response.label_annotations
-
-            # Print detected labels for debugging
-            print("Detected labels:", [f"{label.description}: {label.score}" for label in labels])
-
-            # Define valid keywords for different categories
-            valid_keywords = {
-                'fresh_fruit': [
-                    'rambutan', 'fruit', 'tropical fruit', 'fresh', 'produce', 'food',
-                    'natural foods', 'superfood', 'local food', 'plant', 'red','yellow', 'hair',
-                    'hairy', 'exotic fruit', 'sweet', 'fresh produce', 'organic', 'edible'
-                ],
-                'wine': [
-                    'wine', 'bottle', 'alcohol', 'beverage', 'drink',
-                    'glass bottle', 'alcoholic beverage', 'wine bottle',
-                    'red wine', 'fruit wine'
-                ],
-                'juice': [
-                    'juice', 'drink', 'bottle', 'liquid',
-                    'fruit juice', 'container', 'smoothie', 'fruit drink'
-                ],
-                'pickle': [
-                    'pickle', 'jar', 'food', 'preserved food', 'container',
-                    'preserved', 'fermented', 'pickled', 'preserved fruit'
-                ]
-            }
-
-            # Get the keywords for the selected category
-            category_keywords = valid_keywords.get(category, [])
             
-            # Check for matches with lower confidence threshold
-            is_valid = False
-            matched_labels = []
+            # Get all detected labels with scores and detect image type
+            detected_labels = []
+            image_type = None
+            needs_categorization = False
             
-            # Check for invalid fruits first
-            invalid_fruits = [
-                'strawberry', 'tomato', 'sphere', 'apple', 
-                 'longan', 'mangosteen', 
-                'chico', 'ackee', 'sugar apple', 'okra', 
-                'hairy gourd', 'bitter melon'
-            ]
-
-            # Check for invalid fruits before checking valid keywords
+            # Keywords for detection with expanded terms
+            rambutan_keywords = ['rambutan', 'fruit', 'fresh fruit', 'tropical fruit']
+            wine_keywords = ['wine', 'bottle', 'wine bottle', 'alcohol', 'beverage']
+            pickle_keywords = ['pickle', 'jar', 'preserved', 'fermented', 'container', 'preservation', 'pickled food']
+            juice_keywords = ['juice', 'drink', 'liquid', 'beverage container', 'fruit juice', 'bottle', 'drink container']
+            
             for label in labels:
                 label_text = label.description.lower()
-                for invalid_fruit in invalid_fruits:
-                    if invalid_fruit in label_text and label.score > 0.5:
-                        return JsonResponse({
-                            'is_valid': False,
-                            'message': f'Invalid fruit detected: {label_text}. Please upload a rambutan image.',
-                            'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
-                        })
+                score = label.score
+                detected_labels.append(f"{label_text} ({score:.2f})")
+                print(f"Detected label: {label_text} with score {score}")
+                
+                # Detect image type based on keywords
+                if not image_type:
+                    if any(keyword in label_text for keyword in rambutan_keywords) and score > 0.5:
+                        image_type = 'fresh_fruit'
+                        needs_categorization = True
+                        print("Detected fresh fruit")
+                    elif any(keyword in label_text for keyword in wine_keywords) and score > 0.5:
+                        image_type = 'wine'
+                        print("Detected wine")
+                    elif any(keyword in label_text for keyword in pickle_keywords) and score > 0.4:
+                        image_type = 'pickle'
+                        print("Detected pickle")
+                    elif any(keyword in label_text for keyword in juice_keywords) and score > 0.4:
+                        image_type = 'juice'
+                        print("Detected juice")
 
-            for label in labels:
-                label_text = label.description.lower()
-                for keyword in category_keywords:
-                    if keyword.lower() in label_text and label.score > 0.3:  # Lowered threshold from 0.5 to 0.3
-                        is_valid = True
-                        matched_labels.append(f"{label_text} ({label.score:.2f})")
-                        break
+            print(f"Final image type: {image_type}")
 
-            if is_valid:
-                return JsonResponse({
-                    'is_valid': True,
-                    'message': '',
-                    'matched_labels': ''
-                })
-            else:
-                category_name = category.replace('_', ' ').title()
-                return JsonResponse({
-                    'is_valid': False,
-                    'message': f'Could not detect valid {category_name} image. Please ensure the image clearly shows the appropriate content.',
-                    'detected_labels': [f"{label.description}: {label.score:.2f}" for label in labels]
-                })
+            # Return validation result with image type and categorization flag
+            return JsonResponse({
+                'is_valid': True,
+                'message': '',
+                'detected_labels': detected_labels,
+                'image_type': image_type,
+                'needs_categorization': needs_categorization
+            })
 
         except Exception as e:
             print(f"Error in image validation: {str(e)}")
@@ -2516,24 +2483,35 @@ def schedule_meetings(request):
 @login_required
 def confirm_meeting(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        meeting_id = data.get('meeting_id')
-        accepted = data.get('accepted')
-        
-        meeting = get_object_or_404(Meeting, id=meeting_id)
-        
-        if meeting.customer != request.user:
+        try:
+            data = json.loads(request.body)
+            meeting_id = data.get('meeting_id')
+            
+            meeting = get_object_or_404(Meeting, id=meeting_id)
+            
+            # Verify that the current user is the customer
+            if meeting.customer != request.user:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Unauthorized access'
+                }, status=403)
+            
+            # Update meeting status
+            meeting.is_confirmed = True
+            meeting.save()
+            
+            return JsonResponse({'success': True})
+            
+        except Exception as e:
             return JsonResponse({
                 'success': False,
-                'error': 'Unauthorized'
-            })
-        
-        meeting.is_confirmed = accepted
-        meeting.save()
-        
-        return JsonResponse({
-            'success': True
-        })
+                'error': str(e)
+            }, status=400)
+            
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    }, status=405)
 
 @login_required
 def suggest_meeting_time(request):
@@ -2561,7 +2539,7 @@ def suggest_meeting_time(request):
             'success': True
         })
 
-def load_and_preprocess_image(image_bytes, target_size=(224, 224)):
+def load_and_preprocess_image(image_bytes, target_size=(256, 256)):  # Changed from 224 to 256
     # Convert bytes to PIL Image
     img = Image.open(io.BytesIO(image_bytes))
     img = img.convert('RGB')
@@ -2570,7 +2548,7 @@ def load_and_preprocess_image(image_bytes, target_size=(224, 224)):
     # Convert to numpy array and preprocess
     img_array = tf.keras.preprocessing.image.img_to_array(img)
     img_array = tf.expand_dims(img_array, 0)
-    img_array = tf.keras.applications.mobilenet_v2.preprocess_input(img_array)
+    img_array = img_array / 255.0  # Simple normalization instead of MobileNetV2 preprocessing
     
     return img_array
 

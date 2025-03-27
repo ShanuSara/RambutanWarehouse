@@ -15,7 +15,7 @@
     rel="stylesheet">
 
   <style>
-    /* Reset Margins and Paddings */
+    /* Reset Margins and Paddings */ 
     * {
       margin: 0;
       padding: 0;
@@ -401,6 +401,41 @@
         font-size: 14px;
         font-weight: bold;
     }
+
+    /* Add styles for metrics display */
+    .metrics-container {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-top: 15px;
+    }
+
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-top: 10px;
+    }
+
+    .metric-card {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+        text-align: center;
+    }
+
+    .metric-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .metric-label {
+        font-size: 14px;
+        color: var(--text-color);
+        margin-top: 5px;
+    }
   </style>
 </head>
 
@@ -509,6 +544,7 @@
             <!-- Category Field -->
             <label for="category">Category:</label>
             <select id="category" name="category" required>
+                <option value="">Select Category</option>
                 <option value="fresh_fruit">Fresh Fruit</option>
                 <option value="wine">Wine</option>
                 <option value="juice">Juice</option>
@@ -518,8 +554,11 @@
             <!-- Quantity Type Field -->
             <label for="quantity_type">Quantity Type:</label>
             <select name="quantity_type" required>
-                <option value="kg">Kilograms</option>
-                <option value="litre">Litres</option>
+                <option value="">Select Quantity Type</option>
+                <option value="Kg">Kilograms</option>
+                <option value="Litre">Litres</option>
+                <option value="Grams">Grams</option>
+                <option value="Mili Litre">Mili Litre</option>
             </select><br><br>
         
             <!-- Quantity Field -->
@@ -544,10 +583,6 @@
                 </button>
                 <div id="categoryResult" class="mt-2" style="display: none;">
                     <p>Category: <span id="detectedCategory"></span></p>
-                    {% comment %} <div class="progress">
-                        <div id="confidenceBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
-                    </div> {% endcomment %}
-                    <p id="confidenceMessage" style="display: none;"></p>
                 </div>
             </div>
         
@@ -649,9 +684,9 @@
         const categorizeButton = document.getElementById('categorizeButton');
         const categoryResult = document.getElementById('categoryResult');
         const detectedCategory = document.getElementById('detectedCategory');
-        const confidenceMessage = document.getElementById('confidenceMessage');
+        const confidenceBar = document.getElementById('confidenceBar');
 
-        async function validateImage(file, category) {
+        async function validateImage(file) {
             // Show loading alert
             Swal.fire({
                 title: 'Validating image...',
@@ -664,7 +699,6 @@
 
             const formData = new FormData();
             formData.append('image', file);
-            formData.append('category', category);
             formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
 
             try {
@@ -678,9 +712,43 @@
                 });
 
                 const data = await response.json();
-                console.log('Validation response:', data); // Debug log
+                console.log('Validation response:', data);
                 
                 if (data.is_valid) {
+                    const categorySelect = document.getElementById('category');
+                    const quantityTypeSelect = document.querySelector('select[name="quantity_type"]');
+                    const categorizeButton = document.getElementById('categorizeButton');
+
+                    console.log('Detected image type:', data.image_type);
+
+                    // Set category and quantity type based on detected image type
+                    switch(data.image_type) {
+                        case 'fresh_fruit':
+                            categorySelect.value = 'fresh_fruit';
+                            quantityTypeSelect.value = 'Kg';
+                            // Only show categorize button for rambutan/fresh fruit
+                            categorizeButton.style.display = 'block';
+                            break;
+                        case 'wine':
+                            categorySelect.value = 'wine';
+                            quantityTypeSelect.value = 'Litre';
+                            categorizeButton.style.display = 'none';
+                            submitButton.disabled = false;
+                            break;
+                        case 'pickle':
+                            categorySelect.value = 'pickle';
+                            quantityTypeSelect.value = 'Grams';
+                            categorizeButton.style.display = 'none';
+                            submitButton.disabled = false;
+                            break;
+                        case 'juice':
+                            categorySelect.value = 'juice';
+                            quantityTypeSelect.value = 'Mili Litre';
+                            categorizeButton.style.display = 'none';
+                            submitButton.disabled = false;
+                            break;
+                    }
+                    
                     // Show success message
                     Swal.fire({
                         icon: 'success',
@@ -690,18 +758,16 @@
                         imageWidth: 300,
                         imageHeight: 300,
                         imageAlt: 'Product Image',
-                        confirmButtonText: 'Continue to Categorization'
+                        confirmButtonText: data.image_type === 'fresh_fruit' ? 'Continue to Categorization' : 'Continue'
                     }).then((result) => {
-                        if (result.isConfirmed) {
-                            categorizeButton.style.display = 'block';
+                        if (result.isConfirmed && data.image_type === 'fresh_fruit') {
                             categorizeButton.onclick = () => categorizeImage(file);
                         }
                     });
                     
                     imagePreview.src = URL.createObjectURL(file);
                     imagePreview.style.display = 'block';
-                    submitButton.disabled = true; // Keep disabled until categorization
-                    imageValidationMessage.style.display = 'none'; // Clear validation message
+                    imageValidationMessage.style.display = 'none';
                 } else {
                     // Show error message
                     Swal.fire({
@@ -713,8 +779,8 @@
                     imageInput.value = ''; // Clear the file input
                     imagePreview.style.display = 'none'; // Hide the image preview
                     submitButton.disabled = true; // Disable the submit button
-                    imageValidationMessage.textContent = 'Invalid image. Please upload a valid image.'; // Set validation message
-                    imageValidationMessage.style.display = 'block'; // Show validation message
+                    imageValidationMessage.textContent = 'Invalid image. Please upload a valid image.';
+                    imageValidationMessage.style.display = 'block';
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -752,24 +818,21 @@
         // Add event listener for file input
         imageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
-            const category = categorySelect.value;
-            
-            if (file) {
-                validateImage(file, category);
-            }
-        });
-
-        // Add event listener for category changes
-        categorySelect.addEventListener('change', function() {
-            const file = imageInput.files[0];
-            if (file) {
-                validateImage(file, this.value);
-            }
+            validateImage(file);
         });
 
         // Add form submit handler
         document.getElementById('rambutanForm').addEventListener('submit', function(event) {
-            if (submitButton.disabled) {
+            const category = document.getElementById('detectedCategory').textContent.toLowerCase();
+            if (category === 'defective' || category === 'raw') {
+                event.preventDefault();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Cannot Submit Post',
+                    text: `Cannot post ${category} rambutan. Please ensure the rambutan is in good condition and properly processed.`,
+                    confirmButtonText: 'OK'
+                });
+            } else if (submitButton.disabled) {
                 event.preventDefault();
                 Swal.fire({
                     icon: 'warning',
@@ -796,12 +859,57 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // Update UI with results
+                    // Update and show the category
                     detectedCategory.textContent = data.category;
-                    //confidenceMessage.textContent = data.message;
                     categoryResult.style.display = 'block';
                     
-                    if (!data.is_allowed) {
+                    const categorySelect = document.getElementById('category');
+                    const quantityTypeSelect = document.querySelector('select[name="quantity_type"]');
+                    
+                    if (data.detected_labels) {
+                        const labels = data.detected_labels.map(label => label.toLowerCase());
+                        console.log('Detected labels:', labels);
+                        
+                        // Check for different types of products with expanded keywords
+                        const wineKeywords = ['wine', 'bottle', 'alcohol', 'beverage', 'wine bottle'];
+                        const rambutanKeywords = ['rambutan', 'fruit', 'fresh fruit'];
+                        const pickleKeywords = ['pickle', 'jar', 'preserved', 'fermented', 'container', 'preservation', 'pickled food'];
+                        const juiceKeywords = ['juice', 'drink', 'liquid', 'beverage container', 'fruit juice', 'bottle', 'drink container'];
+                        
+                        const isWine = labels.some(label => wineKeywords.some(keyword => label.includes(keyword)));
+                        const isRambutan = labels.some(label => rambutanKeywords.some(keyword => label.includes(keyword)));
+                        const isPickle = labels.some(label => pickleKeywords.some(keyword => label.includes(keyword)));
+                        const isJuice = labels.some(label => juiceKeywords.some(keyword => label.includes(keyword)));
+                        
+                        console.log('Detection results:', { isWine, isRambutan, isPickle, isJuice });
+
+                        if (isPickle) {
+                            categorySelect.value = 'pickle';
+                            quantityTypeSelect.value = 'Grams';
+                            console.log('Setting pickle category');
+                        } else if (isJuice) {
+                            categorySelect.value = 'juice';
+                            quantityTypeSelect.value = 'Mili Litre';
+                            console.log('Setting juice category');
+                        } else if (isWine) {
+                            categorySelect.value = 'wine';
+                            quantityTypeSelect.value = 'Litre';
+                        } else if (isRambutan) {
+                            categorySelect.value = 'fresh_fruit';
+                            quantityTypeSelect.value = 'Kg';
+                        }
+                    }
+                    
+                    // Check if category is defective or raw
+                    if (data.category.toLowerCase() === 'defective' || data.category.toLowerCase() === 'raw') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Upload Not Allowed',
+                            text: `Cannot post ${data.category.toLowerCase()} rambutan. Please ensure the rambutan is in good condition and properly processed.`,
+                            confirmButtonText: 'OK'
+                        });
+                        submitButton.disabled = true;
+                    } else if (!data.is_allowed) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Upload Not Allowed',
@@ -827,4 +935,5 @@
     });
   </script>
 </body>
+
 </html>
